@@ -1,8 +1,8 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 
-export const VERSION = 3;
+export const VERSION = 4;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -42,7 +42,16 @@ export const getArrival = s => {
   const n = s.arrival.amount, i = a.amounts?.indexOf(n) ?? -1;
   return { ...a, text: a.text.replace('{n}', n.toLocaleString('zh-CN')), note: i >= 0 ? a.notes[i] : a.note, effects: a.key ? { [a.key]: n } : a.effects };
 };
-export const modelFee = (s, profile) => s.role === 'grad' ? Math.ceil(profile.fee / 2) : profile.fee;
+export const modelFee = (s, model) => s.role === 'grad' ? Math.ceil(model.fee / 2) : model.fee;
+export const expandCost = s => 700 + (s.capacity - 18) * 40;
+export const sells = (s, id) => s.available.includes(id);
+export const getQuest = s => s.quest && QUESTS.find(q => q.id === s.quest.id);
+export function questProgress(s) {
+  const q = getQuest(s); if (!q) return null;
+  const b = s.quest.base;
+  const value = { tradeProfit: s.tradeProfit - b.tradeProfit, repaid: b.debt - s.debt, skill: s.skill - b.skill, cash: s.cash - b.cash, reputation: s.reputation - b.reputation, calm: s.stress }[q.track];
+  return { ...q, value, done: q.track === 'calm' ? value < q.need : value >= q.need };
+}
 // Typical quote for today, ignoring station and news, so players can tell cheap from expensive.
 export const referencePrice = (s, id) => {
   const g = GOODS.find(g => g.id === id);
@@ -79,9 +88,12 @@ function market(s) {
     s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1)));
     s.history[g.id] = [...(s.history[g.id] ?? []), s.prices[g.id]].slice(-8);
   }
+  const picked = s.day === 1 ? OPENING_GOODS : shuffle(s, GOODS.map(g => g.id)).slice(0, GOODS_PER_DAY);
+  s.available = GOODS.map(g => g.id).filter(id => picked.includes(id));
   s.rumor = null;
+  const rumors = RUMORS.filter(r => s.available.includes(r.good));
   if (s.day > 1 && random(s) < .4) {
-    const r = RUMORS[Math.floor(random(s) * RUMORS.length)];
+    const r = rumors[Math.floor(random(s) * rumors.length)];
     s.prices[r.good] = Math.max(8, Math.round(s.prices[r.good] * r.factor));
     s.history[r.good][s.history[r.good].length - 1] = s.prices[r.good];
     s.rumor = r.id;
@@ -95,6 +107,9 @@ function market(s) {
     applyEffects(s, got.effects);
     log(s, `到站：${got.text}${got.note}`, 'arrival');
   }
+  // What the player saw here, for the map. Only the station visited today is updated.
+  s.intel = { ...(s.intel ?? {}), [s.location]: { day: s.day, cheap: s.available.filter(id => ['crash', 'cheap'].includes(priceHeat(s, id).id)), dear: s.available.filter(id => ['hot', 'high'].includes(priceHeat(s, id).id)) } };
+  s.quest = s.day > 1 ? { id: QUESTS[Math.floor(random(s) * QUESTS.length)].id, base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash, reputation: s.reputation } } : null;
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -105,7 +120,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null, lastAction: null,
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -154,13 +169,15 @@ export function actionInfo(s, action) {
     build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
     write: { name: '写稿发帖', desc: '抽卡式创作：可能 10 万+，也可能住院。', icon: 'PenLine', effects: { health: -3, stress: 5 }, outcomes: writeOutcomes(s), after: '' },
     maintain: { name: '还一点技术债', desc: '修旧坑，也保护每天的产品收入。', icon: 'Wrench', effects: { cash: -90, techDebt: -18, stress: -5, skill: 2 }, after: '删掉一层包装。你终于又能看懂自己的系统了。' },
-    expand: { name: '扩容云仓库', desc: `多放 10 件 · 当前 ${s.capacity} 件`, icon: 'HardDrive', effects: { cash: -(700 + (s.capacity - 18) * 40) }, after: '空间变大了。别把它当成一定要买满的理由。', reason: s.capacity >= 58 ? '仓库已到上限' : '' },
+    social: { name: '去饭局社交', desc: '扫码加了 200 个好友，真朋友 0.5 个。', icon: 'Users', effects: { cash: -120, health: -2, stress: -3, reputation: 4 }, after: '' },
   };
   const info = infos[action];
   if (!info) return null;
   if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
   if (ACTION_ROLLS[action]) {
     const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
+    // Launch parties and hackathons are where the angels drink.
+    if (action === 'social' && ['launch', 'hackathon'].includes(s.location)) rolls[0].weight = 14;
     info.outcomes = [{ id: 'normal', rank: '', weight: 100 - rolls.reduce((n, r) => n + r.weight, 0), effects: {}, text: '' }, ...rolls];
   }
   return { ...info, reason: info.reason || (s.cash + (info.effects.cash ?? 0) < 0 ? '现金不足' : s.ap < 1 ? '今天的行动已用完' : '') };
@@ -203,8 +220,7 @@ export function transition(original, command) {
       const model = MODELS.find(m => m.id === command.id);
       if (!model) return fail('这个模型不在当前目录中。');
       if (getModel(s)) return fail('当前搭子还在合同期，结束后再换，别重复付费。');
-      const profile = PROFILES[model.profile];
-      const fee = modelFee(s, profile);
+      const fee = modelFee(s, model);
       if (s.cash < fee) return fail('现金不够，先靠自己也能玩。');
       s.cash -= fee; s.model = model.id; s.modelUntil = Math.min(DAYS, s.day + 4);
       message = `签下 ${model.name}，支付游戏币 ¥${fee}，有效至第 ${s.modelUntil} 天。不会自动续费。`;
@@ -236,6 +252,7 @@ export function transition(original, command) {
     case 'sell': {
       const g = GOODS.find(g => g.id === command.id);
       if (!g || !integer(command.qty, 1, 1000)) return fail('请输入 1 到 1,000 之间的整数数量。');
+      if (!sells(s, g.id)) return fail(`这一站今天不收${g.short}，换个地方再交易。`);
       const holding = s.inventory[g.id];
       if (command.type === 'buy') {
         const cost = s.prices[g.id] * command.qty;
@@ -286,6 +303,14 @@ export function transition(original, command) {
       message ||= info.after;
       log(s, `${info.name}：${effectText(info.effects)}。${message}`, 'action'); break;
     }
+    case 'expand': {
+      if (s.capacity >= 58) return fail('仓库已到上限。');
+      const cost = expandCost(s);
+      if (s.cash < cost) return fail('现金不够扩仓。');
+      s.cash -= cost; s.capacity += 10;
+      message = `仓库扩到 ${s.capacity} 件，花了 ¥${cost}。别把它当成一定要囤满的理由。`;
+      log(s, message, 'finance'); break;
+    }
     case 'repay': {
       if (!integer(command.amount, 1)) return fail('还款金额须为正整数。');
       if (command.amount > s.debt) return fail('这比欠款还多，按剩余欠款还就好。');
@@ -307,6 +332,12 @@ export function transition(original, command) {
       if (finishing && s.day !== DAYS) return fail('第 40 天才可最终结算。');
       if (!finishing && s.day >= DAYS) return fail('今天是最后一天，请清理账目后结算。');
       if (!finishing && !LOCATIONS.some(l => l.id === command.location)) return fail('目的地不存在。');
+      const quest = questProgress(s);
+      if (quest?.done) {
+        applyEffects(s, quest.reward); s.questsDone++;
+        log(s, `委托完成：${quest.title}，奖励 ${effectText(quest.reward)}。`, 'quest');
+      }
+      s.quest = null;
       // Bills apply to the day just lived, before moving. Day 40 is billed once too.
       const revenue = productIncome(s), cost = dailyCost(s), interest = dailyInterest(s);
       const shortage = Math.max(0, cost - s.cash - revenue);
@@ -364,6 +395,10 @@ export function isValidSave(s) {
   for (const k of ['health', 'stress', 'skill', 'reputation', 'techDebt']) if (!integer(s[k], 0, 100)) return false;
   if (!integer(s.ap, 0, 2) || !integer(s.products, 0, 6) || !integer(s.progress, 0, 2) || ![18, 28, 38, 48, 58].includes(s.capacity)) return false;
   if (s.rumor !== null && !RUMORS.some(r => r.id === s.rumor)) return false;
+  if (!Array.isArray(s.available) || s.available.length !== GOODS_PER_DAY || new Set(s.available).size !== GOODS_PER_DAY || !s.available.every(id => GOODS.some(g => g.id === id))) return false;
+  if (!s.intel || typeof s.intel !== 'object' || Array.isArray(s.intel) || !Object.entries(s.intel).every(([loc, v]) => LOCATIONS.some(l => l.id === loc) && v && integer(v.day, 1, DAYS) && ['cheap', 'dear'].every(k => Array.isArray(v[k]) && v[k].every(id => GOODS.some(g => g.id === id))))) return false;
+  if (s.quest !== null && !(s.quest && QUESTS.some(q => q.id === s.quest.id) && s.quest.base && ['tradeProfit', 'debt', 'skill', 'cash', 'reputation'].every(k => integer(s.quest.base[k], -1e9)))) return false;
+  if (!integer(s.questsDone, 0, DAYS)) return false;
   if (s.arrival !== null && !(s.arrival && ARRIVALS.some(a => a.id === s.arrival.id && (a.amounts ? a.amounts.includes(s.arrival.amount) : s.arrival.amount === 0)))) return false;
   if (s.lastWrite !== null && !WRITE_OUTCOMES.some(o => o.id === s.lastWrite)) return false;
   if (s.lastAction !== null && !(s.lastAction && ACTION_FLAVOR[s.lastAction.id] && integer(s.lastAction.flavor, 0, ACTION_FLAVOR[s.lastAction.id].length - 1)
@@ -416,7 +451,14 @@ export function parseSave(text) {
       if (integer(s.cash)) s.cash += refund;
       if (Array.isArray(s.journal) && refund) s.journal.unshift({ day: s.day, text: `货架换新：下架的旧货按回收价折现 ¥${refund}。`, kind: 'finance' });
       if (s.rumor && !RUMORS.some(r => r.id === s.rumor)) s.rumor = null;
-      s.arrival = null; s.lastWrite = null; s.version = VERSION;
+      s.arrival = null; s.lastWrite = null; s.version = 3;
+    }
+    if (s?.version === 3 && s.inventory && s.prices && s.previousPrices && s.history) {
+      // v4 added goods and per-station availability; the opening set keeps today's market as it was.
+      for (const g of GOODS) if (!s.inventory[g.id]) {
+        s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
+      }
+      s.available = [...OPENING_GOODS]; s.intel = {}; s.quest = null; s.questsDone = 0; s.version = VERSION;
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.

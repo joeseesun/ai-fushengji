@@ -9,17 +9,24 @@ export const GOODS = [
   { id: 'workflow', name: 'Agent 工作流', short: '工作流', base: 480, decay: .006, desc: '全自动，除了需要你一直在旁边点“继续”。', unit: '套' },
   { id: 'lesson', name: 'AI 副业课', short: '副业课', base: 1500, decay: .01, desc: '《零基础 7 天 AI 月入三万》。讲师的月入三万，来自你。', unit: '套' },
   { id: 'avatar', name: '数字分身模板', short: '数字分身', base: 720, decay: .004, desc: '替你上班、替你直播，暂时不能替你交房租。', unit: '套' },
+  { id: 'whale', name: '大肥鱼毛绒', short: '肥鱼', base: 60, decay: -.002, desc: '吃白饭的蓝色大肥鱼周边。每次 DeepSeek 发新模型，它就断货。', unit: '只' },
+  { id: 'minecard', name: '二手矿卡', short: '矿卡', base: 1100, decay: .01, desc: '“只跑过推理，从没挖过矿。”风扇上的灰不同意。', unit: '张' },
+  { id: 'deck', name: '融资 PPT 模板', short: 'PPT', base: 199, decay: .004, desc: '自带“颠覆”“生态”“飞轮”三件套，曲线保证向右上。', unit: '套' },
+  { id: 'robot', name: '人形机器人体验券', short: '机器人券', base: 2600, decay: .006, desc: '会扭秧歌、会翻跟头，还不会洗碗。', unit: '张' },
 ];
+// Each station only deals in some goods each day. Day one opens with these.
+export const OPENING_GOODS = ['prompt', 'compute', 'rtx', 'invite', 'claude', 'workflow', 'lesson', 'avatar'];
+export const GOODS_PER_DAY = 8;
 
 export const LOCATIONS = [
-  { id: 'market', name: '算力黑市', full: '中关村 · 算力黑市', line: '卖铲子的人，也在分期买铲子。', specialty: 'H200、5090 便宜；拼车位常打折', factors: { compute: .69, rtx: .75, claude: .8, lesson: 1.25 }, icon: 'Cpu' },
-  { id: 'launch', name: '大厂发布会', full: '望京 · 大厂发布会', line: '台上说成本趋近于零。台下车马费也趋近于零。', specialty: '可能领车马费；邀请码、分身最值钱', factors: { invite: 1.5, avatar: 1.45, lesson: .8 }, icon: 'Presentation' },
-  { id: 'jobs', name: '外包接单群', full: '线上 · 外包接单群', line: '预算五百，体验对标世界第一。', specialty: '接单多赚 ¥160；工作流、拼车位好卖', factors: { workflow: 1.45, compute: 1.15, claude: 1.3 }, icon: 'BriefcaseBusiness' },
-  { id: 'course', name: '知识付费群', full: '海淀 · 知识付费群', line: '离年入百万，只差老师还没录的下一节。', specialty: '提示词、副业课卖得最贵', factors: { prompt: 1.8, lesson: 1.6, avatar: 1.25 }, icon: 'GraduationCap' },
-  { id: 'opensource', name: '开源社区', full: '线上 · 开源社区', line: '仓库标星一万，维护者今天还没吃饭。', specialty: '学习多涨 3 技能；提示词、副业课便宜', factors: { workflow: .76, prompt: .7, lesson: .6 }, icon: 'GitFork' },
-  { id: 'stream', name: '直播基地', full: '亦庄 · 网红直播基地', line: '每个工位都在说“家人们”，每盏补光灯都在说“刚刚”。', specialty: '写稿收入 +50%；分身模板抢手', factors: { avatar: 1.6, lesson: 1.3, invite: 1.2 }, icon: 'Video' },
-  { id: 'hackathon', name: 'AI 黑客松', full: '798 · AI 黑客松', line: '48 小时，三箱披萨，一个永远在台上崩溃的 demo。', specialty: '学习多涨 2 技能；可能拿奖金；邀请码便宜', factors: { invite: .7, claude: 1.2, compute: .85 }, icon: 'Trophy' },
-  { id: 'home', name: '出租屋', full: '回龙观 · 出租屋', line: '你的总部、工位、食堂，以及宇宙尽头。', specialty: '休息多回 6 健康，生活费少 ¥40', factors: { prompt: .9, compute: 1.12 }, icon: 'House' },
+  { id: 'market', name: '算力黑市', full: '中关村 · 算力黑市', line: '卖铲子的人，也在分期买铲子。', specialty: 'H200、5090 便宜；拼车位常打折', factors: { compute: .69, rtx: .75, claude: .8, lesson: 1.25 , minecard: .7, robot: 1.2 }, icon: 'Cpu' },
+  { id: 'launch', name: '大厂发布会', full: '望京 · 大厂发布会', line: '台上说成本趋近于零。台下车马费也趋近于零。', specialty: '可能领车马费；邀请码、分身最值钱', factors: { invite: 1.5, avatar: 1.45, lesson: .8 , robot: 1.45, deck: .8 }, icon: 'Presentation' },
+  { id: 'jobs', name: '外包接单群', full: '线上 · 外包接单群', line: '预算五百，体验对标世界第一。', specialty: '接单多赚 ¥160；工作流、拼车位好卖', factors: { workflow: 1.45, compute: 1.15, claude: 1.3 , deck: 1.3, whale: .8 }, icon: 'BriefcaseBusiness' },
+  { id: 'course', name: '知识付费群', full: '海淀 · 知识付费群', line: '离年入百万，只差老师还没录的下一节。', specialty: '提示词、副业课卖得最贵', factors: { prompt: 1.8, lesson: 1.6, avatar: 1.25 , deck: 1.5, whale: 1.2 }, icon: 'GraduationCap' },
+  { id: 'opensource', name: '开源社区', full: '线上 · 开源社区', line: '仓库标星一万，维护者今天还没吃饭。', specialty: '学习多涨 3 技能；提示词、副业课便宜', factors: { workflow: .76, prompt: .7, lesson: .6 , whale: .7, minecard: 1.15 }, icon: 'GitFork' },
+  { id: 'stream', name: '直播基地', full: '亦庄 · 网红直播基地', line: '每个工位都在说“家人们”，每盏补光灯都在说“刚刚”。', specialty: '写稿收入 +50%；分身模板抢手', factors: { avatar: 1.6, lesson: 1.3, invite: 1.2 , whale: 1.6, robot: 1.3 }, icon: 'Video' },
+  { id: 'hackathon', name: 'AI 黑客松', full: '798 · AI 黑客松', line: '48 小时，三箱披萨，一个永远在台上崩溃的 demo。', specialty: '学习多涨 2 技能；可能拿奖金；邀请码便宜', factors: { invite: .7, claude: 1.2, compute: .85 , deck: 1.4, minecard: 1.2, robot: .75 }, icon: 'Trophy' },
+  { id: 'home', name: '出租屋', full: '回龙观 · 出租屋', line: '你的总部、工位、食堂，以及宇宙尽头。', specialty: '休息多回 6 健康，生活费少 ¥40', factors: { prompt: .9, compute: 1.12 , whale: .9, minecard: .85 }, icon: 'House' },
 ];
 
 // Each identity changes how the numbers move, not just the opening stats.
@@ -78,6 +85,13 @@ export const RUMORS = [
   { id: 'lesson-refund', good: 'lesson', factor: .3, art: 'news-slop', title: '学员集体维权要退款，副业课跳楼价清仓。' },
   { id: 'live-gmv', good: 'avatar', factor: 3, art: 'news-cat', title: '数字人直播带货“据说”破亿，分身模板被抢光。' },
   { id: 'as-an-ai', good: 'avatar', factor: .35, art: 'news-slop', title: '某数字人直播时说“作为一个 AI 语言模型”，分身模板清仓。' },
+  { id: 'whale-hype', good: 'whale', factor: 3.2, art: 'news-hype', title: 'DeepSeek 凌晨发新模型，大肥鱼毛绒全网断货。' },
+  { id: 'whale-busy', good: 'whale', factor: .35, art: 'news-calm', title: '“服务器繁忙”一整天，鱼粉暂时脱粉，毛绒没人要。' },
+  { id: 'minecard-crash', good: 'minecard', factor: .3, art: 'news-gpu-down', title: '新一代显卡开卖，二手矿卡跌成了“暖手宝”。' },
+  { id: 'minecard-local', good: 'minecard', factor: 2.4, art: 'news-gpu-up', title: '“家用卡跑满血模型”教程爆火，矿卡回收价翻倍。' },
+  { id: 'deck-boom', good: 'deck', factor: 2.8, art: 'news-hype', title: '某 AI 公司 PPT 估值十亿，融资模板被抢购一空。' },
+  { id: 'robot-gala', good: 'robot', factor: 2.6, art: 'news-cat', title: '机器人扭秧歌上了晚会热搜，体验券一票难求。' },
+  { id: 'robot-fall', good: 'robot', factor: .35, art: 'news-gpu-down', title: '机器人半程马拉松摔倒视频刷屏，体验券打折甩卖。' },
 ];
 
 // Small things that happen on arrival. {n} is replaced by the rolled amount; each amount has its own one-liner.
@@ -312,6 +326,11 @@ export const INTRO_EVENT = event('intro', '第 1 天 · 新手须知', '40 天�
 
 // Every action can surprise. Odds are shown on the tile; bonus effects add to the base action.
 export const ACTION_ROLLS = {
+  social: [
+    { id: 'investor', rank: '天使', weight: 8, art: 'act-investor', bonus: { cash: 1500, reputation: 3 }, text: '角落里穿抓绒背心的人听完你的想法，递来一张天使投资支票。“我投的是人。”' },
+    { id: 'lead', rank: '来单', weight: 15, bonus: { cash: 450 }, text: '有人说“我们正好缺个懂 AI 的”，当场给你派了一单。' },
+    { id: 'trap', rank: '被拉群', weight: 15, bonus: { stress: 6, reputation: -2 }, text: '你被拉进 6 个卖课群，饭局还没结束就被 @ 了 30 次。' },
+  ],
   work: [
     { id: 'jackpot', rank: '暴击', weight: 12, art: 'act-jackpot', bonus: { cashRate: .8, reputation: 2 }, text: '甲方说“效果超出预期”，当场加钱。你怀疑他把你当成了别人。' },
     { id: 'stiffed', rank: '压价', weight: 10, art: 'act-stiffed', bonus: { cashRate: -.4, stress: 4 }, text: '验收时甲方说“AI 不是一键就有吗”，尾款砍了四成。' },
@@ -346,5 +365,15 @@ export const ACTION_FLAVOR = {
   build: ['又完成了一小块。不是“平台”，是一个具体的问题。', '你写了一个只有三个按钮的产品。三个都能点。', '第一个用户反馈：“能导出 Excel 吗？”你笑着打开了编辑器。', '你给产品起了一个不带 AI 的名字。感觉很安全。'],
   maintain: ['删掉一层包装。你终于又能看懂自己的系统了。', '你补上了半年前就该写的测试。它们立刻抓到两个 bug。', '你把“临时方案”改成了真正的方案。临时了八个月。'],
   write: [''],
-  expand: ['空间变大了。别把它当成一定要买满的理由。'],
+  social: ['你加了 47 个微信，备注都是“AI 创业者”。', '大家互相夸对方的项目“很有想象力”。', '你吃到了今年最贵的一顿火锅，AA 的。', '饭桌上有 3 个人在做同一个产品，彼此都很礼貌。'],
 };
+
+// One small goal per day. Checked when the day ends; the base snapshot is taken when the day starts.
+export const QUESTS = [
+  { id: 'trade', title: '今天倒货赚 ¥500', reward: { cash: 300 }, need: 500, track: 'tradeProfit' },
+  { id: 'repay', title: '今天还款 ¥1,000', reward: { reputation: 5, stress: -6 }, need: 1000, track: 'repaid' },
+  { id: 'skill', title: '今天技能 +8', reward: { cash: 220 }, need: 8, track: 'skill' },
+  { id: 'cash', title: '今天现金净增 ¥800', reward: { reputation: 3, cash: 150 }, need: 800, track: 'cash' },
+  { id: 'calm', title: '收工时压力低于 30', reward: { health: 8 }, need: 30, track: 'calm' },
+  { id: 'rep', title: '今天口碑 +6', reward: { cash: 260 }, need: 6, track: 'reputation' },
+];

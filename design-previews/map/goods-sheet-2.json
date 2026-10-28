@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T07:08:12.555Z",
+  "prompt": "A sprite sheet of 4 detailed 16-bit pixel art game item icons arranged in a strict grid of 4 columns and 1 row, each icon perfectly centered in its own equal square cell with generous empty margin, no overlap, no borders, no grid lines, fully transparent background. Warm muted retro palette (teal, warm grey, navy, cream, orange, small red accents), crisp hard pixel edges. (1) a cute chubby blue whale plush toy holding a tiny steel rice bowl; (2) a dusty battered used graphics card with a crack and a price tag string; (3) a shiny folder of presentation slides with a rocket-shaped hockey-stick growth chart sticking out; (4) a golden admission ticket with a small humanoid robot dancing on it. Absolutely no text, no letters, no numbers, no logos.",
+  "aspect_ratio": "4:1",
+  "reference_images": [],
+  "dimensions": {
+    "width": 2172,
+    "height": 724
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a sprite sheet of exactly 4 detailed 16-bit pixel art game item icons arranged in a strict grid of 4 columns and 1 row. The overall canvas is a wide 4:1 rectangle composed of four equal square cells. Each icon is perfectly centered in its own square cell with generous transparent empty margins, consistent visual size, and no overlap between cells. No borders, no grid lines, no shadows outside the sprites, fully transparent background. Warm muted retro palette: teal, warm grey, navy, cream, orange, gold and small red accents. Crisp hard pixel edges with deliberate square pixel clusters, detailed 16-bit sprite craftsmanship, no antialiasing, no smooth gradients. From left to right: (1) a cute chubby blue whale plush toy with visible pixel stitching holding a tiny steel rice bowl; (2) a dusty battered used graphics card with a visible crack, a fan, worn components, and a string attached to a completely blank price tag; (3) a shiny folder of presentation slides with a rocket-shaped hockey-stick growth chart sticking out, represented only by abstract graphical shapes and an upward-curving rocket arrow; (4) a golden admission ticket with ticket notches and a small humanoid robot visibly dancing on it, playful tilted limbs. Absolutely no text, no letters, no numbers, no logos anywhere. All objects entirely contained within their cells, four distinct readable game inventory icons, transparent background.",
+  "route": "raw_prompt"
+}

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T07:11:22.917Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), jackpot surprise mood, no purple neon. Scene: in a cozy coffee shop, a mysterious angel investor in a fleece vest slides a giant oversized cheque across the table to a stunned young founder whose coffee cup is falling, sparkles and coins around, other customers turning heads. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully placed pixel clusters, no smooth gradients or blurry edges. Warm muted retro palette of teal, warm grey, navy, cream, and orange accents; no purple neon. Scene: a cozy coffee shop with warm lighting, wooden tables, upholstered seating, and an espresso counter. At the main table, a mysterious angel investor wearing a fleece vest calmly slides a giant oversized cheque across the table toward a stunned young adult founder. The founder has a wide-eyed astonished expression, leaning back with hands raised as their coffee cup falls through the air, coffee spilling in a dramatic arc. Emphasize a jackpot-surprise mood with small golden sparkles and blank gold coins around the exchange. Other coffee-shop customers turn their heads in surprise. Clear visual storytelling, expressive faces and gestures, polished nostalgic game scene with a strong focal point. The oversized cheque is a completely blank cream rectangle with only a plain thin decorative border: NO writing, NO marks resembling writing, NO signature, NO digits, NO currency symbols. Coins have plain unmarked faces. Absolutely NO text, NO letters, NO numbers, NO logos anywhere in the entire picture, including signs, cups, clothes, walls, and background props. Fully opaque background and full-bleed artwork filling the complete image edge to edge; warm coffee-shop scenery and base colors cover every corner. NO transparency, NO cutouts, NO black corner regions, NO vignette, NO letterboxing.",
+  "route": "raw_prompt"
+}
