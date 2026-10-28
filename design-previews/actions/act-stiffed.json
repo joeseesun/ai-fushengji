@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:38:11.925Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), comically frustrating mood, no purple neon. Scene: a client on a big video screen holding up a tiny calculator and shaking head while a freelancer slumps holding only a few coins, an invoice paper flying away out of the window, a chat window full of question marks, a sad potted plant. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, no smooth gradients, warm muted retro palette of teal, warm grey, navy, cream, and small orange accents. Comically frustrating freelance work scene in a cozy small studio: on the left a large video-call screen shows an exasperating client holding up a tiny calculator with a blank display and blank unlabeled buttons while shaking their head, conveyed with repeated pixel motion strokes. On the right a freelancer slumps in their chair, shoulders sagging, showing just a few plain unmarked coins in an open hand. A loose invoice-like sheet flies out an open window, represented by a blank cream sheet with only simple nonlinguistic grid lines, no writing or numerals. A nearby chat window is crowded with blank speech balloons and puzzled face pictograms, visually expressing an endless barrage of questions without using actual question marks or any written characters. A small sad drooping potted plant sits on the desk. Strong expressive body language, humorous frustration, rich but readable environmental details, intentional light and shadow rendered in pixels. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WRITTEN PUNCTUATION ANYWHERE, including screen interfaces, calculator, papers, coins, wall and objects. The entire canvas must be filled edge to edge with an opaque warm room background; no transparency, cutouts, black corner areas, borders or vignette. No purple, no neon.",
+  "route": "raw_prompt"
+}

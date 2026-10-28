@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:35:56.678Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny mood, no purple neon. Scene: a cloud-shaped warehouse in the sky being expanded by tiny construction workers adding new floors with cranes, shelves full of GPU cards, invitation envelopes and course DVDs, a person below handing over a fat wallet that is visibly shrinking. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition (16:9). Crisp hard pixel edges, deliberate square pixel clusters, no anti-aliasing, warm muted retro palette of teal, warm grey, navy, cream with orange accents, funny satirical mood, absolutely no purple neon. Scene: an enormous cloud-shaped warehouse floating in a cream and muted teal sky, visibly being expanded upward by tiny construction workers wearing orange hard hats, with cranes lifting new floor sections and workers adding new floors. Use a readable cutaway view of the cloud warehouse revealing shelves full of recognizable GPU graphics cards with cooling fans, sealed invitation envelopes, and stacks of blank course DVD discs and plain cases. None of these objects have any writing or branding. On a small ground platform below, a comically worried person hands over an exaggerated fat wallet toward the warehouse's collection mechanism; visually show the wallet actively shrinking and deflating as it is pulled upward, with its upper portion pinched thin and empty while the lower portion is still fat, loose blank coins being drawn from it. Strong visual storytelling, humorous tiny workers and overbuilding, layered intricate pixel details, clear composition. Absolutely no text, no letters, no numbers, no logos, no symbols resembling writing anywhere, no captions or speech bubbles. Opaque background: a continuous warm cream paper-like base and sky color must cover the entire rectangular canvas edge to edge, including all four corners. No transparency, no cutout background, no holes, no black corners, no dark vignette, no frame. All pixel art edges should be sharp.",
+  "route": "raw_prompt"
+}

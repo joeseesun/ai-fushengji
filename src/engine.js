@@ -1,4 +1,4 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 
@@ -105,7 +105,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null,
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null, lastAction: null,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -137,6 +137,12 @@ export function writeOutcomes(s) {
   return WRITE_OUTCOMES.map(o => ({ ...o, weight: s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight, effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) } : {}), ...o.effects } }));
 }
 
+export const combinedEffects = (base, extra) => {
+  const out = { ...base };
+  for (const [k, v] of Object.entries(extra)) out[k] = (out[k] ?? 0) + v;
+  return Object.fromEntries(Object.entries(out).filter(([, v]) => v));
+};
+
 export function actionInfo(s, action) {
   const bonus = modelBonus(s), role = s.role;
   const job = Math.round((220 + s.skill * 4 + s.reputation * 2 + (s.location === 'jobs' ? 160 : 0)) * (role === 'coder' ? 1.2 : 1)) + (bonus?.work ?? 0);
@@ -153,6 +159,10 @@ export function actionInfo(s, action) {
   const info = infos[action];
   if (!info) return null;
   if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
+  if (ACTION_ROLLS[action]) {
+    const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
+    info.outcomes = [{ id: 'normal', rank: '', weight: 100 - rolls.reduce((n, r) => n + r.weight, 0), effects: {}, text: '' }, ...rolls];
+  }
   return { ...info, reason: info.reason || (s.cash + (info.effects.cash ?? 0) < 0 ? '现金不足' : s.ap < 1 ? '今天的行动已用完' : '') };
 }
 
@@ -251,9 +261,19 @@ export function transition(original, command) {
       if (info.outcomes) {
         let roll = random(s) * info.outcomes.reduce((n, o) => n + o.weight, 0);
         const o = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
-        applyEffects(s, o.effects); s.lastWrite = o.id;
-        message = `【${o.rank}】${o.text}`;
-        log(s, `${info.name}：${message}（${effectText({ ...info.effects, ...Object.fromEntries(Object.entries(o.effects).map(([k, v]) => [k, (info.effects[k] ?? 0) + v])) })}）`, 'action');
+        applyEffects(s, o.effects);
+        const pool = ACTION_FLAVOR[command.id] ?? [''], flavor = o.id === 'normal' ? Math.floor(random(s) * pool.length) : 0;
+        s.lastAction = { id: command.id, outcome: o.id, flavor };
+        if (command.id === 'write') s.lastWrite = o.id;
+        if (command.id === 'work' || command.id === 'rush') s.jobsDone++;
+        if (command.id === 'rest') s.daysRested++;
+        if (command.id === 'build') {
+          s.progress++;
+          if (s.progress === 3) { s.products++; s.progress = 0; }
+        }
+        const text = o.id === 'normal' ? pool[flavor] : o.text;
+        message = `${o.rank ? `【${o.rank}】` : ''}${text}${command.id === 'build' && s.progress === 0 ? `第 ${s.products} 个小产品上线！` : ''}`;
+        log(s, `${info.name}：${message}（${effectText(combinedEffects(info.effects, o.effects))}）`, 'action');
         break;
       }
       if (command.id === 'work' || command.id === 'rush') s.jobsDone++;
@@ -346,6 +366,8 @@ export function isValidSave(s) {
   if (s.rumor !== null && !RUMORS.some(r => r.id === s.rumor)) return false;
   if (s.arrival !== null && !(s.arrival && ARRIVALS.some(a => a.id === s.arrival.id && (a.amounts ? a.amounts.includes(s.arrival.amount) : s.arrival.amount === 0)))) return false;
   if (s.lastWrite !== null && !WRITE_OUTCOMES.some(o => o.id === s.lastWrite)) return false;
+  if (s.lastAction !== null && !(s.lastAction && ACTION_FLAVOR[s.lastAction.id] && integer(s.lastAction.flavor, 0, ACTION_FLAVOR[s.lastAction.id].length - 1)
+    && (s.lastAction.outcome === 'normal' || [...(ACTION_ROLLS[s.lastAction.id] ?? []), ...(s.lastAction.id === 'write' ? WRITE_OUTCOMES : [])].some(o => o.id === s.lastAction.outcome)))) return false;
   if (!s.inventory || !s.prices || !s.previousPrices || !s.history) return false;
   for (const g of GOODS) {
     const item = s.inventory[g.id];
@@ -398,7 +420,7 @@ export function parseSave(text) {
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
-      s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null;
+      s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null; s.lastAction ??= null;
       // A contract on a model that left the roster ends early instead of invalidating the save.
       if (s.model !== null && s.model !== undefined && !MODELS.some(m => m.id === s.model)) { s.model = null; s.modelUntil = 0; }
       s.eventDeck = [...s.eventDeck, ...EVENTS.map(e => e.id).filter(id => !s.eventDeck.includes(id))];

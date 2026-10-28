@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:33:36.897Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), proud funny mood, no purple neon. Scene: a tiny indie maker on a ladder assembling a cute little product box-robot out of building blocks on a workbench, blueprints pinned on the wall, a small rocket made of cardboard about to launch from the desk, a first customer peeking through the window with coins in hand. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition (16:9). Crisp, hard pixel edges with deliberately placed pixels, no smoothing or blurry edges. Warm muted retro palette of teal, warm grey, navy, cream, with orange accents; absolutely no purple neon. Proud, funny, charming indie-maker mood. Show a tiny indie maker standing on a ladder at a workbench, proudly assembling a cute little product box-robot from colorful building blocks. The box-robot has an expressive simple pixel face and adorable small limbs. Behind the workbench, pin technical blueprints onto the wall, containing only purely visual diagrams and geometric drawings, no annotations or glyphs. On the desk, a small handmade cardboard rocket is about to launch, with a few playful orange ignition sparks and a small cream puff of smoke. A first customer peeks through a window holding a few plain unmarked coins, looking curious and eager. Make the ladder, maker assembling blocks, cute robot, cardboard rocket, and customer in window immediately clear. Cozy handcrafted workshop, thoughtfully arranged pixel-art tools and block pieces, warm light, humorous storytelling, rich but readable environmental details. Absolutely no text, no letters, no numbers, no logos, no watermarks, no typographic symbols anywhere, including on the box, blueprints, coins, rocket, walls or tools. Fully opaque background with colored wall/floor or paper-like warm base covering the entire canvas edge to edge. No transparency, no cutouts, no empty alpha regions, no black corners, no dark vignette or black border.",
+  "route": "raw_prompt"
+}

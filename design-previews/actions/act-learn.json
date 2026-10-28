@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:31:00.863Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny enlightening mood, no purple neon. Scene: a learner sitting cross-legged on a pile of open books and printed research papers, a giant glowing light bulb appearing above their head, neural network diagrams drawn on a chalkboard behind, a cat wearing tiny glasses reading alongside, rays of light. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate authentic pixel clusters, no blurry anti-aliasing. Warm muted retro palette of teal, warm grey, navy, cream, with orange accents; funny, enlightening mood. A learner sits cross-legged on a pile of open books and loose printed research papers, with a giant glowing light bulb appearing above their head and stylized pixel rays of light radiating outward. Behind them is a chalkboard with neural network diagrams made only from unlabeled circles, nodes, lines and connections. Alongside them, a charming cat wearing tiny glasses is reading an open book. The books and research papers have only abstract nonlinguistic diagrams and simple geometric illustrations, never writing. Cozy scholarly room, thoughtful richly detailed pixel art composition, strong readable focal point, playful visual storytelling. Absolutely NO text, NO letters, NO numbers, NO mathematical symbols, NO logos, NO signatures, NO watermarks anywhere. No purple neon. Fully opaque background: warm cream and teal room scenery or paper-like base color fills the entire rectangular canvas edge to edge. No transparency, no cutout regions, no empty black corners, no black border, no vignette. 画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "route": "raw_prompt"
+}

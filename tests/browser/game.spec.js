@@ -32,6 +32,12 @@ const endDay = async page => {
   const go = page.locator('dialog.briefing [data-ui="close-modal"].cta');
   await expect(go).toBeVisible(); await expect(go).toBeInViewport({ ratio: 1 }); await go.click();
 };
+const doAction = async (page, id) => {
+  await page.locator(`[data-ui="action"][data-id="${id}"]`).click();
+  const button = page.locator('#act-continue');
+  await button.click(); if (await button.isVisible()) await button.click();
+  await expect(page.locator('#modal')).not.toBeVisible();
+};
 const score = o => (o.effects.cash ?? 0) / 130 + (o.effects.health ?? 0) * 1.5 - (o.effects.stress ?? 0) * 1.5 + (o.effects.skill ?? 0) * .7 + (o.effects.reputation ?? 0) * .7 - (o.effects.techDebt ?? 0) * .5;
 
 test('desktop: real 40-day UI run, trades, model contract, save/resume and PNG export', async ({ page }) => {
@@ -51,7 +57,7 @@ test('desktop: real 40-day UI run, trades, model contract, save/resume and PNG e
     if (day === 3 || day === 4 || day === 12) await page.screenshot({ path: `evidence/day-${day}-desktop.png`, fullPage: true });
     if (day === 4) { await reveal(page, '#stance'); await page.locator('#stance').fill('95'); await expect(page.locator('#stance-name')).toHaveText('义父'); }
     await choose(page);
-    for (let n = 0; n < 2; n++) { const s = await snapshot(page); await page.locator(`[data-ui="action"][data-id="${s.health < 70 || s.stress > 35 ? 'rest' : 'work'}"]`).click(); }
+    for (let n = 0; n < 2; n++) { const s = await snapshot(page); await doAction(page, s.health < 70 || s.stress > 35 ? 'rest' : 'work'); }
     const s = await snapshot(page), payment = Math.min(s.debt, Math.max(0, s.cash - 800));
     if (payment) { await page.locator('[data-ui="finance"]').click(); await page.locator('#repayment').fill(String(payment)); await page.locator('#repay').click(); }
     if (day === 10) { const before = await snapshot(page); await page.reload(); await page.locator('[data-ui="resume"]').click(); expect(await snapshot(page)).toEqual(before); }
@@ -76,7 +82,7 @@ test('mobile: complete run and gallery/source/model dialogs at 390px', async ({ 
       await expect(page.locator('.source-link')).toHaveAttribute('href', /aigengtu/); await page.locator('.window-close[data-ui="close-modal"]').click();
     }
     await choose(page);
-    for (let i = 0; i < 2; i++) { const n = await snapshot(page); await page.locator(`[data-ui="action"][data-id="${n.health < 70 || n.stress > 35 ? 'rest' : 'work'}"]`).click(); }
+    for (let i = 0; i < 2; i++) { const n = await snapshot(page); await doAction(page, n.health < 70 || n.stress > 35 ? 'rest' : 'work'); }
     if (day < 40) await endDay(page);
   }
   await page.locator('[data-ui="finish"]').click(); await page.locator('#confirm-finish').click(); await expect(page.locator('.ending-receipt')).toBeVisible();
@@ -94,7 +100,7 @@ test('320px layout, keyboard modal, malformed import and storage failure', async
   await expect(page.locator('#toast')).toContainText('格式不正确'); expect(await snapshot(page)).toEqual(before);
   await page.keyboard.press('Escape');
   await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('blocked'); }; });
-  await page.locator('[data-ui="action"][data-id="work"]').click(); await expect(page.locator('.save-warning')).toContainText('自动存档失败');
+  await doAction(page, 'work'); await expect(page.locator('.save-warning')).toContainText('自动存档失败');
 });
 
 test('offline resume, valid save import, support and follow images', async ({ page, context }) => {
@@ -104,7 +110,7 @@ test('offline resume, valid save import, support and follow images', async ({ pa
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   const before = await snapshot(page); await context.setOffline(true);
   await page.reload(); await page.locator('[data-ui="resume"]').click(); expect(await snapshot(page)).toEqual(before);
-  await page.locator('[data-ui="action"][data-id="work"]').click(); expect((await snapshot(page)).cash).toBeGreaterThan(before.cash);
+  await doAction(page, 'work'); expect((await snapshot(page)).cash).toBeGreaterThan(before.cash);
   await context.setOffline(false);
   await page.locator('[data-ui="save"]').click();
   await page.locator('#import-file').setInputFiles({ name: 'valid.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(before)) });
@@ -160,9 +166,9 @@ test('guidance advances from event to actions to next day, retaining agency', as
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
   await expect(page.locator('#next-step')).toContainText('还能干 2 件事');
   await expect(page.locator('button.cta:visible')).toHaveCount(1);
-  await page.locator('[data-ui="action"][data-id="work"]').click();
+  await doAction(page, 'work');
   await expect(page.locator('#next-step')).toContainText('还能干 1 件事');
-  await page.locator('[data-ui="action"][data-id="rest"]').click();
+  await doAction(page, 'rest');
   await expect(page.locator('#next-step')).toContainText('结束今天');
   await expect(page.locator('.end-day-button')).toHaveClass(/cta/);
   await showPane(page,'market');
@@ -188,6 +194,9 @@ test('identity picker starts the chosen role; writing shows a gacha card', async
   await choose(page);
   await expect(page.locator('[data-ui="action"][data-id="write"]')).toHaveClass(/cta/);
   await page.locator('[data-ui="action"][data-id="write"]').click();
+  await expect(page.locator('.act-progress')).toBeVisible();
   await expect(page.locator('.gacha-rank')).toBeVisible(); await expect(page.locator('#modal .cta')).toBeInViewport({ ratio: 1 });
   await page.screenshot({ path: 'evidence/gacha-desktop.png' });
+  await page.locator('#act-continue').click(); await expect(page.locator('#modal')).not.toBeVisible();
+  await expect(page.locator('.stat[data-stat="health"] .float-num')).toBeVisible();
 });

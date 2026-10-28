@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:34:49.349Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satisfying mood, no purple neon. Scene: a developer in overalls with a mop and a wrench cleaning a giant tangled ball of spaghetti cables and sticky notes that is labeled only with warning icons, half of the room is now neat and shiny, a pile of removed junk code shaped like bricks in a dumpster, a relieved sparkle. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create one detailed 16-bit pixel art illustration in a wide landscape composition, aspect ratio 16:9. Crisp hard pixel edges, deliberate pixel clusters, rich handcrafted retro game background detail, no antialiasing or blurry painterly effects. Warm muted retro palette: teal, warm grey, navy, cream, restrained orange accents. Funny and satisfying mood, absolutely no purple neon. Scene: a charming adult developer wearing work overalls, equipped with a mop and a wrench, cleaning up a giant tangled ball of spaghetti-like cables covered with blank sticky notes and purely pictorial warning icons (simple warning triangles containing exclamation-shaped symbols are permitted as warning pictograms, but no typographic letters or numbers). Make warning icons simple pictorial hazards such as lightning bolts and flames, avoid text-like glyphs. One half of the room is now beautifully neat, organized and shiny, while the other half contains the tangled cable mess. A nearby dumpster holds a satisfying pile of removed junk code visually represented as irregular chunky bricks, with no writing on the bricks. The developer looks relieved, with a small sparkling gleam of success. Strong readable scene composition, humorous visual storytelling, tactile pixel details, tidy side versus messy side clearly visible. No text, no letters, no numbers, no logos, no watermark anywhere; all sticky notes are completely blank except occasional purely pictorial warning icons. Fully opaque image: warm cream and warm grey floor and walls fill the entire canvas edge to edge, no transparency, no cutouts, no black corner regions, no vignette, no empty borders.",
+  "route": "raw_prompt"
+}

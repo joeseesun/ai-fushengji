@@ -167,3 +167,23 @@ test('a save holding a contract with a retired model still loads, with the contr
   const next = parseSave(JSON.stringify(s));
   assert.ok(next); assert.equal(next.model, null); assert.equal(next.modelUntil, 0); assert.equal(next.rng, s.rng);
 });
+test('every action can crit or flop with shown odds, persisted and never rerolled', async () => {
+  const { ACTION_ROLLS, ACTION_FLAVOR } = await import('../src/content.js');
+  const seen = {};
+  for (const id of Object.keys(ACTION_ROLLS)) {
+    for (let seed = 1; seed <= 150; seed++) {
+      const s = ready(seed); s.event = null; s.skill = 40; s.cash = 5000; s.techDebt = 30;
+      const info = actionInfo(s, id);
+      assert.equal(info.outcomes.reduce((n, o) => n + o.weight, 0), 100);
+      const a = act(s, { type: 'action', id }), b = act(parseSave(JSON.stringify(s)), { type: 'action', id });
+      assert.deepEqual(a, b); assert.ok(isValidSave(a)); assert.ok(a.cash >= 0);
+      assert.equal(a.lastAction.id, id);
+      const o = info.outcomes.find(o => o.id === a.lastAction.outcome);
+      if (o.effects.cash) assert.equal(a.cash, s.cash + info.effects.cash + o.effects.cash);
+      if (o.id === 'normal') assert.ok(ACTION_FLAVOR[id][a.lastAction.flavor]);
+      (seen[id] ??= new Set()).add(o.id);
+    }
+    assert.equal(seen[id].size, ACTION_ROLLS[id].length + 1, `${id}: ${[...seen[id]]}`);
+  }
+  const bad = ready(3); bad.lastAction = { id: 'work', outcome: 'eureka', flavor: 0 }; assert.equal(isValidSave(bad), false);
+});
