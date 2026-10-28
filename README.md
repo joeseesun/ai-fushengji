@@ -32,7 +32,7 @@ npm run dev
 npm test             # 25 项测试，含 100 局种子模拟
 npm run test:e2e     # 构建并启动独立预览，完整浏览器验收
 npm run build       # dist/，含按内容哈希版本化的离线缓存
-npm run package     # release/ai-fushengji-0.1.0-web.zip
+npm run package     # release/ai-fushengji-0.2.0-web.zip
 ```
 
 本地浏览器测试默认使用 Chrome。CI 使用 Playwright Chromium；可用 `CI=1 npx playwright install chromium` 安装后运行。`TEST_URL` 可覆盖待测地址。
@@ -60,3 +60,9 @@ npm run package     # release/ai-fushengji-0.1.0-web.zip
 It includes 80 everyday events, 5 milestones, 2 conditional follow-ups, 42 collectible meme cards, and 34 model companions across 25 families. Public AI figures appear in clearly fictional satirical scenes. All prices, model bonuses, leaderboards, and traffic changes are game mechanics rather than real-world claims. No model API or API key is required.
 
 Local saves, import/export, ending-card PNG export, mobile layouts, and offline play are supported. The public site uses Umami for page analytics; game saves stay on your device. Use Node.js 24+, `npm ci`, and `npm run dev`. Run `npm test` and `npm run test:e2e` to validate the game. Code and original content are MIT licensed; no original Beijing Fushengji assets are reused.
+
+## 单屏玩法（v0.2.0）
+
+目标和下一步始终可见：处理事件 → 自选两次行动 → 选站、结束今天。桌面三栏；窄屏按钮切换，长内容点按钮翻页，无需上下左右滚动。完整模型与梗图内容保留。调研与布局验证见 [UX-RESEARCH.md](docs/UX-RESEARCH.md)。
+
+已打开的旧版本页面可使用浏览器强制刷新（macOS：⌘⇧R），或关闭此站全部标签后重新打开；无需清除存档。

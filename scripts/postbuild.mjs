@@ -8,7 +8,7 @@ hash.update(await readFile(new URL(import.meta.url))); // A worker-logic fix mus
 for (const f of files) hash.update(await readFile(f));
 const digest = hash.digest('hex');
 let commit = 'local'; try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
-await writeFile('dist/version.json', JSON.stringify({ version: '0.1.0', commit, contentHash: digest }));
+await writeFile('dist/version.json', JSON.stringify({ version: JSON.parse(await readFile('package.json', 'utf8')).version, commit, contentHash: digest }));
 const urls = ['/', ...files.map(f => f.slice(4))];
 await writeFile('dist/sw.js', `const CACHE='ai-fushengji-${digest.slice(0, 12)}';
 const FILES=${JSON.stringify(urls)};
