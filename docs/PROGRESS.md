@@ -12,6 +12,7 @@
 - 4 组生产构建浏览器测试：桌面与移动各完整操作 40 天，320px 无横溢，买卖、模型合约、刷新、存档导入/错误/存储失败，图鉴来源、结局 PNG、离线恢复、支持/关注图片。
 - GitHub 初始实现检查通过：[功能分支 CI](https://github.com/joeseesun/ai-fushengji/actions/runs/40629931579)、[PR 检查](https://github.com/joeseesun/ai-fushengji/actions/runs/40629986867)。
 - 域名 DNS 已创建，HTTPS 证书签发；HTTP 跳转 HTTPS，Certbot 模拟续期成功。候选静态构建在公开域名可访问。
+- 公开正式域名也已通过全部 4 组浏览器测试（40.4 秒），包含桌面、移动与断网续玩。
 - 离线检查曾发现 Vary: Origin 导致缓存无法匹配脚本；已修复并通过断网重载回归。
 
 ## 交付定位
