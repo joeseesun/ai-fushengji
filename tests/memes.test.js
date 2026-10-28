@@ -162,3 +162,8 @@ test('v2 saves holding retired goods are cashed out at their last quote, keeping
   assert.equal(next.inventory.b300, undefined); assert.equal(next.inventory.invite.qty, 0);
   assert.equal(next.version, 3); assert.match(next.journal[0].text, /折现/);
 });
+test('a save holding a contract with a retired model still loads, with the contract ended', () => {
+  const s = ready(44); s.version = 2; s.model = 'stepfun/step-5-preview'; s.modelUntil = 5;
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.model, null); assert.equal(next.modelUntil, 0); assert.equal(next.rng, s.rng);
+});

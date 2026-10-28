@@ -252,7 +252,6 @@ export function transition(original, command) {
         let roll = random(s) * info.outcomes.reduce((n, o) => n + o.weight, 0);
         const o = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
         applyEffects(s, o.effects); s.lastWrite = o.id;
-        if (s.debt > 50000) s.debt = 50000;
         message = `【${o.rank}】${o.text}`;
         log(s, `${info.name}：${message}（${effectText({ ...info.effects, ...Object.fromEntries(Object.entries(o.effects).map(([k, v]) => [k, (info.effects[k] ?? 0) + v])) })}）`, 'action');
         break;
@@ -400,6 +399,8 @@ export function parseSave(text) {
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
       s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null;
+      // A contract on a model that left the roster ends early instead of invalidating the save.
+      if (s.model !== null && s.model !== undefined && !MODELS.some(m => m.id === s.model)) { s.model = null; s.modelUntil = 0; }
       s.eventDeck = [...s.eventDeck, ...EVENTS.map(e => e.id).filter(id => !s.eventDeck.includes(id))];
     }
     return isValidSave(s) ? s : null;
