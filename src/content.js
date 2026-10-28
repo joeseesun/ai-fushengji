@@ -388,3 +388,25 @@ export const QUESTS = [
   { id: 'calm', title: '收工时压力低于 30', reward: { health: 8 }, need: 30, track: 'calm' },
   { id: 'rep', title: '今天口碑 +6', reward: { cash: 260 }, need: 6, track: 'reputation' },
 ];
+
+// Run-shaping perks, drafted three-pick-one on fixed days. Each changes one rule for the rest of the run.
+export const PERKS = [
+  { id: 'keyboard', name: '青轴机械键盘', desc: '接单和赶急单收入 +15%', quote: '同事：你能不能小点声？你：这是生产力的声音。' },
+  { id: 'chair', name: '人体工学椅', desc: '每晚少掉 1 点健康', quote: '花了半个月工资，腰说值。' },
+  { id: 'headphones', name: '降噪耳机', desc: '所有行动增加的压力 −2', quote: '戴上它，工作群就只是一个传说。' },
+  { id: 'monitor', name: '第二块显示器', desc: '学习额外 +3 技能', quote: '左边放文档，右边放 AI，中间放你的尊严。' },
+  { id: 'coupon', name: '云厂商代金券', desc: '每天生活与工具费 −¥40', quote: '有效期一年，使用门槛只有一页半。' },
+  { id: 'gacha', name: '抽卡保底券', desc: '写稿翻车、限流的概率减半', quote: '第 90 抽必出金，玄学终于有了 SLA。' },
+  { id: 'pillow', name: '大肥鱼抱枕', desc: '休息额外 −8 压力、+4 健康', quote: '抱着它睡觉，梦里服务器从不繁忙。' },
+  { id: 'scalper', name: '黄牛名片', desc: '所有买入价 −5%', quote: '“兄弟，内部价，别外传。”' },
+  { id: 'scale', name: '回收渠道', desc: '卖出价从报价的 90% 提到 93%', quote: '二道贩子的二道贩子，终于是你。' },
+  { id: 'lowrate', name: '低息转贷合同', desc: '欠款日息从 1.8% 降到 1.2%', quote: '小字只有三页，你认真读完了第一页。' },
+  { id: 'koi', name: '锦鲤转发', desc: '所有暴击、顿悟、爆款概率 +6%', quote: '转发这条锦鲤，下一单甲方加钱。' },
+  { id: 'cofounder', name: '机器人合伙人', desc: '做产品少 3 技术债，产品收入 +20%', quote: '它不要股份，只要你每天说一句“干得好”。' },
+];
+export const DRAFT_DAYS = [5, 12, 19, 26, 33];
+// The landlord is the boss fight. Pay before ending the day, or the bill grows.
+export const RENT_DAYS = { 10: 1200, 20: 2000, 30: 3000 };
+export const RENT_LATE_RATE = 1.5;
+export const GOOD_OUTCOMES = ['jackpot', 'eureka', 'deep', 'spark', 'clean', 'investor', 'lead', 'viral', 'hit'];
+export const BAD_OUTCOMES = ['stiffed', 'spaghetti', 'rabbit', 'pinged', 'scope', 'trap', 'gacha', 'limited', 'hospital'];

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T11:07:19.909Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny boss-fight mood like a retro RPG boss encounter, no purple neon. Scene: a tiny rental apartment doorway where a huge looming landlord in a tracksuit and slippers holds a giant calculator and a stack of rent notices like a boss monster, dramatic spotlight and wind lines, a nervous young tenant in pajamas peeking from behind the door holding a few coins, a cat hiding under the bed. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1536,
+    "height": 1024
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Detailed 16-bit pixel art illustration, wide landscape composition, crisp hard pixel edges and carefully placed pixel clusters, warm muted retro palette of teal, warm grey, navy, cream with orange accents. A funny dramatic retro RPG boss encounter inside a tiny rental apartment: in the doorway stands a huge looming landlord wearing a tracksuit and slippers, exaggerated imposing boss-monster scale, holding a giant calculator in one hand and a stack of rent notices in the other. All calculator buttons and its display are completely blank, and all rent notices are blank paper sheets without any markings. Dramatic warm spotlight and stylized wind lines convey the boss entrance. A nervous young adult tenant in pajamas peeks from behind the open door, holding a few plain coins without inscriptions. The tenant is small compared to the landlord. A visible cat hides underneath a small bed inside the cramped apartment. Charming humorous expressions, readable silhouettes, rich small domestic details, expressive game-quality environment illustration. No purple neon. Absolutely no text, no letters, no numbers, no logos, no symbols that resemble writing anywhere, no captions or game UI. Fully opaque background: warm cream, teal and warm grey apartment background and floor fill the entire rectangular canvas edge to edge. No transparency, no cutouts, no black corners, no black border, no empty corner regions, no vignette. Wide landscape image.",
+  "route": "raw_prompt"
+}

@@ -25,6 +25,10 @@ export const ACHIEVEMENTS = [
   { id: 'company', title: '两脚着地', desc: '达成“一人公司”结局', test: (p, s) => s.ending?.id === 'company' },
   { id: 'human', title: '人类保留区', desc: '达成“人类保留区”结局', test: (p, s) => s.ending?.id === 'human' },
   { id: 'rich', title: '有钱，没空活', desc: '达成“有钱，没空活”结局', test: (p, s) => s.ending?.id === 'rich' },
+  { id: 'build', title: '外挂玩家', desc: '一局装满 4 张外挂', test: (p, s) => s.perks?.length >= 4 },
+  { id: 'tenant', title: '模范租客', desc: '三次房租日都按时交租', test: (p, s) => s.stats?.rentPaid >= 3 },
+  { id: 'landlord-nightmare', title: '房东的噩梦', desc: '一局拖欠两次房租', test: (p, s) => s.stats?.rentLate >= 2 },
+  { id: 'koi', title: '天选锦鲤', desc: '一局暴击 8 次', test: (p, s) => s.stats?.crits >= 8 },
   { id: 'survivor', title: '撑到最后一天', desc: '完成 40 天并结算', test: (p, s) => s.status === 'ended' && s.day === 40 },
 ];
 

@@ -64,7 +64,7 @@ test('all verified models can be hired; contracts cost game money, expire and ne
     assert.equal(actionInfo(hired, 'learn').effects.skill - actionInfo(s, 'learn').effects.skill, p.learn);
     assert.equal(transition(hired, { type: 'model', id: m.id }).state, hired);
     hired.day = 6;
-    assert.equal(actionInfo(hired, 'work').effects.cash, actionInfo(s, 'work').effects.cash);
+    assert.equal(actionInfo(hired, 'work').effects.cash, actionInfo({ ...s, day: 6 }, 'work').effects.cash);
     assert.ok(isValidSave(hired));
   }
 });
@@ -81,6 +81,8 @@ test('black-market rumors are rare, persisted in the quote and never rerolled on
   let s = ready(11), rumorDays = 0;
   for (let day = 1; day < 39 && s.status === 'playing'; day++) {
     if (s.event) s = act(s, { type: 'choose', index: getEvent(s).options.findIndex(o => (o.effects.cash ?? 0) >= 0 && !o.stance) });
+    if (s.rent && !s.rent.paid && s.cash >= s.rent.due) s = act(s, { type: 'rent' });
+    if (s.status !== 'playing') break;
     s = act(s, { type: 'travel', location: 'home' });
     if (!s.rumor) continue;
     rumorDays++;
@@ -158,10 +160,11 @@ test('v2 saves holding retired goods are cashed out at their last quote, keeping
   const s = ready(33); s.version = 2;
   for (const id of ['invite', 'claude', 'lesson']) for (const k of ['inventory', 'prices', 'previousPrices', 'history']) delete s[k][id];
   delete s.arrival; delete s.lastWrite;
-  s.inventory.b300 = { qty: 2, cost: 1500 }; s.prices.b300 = 800; s.previousPrices.b300 = 780; s.history.b300 = [800];
+  delete s.inventory.b300; delete s.prices.b300; delete s.previousPrices.b300; delete s.history.b300;
+  s.inventory.data = { qty: 2, cost: 1500 }; s.prices.data = 800; s.previousPrices.data = 780; s.history.data = [800];
   const next = parseSave(JSON.stringify(s));
   assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.cash, s.cash + 720 * 2);
-  assert.equal(next.inventory.b300, undefined); assert.equal(next.inventory.invite.qty, 0);
+  assert.equal(next.inventory.data, undefined); assert.equal(next.inventory.invite.qty, 0);
   assert.equal(next.version, VERSION); assert.match(next.journal[0].text, /折现/);
 });
 test('a save holding a contract with a retired model still loads, with the contract ended', () => {
@@ -208,7 +211,8 @@ test('daily quests pay out once when met, and expanding storage costs cash but n
   const { QUESTS } = await import('../src/content.js');
   let s = ready(19); s.event = null;
   s.quest = { id: 'cash', base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash - 900, reputation: s.reputation } };
-  const before = s.reputation, done = act(s, { type: 'travel', location: 'home' });
+  const { nextStop } = await import('../src/engine.js');
+  const before = s.reputation, done = act(s, { type: 'travel', location: nextStop(s) });
   assert.equal(done.questsDone, 1); assert.ok(done.reputation >= before + QUESTS.find(q => q.id === 'cash').reward.reputation - 2);
   assert.ok(done.journal.some(j => j.kind === 'quest'));
   const e = ready(5); e.event = null; e.cash = 5000;
@@ -235,4 +239,62 @@ test('model prices differ by model; at most two per company; v3 saves gain the n
   for (const k of ['available', 'intel', 'quest', 'questsDone']) delete s[k];
   const next = parseSave(JSON.stringify(s));
   assert.ok(next); assert.equal(next.version, VERSION); assert.equal(next.rng, s.rng); assert.equal(next.inventory.robot.qty, 0); assert.equal(next.available.length, 8);
+});
+test('perk drafts appear on fixed days, pick one of three, and change rules for the run', async () => {
+  const { PERKS, DRAFT_DAYS } = await import('../src/content.js');
+  const { buyPrice, salePrice, dailyCost, dailyInterest, nextStop } = await import('../src/engine.js');
+  let s = ready(31); s.event = null; s.day = DRAFT_DAYS[0] - 1;
+  s = act(s, { type: 'travel', location: nextStop(s) });
+  assert.equal(s.draft.length, 3); assert.equal(new Set(s.draft).size, 3);
+  assert.equal(transition(s, { type: 'perk', id: PERKS.find(p => !s.draft.includes(p.id)).id }).state, s);
+  const picked = act(s, { type: 'perk', id: s.draft[0] });
+  assert.deepEqual(picked.perks, [s.draft[0]]); assert.equal(picked.draft, null);
+  assert.deepEqual(parseSave(JSON.stringify(picked)).perks, picked.perks);
+  const base = ready(32); base.event = null;
+  const withPerk = id => ({ ...structuredClone(base), perks: [id] });
+  const id = base.available[0];
+  assert.ok(buyPrice(withPerk('scalper'), id) < buyPrice(base, id));
+  assert.ok(salePrice(withPerk('scale'), id) >= salePrice(base, id));
+  assert.equal(dailyCost(withPerk('coupon')), dailyCost(base) - 40);
+  base.debt = 10000; assert.ok(dailyInterest({ ...base, perks: ['lowrate'] }) < dailyInterest(base));
+  assert.equal(actionInfo(withPerk('monitor'), 'learn').effects.skill, actionInfo(base, 'learn').effects.skill + 3);
+  for (const p of ['koi', 'gacha']) assert.equal(actionInfo(withPerk(p), 'write').outcomes.reduce((n, o) => n + o.weight, 0), 100);
+  assert.ok(actionInfo(withPerk('koi'), 'work').outcomes.find(o => o.id === 'jackpot').weight > actionInfo(base, 'work').outcomes.find(o => o.id === 'jackpot').weight);
+  const missed = act({ ...s }, { type: 'travel', location: nextStop(s) });
+  assert.equal(missed.draft === null || !missed.draft.some(d => s.draft.includes(d)) || missed.day !== s.day, true);
+});
+test('rent days: pay to clear, or the bill joins the debt at 1.5x on ending the day', async () => {
+  const { RENT_DAYS } = await import('../src/content.js');
+  const { nextStop, rentDue } = await import('../src/engine.js');
+  let s = ready(41); s.event = null; s.day = 9; s.cash = 9000;
+  s = act(s, { type: 'travel', location: nextStop(s) });
+  assert.equal(s.day, 10); assert.equal(rentDue(s), RENT_DAYS[10]);
+  const paid = act(s, { type: 'rent' });
+  assert.equal(paid.cash, s.cash - RENT_DAYS[10]); assert.equal(rentDue(paid), 0); assert.equal(paid.stats.rentPaid, 1);
+  assert.equal(transition(paid, { type: 'rent' }).state, paid);
+  const poor = { ...structuredClone(s), cash: 10 };
+  assert.equal(transition(poor, { type: 'rent' }).state, poor);
+  s.event = null; const late = act(s, { type: 'travel', location: nextStop(s) });
+  assert.ok(late.debt >= s.debt + Math.round(RENT_DAYS[10] * 1.5)); assert.equal(late.stats.rentLate, 1);
+  assert.ok(late.journal.some(j => j.text.includes('没交房租')));
+});
+test('year-end persona and stats are deterministic and reach the share text', async () => {
+  const { personaFor, shareText } = await import('../src/engine.js');
+  let s = ready(51); s.event = null;
+  const id = s.available[0]; s = act(s, { type: 'buy', id, qty: 1 }); s = act(s, { type: 'sell', id, qty: 1 });
+  assert.equal(s.stats.best.id, id); assert.ok(s.stats.best.profit < 0);
+  s.stats.hospital = 2; assert.equal(personaFor(s).title, '福报战神');
+  s.stats.hospital = 0; s.stats.visits = { home: 20 }; assert.match(personaFor(s).title, /钉子户/);
+  s.stats.visits = {}; assert.equal(personaFor(s).title, '普通但努力的碳基生物');
+  assert.match(shareText(s), /AI 浮生人格/);
+  const v7 = ready(52); v7.version = 7; for (const k of ['perks', 'draft', 'rent', 'stats']) delete v7[k];
+  const up = parseSave(JSON.stringify(v7)); assert.ok(up); assert.equal(up.version, VERSION); assert.equal(up.proof, null); assert.equal(up.rng, v7.rng);
+});
+test('no perk combination lets a same-day buy-then-sell make money', async () => {
+  const { GOODS } = await import('../src/content.js');
+  const { buyPrice, salePrice } = await import('../src/engine.js');
+  for (let seed = 1; seed <= 30; seed++) {
+    const s = { ...ready(seed), perks: ['scalper', 'scale'] };
+    for (const g of GOODS) assert.ok(salePrice(s, g.id) < buyPrice(s, g.id), `${seed} ${g.id}`);
+  }
 });

@@ -1,4 +1,4 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS, PERKS, DRAFT_DAYS, RENT_DAYS, RENT_LATE_RATE, GOOD_OUTCOMES, BAD_OUTCOMES } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 import { drawNews, getEdition, validNews } from './news.js';
@@ -6,7 +6,7 @@ import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
 import { careerOffer, careerDemand, careerAction } from './careers.js';
 import { RULESET, MAX_COMMANDS, cleanCommand, validProof } from './run-proof.js';
 
-export const VERSION = 7;
+export const VERSION = 8;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -58,6 +58,11 @@ export const getArrival = s => {
 export const modelFee = (s, model) => s.role === 'grad' ? Math.ceil(model.fee / 2) : model.fee;
 export const expandCost = s => 700 + (s.capacity - 18) * 40;
 export const sells = (s, id) => s.available.includes(id);
+export const hasPerk = (s, id) => !!s.perks?.includes(id);
+export const buyPrice = (s, id) => hasPerk(s, 'scalper') ? Math.max(2, Math.round(s.prices[id] * .95)) : s.prices[id];
+export const nightlyWear = s => Math.max(0, 1 + (s.stress >= 70 ? 5 : s.stress >= 50 ? 2 : 0) - (hasPerk(s, 'chair') ? 1 : 0));
+export const rentDue = s => s.rent && !s.rent.paid ? s.rent.due : 0;
+const emptyStats = () => ({ best: null, worst: null, crits: 0, flops: 0, hospital: 0, viral: 0, rentPaid: 0, rentLate: 0, visits: {} });
 export const getQuest = s => s.quest && QUESTS.find(q => q.id === s.quest.id);
 export function questProgress(s) {
   const q = getQuest(s); if (!q) return null;
@@ -79,12 +84,40 @@ export function priceHeat(s, id) {
   return { id: 'fair', label: '平价', ratio };
 }
 export const usedSpace = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty, 0);
-export const salePrice = (s, id) => Math.max(1, Math.floor(s.prices[id] * .9));
+// Selling is always below buying, even with both trade perks, so a same-day round trip never prints money.
+export const salePrice = (s, id) => Math.max(1, Math.min(buyPrice(s, id) - 1, Math.floor(s.prices[id] * (hasPerk(s, 'scale') ? .93 : .9))));
 export const inventoryValue = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty * salePrice(s, g.id), 0);
 export const netWorth = s => s.cash + inventoryValue(s) - s.debt;
-export const productIncome = s => Math.max(0, Math.floor(s.products * Math.max(25, 140 + s.reputation * 1.6 - s.techDebt * 1.3) * (getNews(s)?.product ?? 1) * (s.role === 'opc' ? 1.4 : 1)));
-export const dailyCost = s => 90 + (s.location === 'home' ? 0 : 40) + 20 + s.products * 12;
-export const dailyInterest = s => Math.ceil(s.debt * INTEREST);
+export const productIncome = s => Math.max(0, Math.floor(s.products * Math.max(25, 140 + s.reputation * 1.6 - s.techDebt * 1.3) * (getNews(s)?.product ?? 1) * (s.role === 'opc' ? 1.4 : 1) * (hasPerk(s, 'cofounder') ? 1.2 : 1)));
+export const dailyCost = s => 90 + (s.location === 'home' ? 0 : 40) + 20 + s.products * 12 - (hasPerk(s, 'coupon') ? 40 : 0);
+export const dailyInterest = s => Math.ceil(s.debt * (hasPerk(s, 'lowrate') ? .012 : INTEREST));
+
+const pick = (lines, n) => lines[Math.abs(n) % lines.length];
+const BUY_LINES = ['黄牛对你竖起了大拇指。', '你已经开始想象它暴涨的样子了。', '仓库里传来一声轻轻的叹息。', '韭菜也有春天，对吧？', '下单那一刻，你感觉自己是巴菲特。'];
+const PROFIT_LINES = ['低买高卖，你就是中关村巴菲特。', '这一单，够吃一个月沙县。', '黄牛看你的眼神变了：同行。', '截图发朋友圈，配文“运气好”。'];
+const LOSS_LINES = ['割肉的声音很轻，心很疼。', '交学费了，学费没有发票。', '你安慰自己：这叫止损，不叫亏。', '仓库清爽了，钱包也清爽了。'];
+const REPAY_LINES = ['催收短信少了一条。', '信用分在偷偷上涨。', '利息君表示很遗憾。'];
+
+// The year-end persona: first matching rule wins. Pure function of the saved state, so the report never rerolls.
+export function personaFor(s) {
+  const st = s.stats ?? emptyStats(), top = Object.entries(st.visits).sort((a, b) => b[1] - a[1])[0];
+  const place = top && LOCATIONS.find(l => l.id === top[0]);
+  const rules = [
+    [st.hospital >= 2, '福报战神', '医院 VIP，护士都认识你。下次记得先买人体工学椅。'],
+    [st.viral >= 3, '流量收割机', '三次十万加。你不是在写稿，你是在开盲盒，而且一直开出金的。'],
+    [s.tradeProfit >= 20000, '中关村倒爷', '你对价差的嗅觉，比模型对上下文的记忆还长。'],
+    [st.crits >= 8, '天选锦鲤', '暴击 8 次以上。建议把你的头像设为转发锦鲤。'],
+    [st.flops >= 8, '非酋本酋', '翻车 8 次以上。不是你不行，是随机数生成器针对你。'],
+    [s.daysRested >= 18, '躺平宗师', '休息次数比加班多。你证明了：人类的核心竞争力是睡觉。'],
+    [s.jobsDone >= 40, '人肉 Agent', '接了四十多单。你比任何 Agent 都更像 Agent，而且不会死循环。'],
+    [s.products >= 3, '一人独角兽', '三个小产品在跑。估值暂时为零，但现金流是真的。'],
+    [s.perks?.length >= 4, '外挂玩家', '装满了外挂。别人在玩游戏，你在玩构筑。'],
+    [st.rentLate >= 2, '房东的噩梦', '房租拖了两次以上。房东已经把你写进了他的年终总结。'],
+    [!!place && top[1] >= 14, `${place?.name}钉子户`, `在${place?.name}待了 ${top?.[1]} 天。你不是在那儿上班，你是住那儿了。`],
+  ];
+  const hit = rules.find(r => r[0]);
+  return hit ? { title: hit[1], text: hit[2] } : { title: '普通但努力的碳基生物', text: '没有传奇，也没有翻车。你只是认真地过完了 40 天，这很难得。' };
+}
 
 function log(s, text, kind = 'normal') {
   s.journal.unshift({ day: s.day, text, kind });
@@ -126,6 +159,9 @@ function market(s) {
   s.intel = { ...(s.intel ?? {}), [s.location]: { day: s.day, cheap: s.available.filter(id => ['crash', 'cheap'].includes(priceHeat(s, id).id)), dear: s.available.filter(id => ['hot', 'high'].includes(priceHeat(s, id).id)) } };
   const quests = QUESTS.filter(q => q.track === 'skill' ? s.skill + q.need <= 100 : q.track === 'reputation' ? s.reputation + q.need <= 100 : q.track === 'repaid' ? s.debt >= q.need : true);
   s.quest = s.day > 1 ? { id: quests[Math.floor(random(s) * quests.length)].id, base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash, reputation: s.reputation } } : null;
+  s.draft = DRAFT_DAYS.includes(s.day) ? shuffle(s, PERKS.map(p => p.id).filter(id => !hasPerk(s, id))).slice(0, 3) : null;
+  s.rent = RENT_DAYS[s.day] ? { due: RENT_DAYS[s.day], paid: false } : null;
+  if (s.stats) s.stats.visits[s.location] = (s.stats.visits[s.location] ?? 0) + 1;
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -136,7 +172,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0, perks: [], draft: null, rent: null, stats: emptyStats(),
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -166,7 +202,12 @@ function applyEffects(s, effects) {
 // Odds and payouts shown to the player are the ones rolled.
 export function writeOutcomes(s) {
   const mult = (s.role === 'creator' ? 1.5 : 1) * (s.location === 'stream' ? 1.5 : 1);
-  return WRITE_OUTCOMES.map(o => ({ ...o, weight: s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight, effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) + (o.cash > 0 ? modelBonus(s)?.work ?? 0 : 0) } : {}), ...o.effects } }));
+  const base = WRITE_OUTCOMES.map(o => s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight);
+  // Perks move odds into “meh” so the total stays 100.
+  const weights = WRITE_OUTCOMES.map((o, i) => base[i] - (hasPerk(s, 'gacha') && ['gacha', 'limited'].includes(o.id) ? Math.floor(base[i] / 2) : 0) + (hasPerk(s, 'koi') && o.id === 'viral' ? 6 : 0));
+  const meh = WRITE_OUTCOMES.findIndex(o => o.id === 'meh');
+  weights[meh] += 100 - weights.reduce((n, w) => n + w, 0);
+  return WRITE_OUTCOMES.map((o, i) => ({ ...o, weight: weights[i], effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) + (o.cash > 0 ? modelBonus(s)?.work ?? 0 : 0) } : {}), ...o.effects } }));
 }
 
 export const combinedEffects = (base, extra) => {
@@ -180,13 +221,13 @@ export function actionInfo(s, action) {
   const bonus = modelBonus(s), role = s.role;
   const offer = careerOffer(s), demand = careerDemand(s);
   const wage = Math.round((offer.base + s.skill * offer.skill + s.reputation * offer.rep + (s.location === 'jobs' ? 160 : 0)) * offer.mult * offer.rate * (demand?.active ? demand.rate : 1));
-  const job = wage + (bonus?.work ?? 0);
+  const job = Math.round(wage * (hasPerk(s, 'keyboard') ? 1.15 : 1)) + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
     rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
-    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
-    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0), stress: -22 }, after: '没有产出的一格行动，也算在认真生活。' },
-    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
+    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (hasPerk(s, 'monitor') ? 3 : 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
+    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0) + (hasPerk(s, 'pillow') ? 4 : 0), stress: -22 - (hasPerk(s, 'pillow') ? 8 : 0) }, after: '没有产出的一格行动，也算在认真生活。' },
+    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0) - (hasPerk(s, 'cofounder') ? 3 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
     write: { name: '写稿发帖', desc: '抽卡式创作：可能 10 万+，也可能住院。', icon: 'PenLine', effects: { health: -3, stress: 5 }, outcomes: writeOutcomes(s), after: '' },
     maintain: { name: '还一点技术债', desc: '修旧坑，也保护每天的产品收入。', icon: 'Wrench', effects: { cash: -90, techDebt: -18, stress: -5, skill: 2 }, after: '删掉一层包装。你终于又能看懂自己的系统了。' },
     social: { name: '去饭局社交', desc: '扫码加了 200 个好友，真朋友 0.5 个。', icon: 'Users', effects: { cash: -120, health: -2, stress: -3, reputation: 4 }, after: '' },
@@ -204,10 +245,12 @@ export function actionInfo(s, action) {
   }
   if (['work', 'rush', 'write', 'learn', 'build'].includes(action) && bonus) info.assist = action === 'learn' ? `搭子学习 +${bonus.learn}` : action === 'build' ? `搭子技术债 ${bonus.build}` : action === 'write' ? `有稿费时搭子 +¥${bonus.work}` : `含搭子 +¥${action === 'rush' ? Math.floor(job * 1.65) - Math.floor(wage * 1.65) : bonus.work}`;
   if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
+  if (hasPerk(s, 'headphones') && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.max(0, info.effects.stress - 2) };
   if (ACTION_ROLLS[action]) {
     const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
     // Launch parties and hackathons are where the angels drink.
     if (action === 'social' && ['launch', 'hackathon'].includes(s.location)) rolls[0].weight = 14;
+    if (hasPerk(s, 'koi')) for (const r of rolls) if (GOOD_OUTCOMES.includes(r.id)) r.weight += 6;
     info.outcomes = [{ id: 'normal', rank: '', weight: 100 - rolls.reduce((n, r) => n + r.weight, 0), effects: {}, text: '' }, ...rolls];
     if (action === 'work') for (const outcome of info.outcomes) {
       if (outcome.id === 'jackpot') outcome.text = offer.jackpot;
@@ -219,20 +262,20 @@ export function actionInfo(s, action) {
 
 export function endingFor(s) {
   const worth = netWorth(s);
-  if (s.health <= 0) return { id: 'health', title: '人类进程已挂起', subtitle: '身体替你点了“强制退出”。', text: '模型的上下文可以扩容，人的承受力不能。下次给休息留一格；健康降到 0 会提前结束。' };
-  if (s.stress >= 100) return { id: 'burnout', title: '上下文已满', subtitle: '你记住了所有新名词，却忘了自己为什么开始。', text: '压力到达 100，今天先到这里。关掉一点通知，拒绝一点需求，并不会让你失去整个时代。' };
-  if (s.debt > 50000) return { id: 'debt', title: '被利息接管的人生', subtitle: '最大的复利，发生在借款合同里。', text: '欠款超过 50,000，信用额度被收回。下次先留生活费、早点还款，别拿欠款截图当融资新闻。' };
+  if (s.health <= 0) return { id: 'health', title: '人类进程已挂起', subtitle: '身体替你点了“强制退出”，没有弹窗确认。', text: '模型可以重启，你的腰椎不行。显卡坏了能换，人坏了只能挂号。下次给休息留一格；健康降到 0 会提前结束。' };
+  if (s.stress >= 100) return { id: 'burnout', title: '上下文已满', subtitle: '你记住了所有新名词，却忘了自己为什么开始。', text: '压力 100，系统提示：“请开启新对话。”关掉几个群、拒绝几个需求，你不会错过整个时代——它每周都会重新发布一次。' };
+  if (s.debt > 50000) return { id: 'debt', title: '被利息接管的人生', subtitle: '你没等到 AGI，先等到了催收。', text: '欠款超过 50,000，额度被收回。最大的复利不在模型能力曲线上，在你的借款合同里。下次先留生活费，别拿欠款截图当融资新闻。' };
   if (s.debt === 0 && s.products >= 3 && s.reputation >= 45 && s.health >= 40 && s.stress < 75)
-    return { id: 'company', title: '一人公司，两脚着地', subtitle: '没有颠覆行业，但有人离不开你的产品。', text: '你用几个具体的小工具换来了持续收入，也没有把自己当成一次性耗材。这家公司，终于有人。' };
+    return { id: 'company', title: '一人公司，两脚着地', subtitle: '没有颠覆行业，但有人离不开你的产品。', text: '估值为零，现金流为正。你用几个具体的小工具换来了持续收入，也没把自己当成一次性耗材。这家公司全员一人，但终于有人。' };
   if (worth >= 18000 && (s.health < 45 || s.stress >= 70))
-    return { id: 'rich', title: '有钱，没空活', subtitle: '财务报表很漂亮，体检报告另说。', text: '你成功把未来的精力贴现成了今天的现金。下一阶段的核心 KPI，可以是好好睡觉。' };
+    return { id: 'rich', title: '有钱，没空活', subtitle: '财务报表很漂亮，体检报告另说。', text: '你成功把未来十年的精力，贴现成了今天的现金。下一阶段的核心 KPI 只有一个：睡满八小时，不看手机。' };
   if (s.debt === 0 && s.health >= 70 && s.stress <= 40)
-    return { id: 'human', title: '人类保留区', subtitle: '账还清了，你也还在。', text: '你没有跑赢所有模型，只是按时吃饭、交付、睡觉。这个时代很快，你依然拥有自己的速度。' };
+    return { id: 'human', title: '人类保留区', subtitle: '账还清了，你也还在。', text: '你没有跑赢任何一个模型，只是按时吃饭、交付、睡觉。模型每周都在进化，而你这 40 天，好像也进化了一点点。' };
   if (s.debt === 0 && worth >= 15000)
-    return { id: 'independent', title: '小而自由', subtitle: '风口一直在换，你的账户终于不靠许愿。', text: '你会看价格，也会看需求。下次再有人问你的护城河，你可以先把账结清再回答。' };
+    return { id: 'independent', title: '小而自由', subtitle: '风口一直在换，你的账户终于不靠许愿。', text: '你会看价差，也会看需求。下次再有人问你的护城河在哪，你可以先把账结清，再慢慢回答。' };
   if (s.debt > 0)
-    return { id: 'subscription', title: '订阅制人生', subtitle: '工具续费了，希望还没到期。', text: '40 天过去，你依然欠着钱。收入和利润之间隔着一排小字；你至少已经知道，下次要先读哪一行。' };
-  return { id: 'finish', title: '体面收工', subtitle: '不必成为传说，也能把日子过下去。', text: '贷款清零，故事暂时停在这里。你没错过整个时代，你只是没有把每一个风口都当成自己的命运。' };
+    return { id: 'subscription', title: '订阅制人生', subtitle: '工具续费了，希望还没到期。', text: '40 天过去，账还没清。你的人生像一个自动续费的会员：每天都在扣钱，偶尔也有新功能。下次先读合同的小字。' };
+  return { id: 'finish', title: '体面收工', subtitle: '不必成为传说，也能把日子过下去。', text: '贷款清零。你没有追上每一个风口，也没被任何一个风口吹走。在这个人人都说“刚刚”的时代，这就叫赢。' };
 }
 
 function checkFailure(s) {
@@ -294,18 +337,21 @@ export function transition(original, command) {
       if (!sells(s, g.id)) return fail(`这一站今天不收${g.short}，换个地方再交易。`);
       const holding = s.inventory[g.id];
       if (command.type === 'buy') {
-        const cost = s.prices[g.id] * command.qty;
+        const cost = buyPrice(s, g.id) * command.qty;
         if (usedSpace(s) + command.qty > s.capacity) return fail('仓库放不下了，先卖出或扩容。');
         if (cost > s.cash) return fail('现金不足，少买一点。');
         s.cash -= cost; holding.qty += command.qty; holding.cost += cost;
-        message = `买入 ${command.qty} ${g.unit}${g.name}，花费 ¥${cost.toLocaleString('zh-CN')}。`;
+        message = `买入 ${command.qty} ${g.unit}${g.name}，花费 ¥${cost.toLocaleString('zh-CN')}。${pick(BUY_LINES, s.day + command.qty)}`;
       } else {
         if (holding.qty < command.qty) return fail('持仓不够，不能卖出不存在的东西。');
         const income = salePrice(s, g.id) * command.qty;
         const cost = command.qty === holding.qty ? holding.cost : Math.round(holding.cost * command.qty / holding.qty);
         s.cash += income; holding.qty -= command.qty; holding.cost -= cost; s.tradeProfit += income - cost;
         s.totalEarned += Math.max(0, income - cost);
-        message = `卖出 ${command.qty} ${g.unit}${g.name}，到账 ¥${income.toLocaleString('zh-CN')}（盈亏 ${income - cost >= 0 ? '+' : ''}${income - cost}）。`;
+        const profit = income - cost;
+        if (!s.stats.best || profit > s.stats.best.profit) s.stats.best = { id: g.id, profit };
+        if (!s.stats.worst || profit < s.stats.worst.profit) s.stats.worst = { id: g.id, profit };
+        message = `卖出 ${command.qty} ${g.unit}${g.name}，到账 ¥${income.toLocaleString('zh-CN')}（${profit >= 0 ? '赚' : '亏'} ¥${Math.abs(profit).toLocaleString('zh-CN')}）。${pick(profit >= 0 ? PROFIT_LINES : LOSS_LINES, s.day + command.qty)}`;
       }
       log(s, message, 'trade'); break;
     }
@@ -320,6 +366,10 @@ export function transition(original, command) {
         applyEffects(s, o.effects);
         const pool = info.flavors ?? [''], flavor = o.id === 'normal' ? Math.floor(random(s) * pool.length) : 0;
         s.lastAction = { id: command.id, outcome: o.id, flavor };
+        if (GOOD_OUTCOMES.includes(o.id)) s.stats.crits++;
+        if (BAD_OUTCOMES.includes(o.id)) s.stats.flops++;
+        if (o.id === 'hospital') s.stats.hospital++;
+        if (o.id === 'viral') s.stats.viral++;
         if (command.id === 'write') s.lastWrite = o.id;
         if (command.id === 'work' || command.id === 'rush') s.jobsDone++;
         if (command.id === 'rest') s.daysRested++;
@@ -342,6 +392,22 @@ export function transition(original, command) {
       message ||= info.after;
       log(s, `${info.name}：${effectText(info.effects)}。${message}`, 'action'); break;
     }
+    case 'perk': {
+      if (!s.draft) return fail('今天没有可以挑的外挂。');
+      if (!s.draft.includes(command.id)) return fail('只能从这三张里挑一张。');
+      const perk = PERKS.find(p => p.id === command.id);
+      s.perks.push(perk.id); s.draft = null;
+      message = `装上外挂「${perk.name}」：${perk.desc}。${perk.quote}`;
+      log(s, message, 'perk'); break;
+    }
+    case 'rent': {
+      const due = rentDue(s);
+      if (!due) return fail('今天不用交房租。');
+      if (s.cash < due) return fail(`房租 ¥${due}，现金不够。先卖点货或接单。`);
+      s.cash -= due; s.rent.paid = true; s.stats.rentPaid++;
+      message = `交了 ¥${due.toLocaleString('zh-CN')} 房租。房东满意地走了，顺手提醒你“下次准时”。`;
+      log(s, message, 'finance'); break;
+    }
     case 'expand': {
       if (s.capacity >= 58) return fail('仓库已到上限。');
       const cost = expandCost(s);
@@ -355,14 +421,14 @@ export function transition(original, command) {
       if (command.amount > s.debt) return fail('这比欠款还多，按剩余欠款还就好。');
       if (command.amount > s.cash) return fail('现金不足，请先赚到这笔钱。');
       s.cash -= command.amount; s.debt -= command.amount;
-      message = s.debt === 0 ? '培训贷还清了。人生第一次，不是为了“回本”而学习。' : `已还款 ¥${command.amount}，剩余欠款 ¥${s.debt}。`;
+      message = s.debt === 0 ? '培训贷还清了。人生第一次，不是为了“回本”而学习。' : `已还款 ¥${command.amount}，剩余欠款 ¥${s.debt}。${pick(REPAY_LINES, s.day + command.amount)}`;
       log(s, message, 'finance'); break;
     }
     case 'borrow': {
       if (s.day - s.lastBorrowDay < 5) return fail('周转额度每 5 天只能用一次。');
       if (s.borrowed >= 6000 || s.debt + 1500 > 20000) return fail('周转额度已用完。');
       s.cash += 1500; s.debt += 1500; s.borrowed += 1500; s.lastBorrowDay = s.day;
-      message = '借到 ¥1,500。每天按 1.8% 计息，周转不是收入。';
+      message = '借到 ¥1,500。日息照算，周转不是收入——花呗也这么说过。';
       log(s, message, 'finance'); break;
     }
     case 'travel':
@@ -375,6 +441,13 @@ export function transition(original, command) {
       if (s.cash < fare) return fail(`打车需要 ¥${fare}，现金不足。可免费去下一站或留在原地。`);
       if (s.event) { log(s, `收工略过「${getEvent(s).title}」：未获得选项收益，也未触发选项后续。`, 'skip'); s.event = null; }
       if (fare) { s.cash -= fare; log(s, `打车去${LOCATIONS.find(l => l.id === command.location).name}，车费 ¥${fare}。`, 'travel'); }
+      if (s.draft) { log(s, '外挂没挑就收工了，这一轮的三张卡作废。', 'skip'); s.draft = null; }
+      const owed = rentDue(s);
+      if (owed) {
+        const late = Math.round(owed * RENT_LATE_RATE);
+        s.debt += late; s.stress = clamp(s.stress + 12, 0, 100); s.reputation = clamp(s.reputation - 3, 0, 100); s.rent.paid = true; s.stats.rentLate++;
+        log(s, `没交房租。房东：“那就记账上。”¥${late.toLocaleString('zh-CN')} 计入欠款，压力 +12，口碑 −3。`, 'finance');
+      }
       const quest = questProgress(s);
       if (quest?.done) {
         applyEffects(s, quest.reward); s.questsDone++;
@@ -386,8 +459,7 @@ export function transition(original, command) {
       const shortage = Math.max(0, cost - s.cash - revenue);
       s.cash = Math.max(0, s.cash + revenue - cost);
       s.debt += interest + shortage; s.totalInterest += interest; s.totalEarned += revenue;
-      const wear = 1 + (s.stress >= 70 ? 5 : s.stress >= 50 ? 2 : 0);
-      s.health = Math.max(0, s.health - wear);
+      s.health = Math.max(0, s.health - nightlyWear(s));
       s.receipts.unshift({ day: s.day, revenue, cost, interest, shortage, fare });
       s.receipts = s.receipts.slice(0, DAYS);
       log(s, `日结：产品 +¥${revenue}，生活与工具 −¥${cost}，利息 +¥${interest}${shortage ? `，缺口 ¥${shortage} 转欠款` : ''}。`, 'bill');
@@ -473,7 +545,8 @@ export function commandRisk(s, command) {
     base.cash -= fare;
     const quest = questProgress(base); if (quest?.done) applyEffects(base, quest.reward);
     base.debt += dailyInterest(base) + Math.max(0, dailyCost(base) - base.cash - productIncome(base));
-    base.health = Math.max(0, base.health - (1 + (base.stress >= 70 ? 5 : base.stress >= 50 ? 2 : 0)));
+    if (rentDue(base)) { base.debt += Math.round(rentDue(base) * RENT_LATE_RATE); base.stress = clamp(base.stress + 12, 0, 100); }
+    base.health = Math.max(0, base.health - nightlyWear(base));
     if (!failureReason(base) && command.type === 'travel') {
       const arrivals = ARRIVALS.filter(a => a.loc === command.location);
       if (arrivals.length) outcomes = [{ weight: .45, effects: {} }, ...arrivals.flatMap(a => a.amounts ? a.amounts.map(n => ({ weight: .55 / arrivals.length / a.amounts.length, effects: { [a.key]: n } })) : [{ weight: .55 / arrivals.length, effects: a.effects }])];
@@ -507,6 +580,11 @@ export function isValidSave(s) {
   if (!s.intel || typeof s.intel !== 'object' || Array.isArray(s.intel) || !Object.entries(s.intel).every(([loc, v]) => LOCATIONS.some(l => l.id === loc) && v && integer(v.day, 1, DAYS) && ['cheap', 'dear'].every(k => Array.isArray(v[k]) && v[k].every(id => GOODS.some(g => g.id === id))))) return false;
   if (s.quest !== null && !(s.quest && QUESTS.some(q => q.id === s.quest.id) && s.quest.base && ['tradeProfit', 'debt', 'skill', 'cash', 'reputation'].every(k => integer(s.quest.base[k], -1e9)))) return false;
   if (!integer(s.questsDone, 0, DAYS)) return false;
+  if (!Array.isArray(s.perks) || s.perks.length > DRAFT_DAYS.length || new Set(s.perks).size !== s.perks.length || !s.perks.every(id => PERKS.some(p => p.id === id))) return false;
+  if (s.draft !== null && !(Array.isArray(s.draft) && s.draft.length >= 1 && s.draft.length <= 3 && new Set(s.draft).size === s.draft.length && s.draft.every(id => PERKS.some(p => p.id === id) && !s.perks.includes(id)))) return false;
+  if (s.rent !== null && !(s.rent && integer(s.rent.due, 1, 1e6) && typeof s.rent.paid === 'boolean')) return false;
+  const st = s.stats, trade = t => t === null || (t && GOODS.some(g => g.id === t.id) && integer(t.profit, -1e9));
+  if (!st || !trade(st.best) || !trade(st.worst) || !['crits', 'flops', 'hospital', 'viral', 'rentPaid', 'rentLate'].every(k => integer(st[k], 0, 1000)) || !st.visits || typeof st.visits !== 'object' || !Object.entries(st.visits).every(([loc, n]) => LOCATIONS.some(l => l.id === loc) && integer(n, 0, DAYS))) return false;
   if (s.arrival !== null && !(s.arrival && ARRIVALS.some(a => a.id === s.arrival.id && (a.amounts ? a.amounts.includes(s.arrival.amount) : s.arrival.amount === 0)))) return false;
   if (s.lastWrite !== null && !WRITE_OUTCOMES.some(o => o.id === s.lastWrite)) return false;
   if (s.lastAction !== null && !(s.lastAction && ACTION_FLAVOR[s.lastAction.id] && integer(s.lastAction.flavor, 0, ACTION_FLAVOR[s.lastAction.id].length - 1)
@@ -579,7 +657,11 @@ export function parseSave(text) {
       }
       s.newsLegacy = true; s.version = 6;
     }
-    if (s?.version === 6) { s.proof = null; s.failure = null; s.version = VERSION; }
+    if (s?.version === 6) { s.proof = null; s.failure = null; s.version = 7; }
+    if (s?.version === 7) {
+      // v8 adds perks, rent days and the year-end report. Old runs keep playing; the old ruleset cannot be replayed on the leaderboard.
+      s.perks = []; s.draft = null; s.rent = null; s.stats = emptyStats(); s.proof = null; s.version = VERSION;
+    }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
       s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null; s.lastAction ??= null;
@@ -595,5 +677,6 @@ export function parseSave(text) {
 
 export function shareText(s) {
   const end = s.ending ?? endingFor(s);
-  return `《AI 浮生记》｜${gameResult(s)} · ${end.title}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${failureReason(s)?.rule ?? end.subtitle}${s.failure ? `\n最后一步：${s.failure.source}` : ''}\n你能在 AI 时代，保住多少钱和多少自己？`;
+  const persona = personaFor(s);
+  return `《AI 浮生记》｜${gameResult(s)} · ${end.title}\n我的 AI 浮生人格：【${persona.title}】${persona.text}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${failureReason(s)?.rule ?? end.subtitle}${s.failure ? `\n最后一步：${s.failure.source}` : ''}\n你能在 AI 时代，保住多少钱和多少自己？`;
 }

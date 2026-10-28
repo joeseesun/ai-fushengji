@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T11:08:13.640Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange and gold accents), exciting choice mood like a roguelite card draft, no purple neon. Scene: a glowing retro computer screen on a desk showing three face-down golden tarot-like cards floating in the air above the keyboard, sparkles, a small mascot blue whale and a cat watching in awe, dark cozy room with warm lamp light. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create one detailed 16-bit pixel art illustration in a wide landscape 16:9 composition. Crisp hard pixel edges and carefully hand-placed pixel clusters, retro game-quality pixel art with rich environmental detail. Warm muted retro palette: teal, warm grey, navy, cream, orange and gold accents. No purple neon. Exciting magical choice mood like a roguelite card draft. A glowing vintage CRT computer sits on a desk in a dark cozy room illuminated by warm amber desk-lamp light. Exactly three face-down golden tarot-like cards float prominently in the air above the keyboard and in front of the glowing monitor, arranged as an appealing evenly spaced choice fan. Their ornate backs feature purely decorative geometric pixel borders and abstract celestial motifs, with absolutely no text or symbols resembling letters or numbers. Gold sparkles and subtle pixel rays surround the cards. A small adorable blue whale mascot and a cat sit on the desk on opposite sides, watching the floating cards in awe, expressive and clearly visible. Cozy desk details and warm shadows, inviting whimsical atmosphere, strong central focal point and readable silhouettes. Keyboard keys are blank with no markings; monitor displays only abstract soft teal pixel light, no UI text. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere. Fully opaque background covering the entire canvas edge-to-edge. Fill every corner with illustrated room surfaces in muted navy, teal or warm grey; no pure black corner areas, no black framing, no vignette to black, no transparent areas, no cutouts, no empty border. Keep all main subjects completely in frame.",
+  "route": "raw_prompt"
+}
