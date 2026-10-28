@@ -1,16 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newGame, transition, parseSave, isValidSave, getNews, getEvent, dailyInterest } from '../src/engine.js';
+import { EXTRA_MARKET_FACTORS } from '../src/goods-extra.js';
 import { NEWS, GOODS } from '../src/content.js';
-import { NEWS_EDITIONS, NEWS_SOURCES } from '../src/news.js';
+import { NEWS_EDITIONS, NEWS_SOURCES, getEdition } from '../src/news.js';
 
 const act = (s, command) => { const r = transition(s, command); assert.equal(r.error, null); return r.state; };
 const skipEvent = s => { s.event = null; return s; };
-test('100 distinct editions retain their market theme and use existing art / valid sources', () => {
-  assert.equal(NEWS_EDITIONS.length, 100);
-  assert.equal(new Set(NEWS_EDITIONS.map(e => e.id)).size, 100);
-  assert.equal(new Set(NEWS_EDITIONS.map(e => e.title)).size, 100);
-  assert.equal(new Set(NEWS_EDITIONS.map(e => e.comment)).size, 100);
+test('180 distinct editions retain their market theme and use existing art / valid sources', () => {
+  assert.equal(NEWS_EDITIONS.length, 180);
+  assert.equal(new Set(NEWS_EDITIONS.map(e => e.id)).size, 180);
+  assert.equal(new Set(NEWS_EDITIONS.map(e => e.title)).size, 180);
+  assert.equal(new Set(NEWS_EDITIONS.map(e => e.comment)).size, 180);
   for (const e of NEWS_EDITIONS) {
     const theme = NEWS.find(n => n.id === e.topic);
     assert.ok(theme); assert.ok(e.title.length <= 64); assert.ok(e.comment.length <= 100);
@@ -28,7 +29,7 @@ test('40-day news never repeats, respects topic cooldown and varies between runs
       assert.ok(!titles.includes(news.title), `seed ${seed} day ${day}`);
       assert.ok(!topics.slice(-3).includes(news.id), `topic cooldown: ${seed}/${day}`);
       const base = NEWS.find(n => n.id === news.id);
-      assert.deepEqual(news.factors, base.factors); assert.equal(news.product, base.product);
+      assert.deepEqual(news.factors, { ...base.factors, ...EXTRA_MARKET_FACTORS[base.id], ...getEdition(s.newsEdition).market }); assert.equal(news.product, base.product);
       assert.ok(isValidSave(s));
       const resumed = parseSave(JSON.stringify(s));
       assert.deepEqual(resumed, s); assert.deepEqual(getNews(resumed), news);
@@ -44,7 +45,7 @@ test('40-day news never repeats, respects topic cooldown and varies between runs
     }
     assert.equal(s.newsSeen.length, 40);
   }
-  assert.ok(openings.size > 30); assert.equal(day8.size, 5);
+  assert.ok(openings.size > 30); assert.ok(day8.size >= 6);
 });
 test('v4 saves keep original headline, quotes and RNG; new news draws only on travel', () => {
   const s = newGame('coder', 97); s.version = 4; delete s.newsEdition; delete s.newsSeen;

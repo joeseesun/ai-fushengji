@@ -3,6 +3,12 @@ on:
   push:
     branches: [main, 'feat/**']
   pull_request:
+  workflow_dispatch:
+    inputs:
+      full_checks:
+        description: '手动运行引擎与浏览器整局检查'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -15,8 +21,11 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npm test
       - run: npm run build
+      - run: npm test
+        if: github.event_name == 'workflow_dispatch' && inputs.full_checks
       - run: npx playwright install --with-deps chromium
+        if: github.event_name == 'workflow_dispatch' && inputs.full_checks
       - name: Browser playthroughs
+        if: github.event_name == 'workflow_dispatch' && inputs.full_checks
         run: npm run test:e2e

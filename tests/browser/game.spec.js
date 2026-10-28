@@ -15,6 +15,7 @@ const choose = async page => {
   await page.locator(`[data-ui="choose"][data-index="${index}"]`).click();
 };
 const reveal = async (page, selector, frame = '.event-pages') => {
+  if (frame === '.event-pages') await showPane(page, 'event');
   for (let i = 0; i < 12; i++) {
     if (await page.locator(selector).isVisible()) return;
     const next = page.locator(`${frame} [data-page-turn="1"]`);
@@ -35,6 +36,8 @@ const endDay = async page => {
   await expect(start).toBeVisible(); await expect(start).toBeInViewport({ ratio: 1 }); await start.click();
 };
 const doAction = async (page, id) => {
+  await showPane(page, 'actions');
+  await reveal(page, `[data-ui="action"][data-id="${id}"]`, '.action-pages');
   await page.locator(`[data-ui="action"][data-id="${id}"]`).click();
   const button = page.locator('#act-continue');
   await button.click(); if (await button.isVisible()) await button.click();
@@ -161,24 +164,24 @@ test('single screen: every event choice reachable by buttons, without scrolling 
   }
 });
 
-test('guidance advances from event to actions to next day, retaining agency', async ({ page }) => {
+test('guidance starts with actions while encounters remain optional', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 }); await start(page);
-  await expect(page.locator('#next-step')).toContainText('挑一个回应');
+  await expect(page.locator('#next-step')).toContainText('遭遇可选');
   await choose(page);
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
-  await expect(page.locator('#next-step')).toContainText('还能干 2 件事');
-  await expect(page.locator('button.cta:visible')).toHaveCount(1);
+  await expect(page.locator('#next-step')).toContainText('今天选 2 件事');
+  await expect(page.locator('[data-ui="action"][data-id="work"]')).toBeEnabled();
   await doAction(page, 'work');
-  await expect(page.locator('#next-step')).toContainText('还能干 1 件事');
+  await expect(page.locator('#next-step')).toContainText('今天选 1 件事');
   await doAction(page, 'rest');
-  await expect(page.locator('#next-step')).toContainText('结束今天');
+  await expect(page.locator('#next-step')).toContainText('可以收工');
   await expect(page.locator('.end-day-button')).toHaveClass(/cta/);
   await showPane(page,'market');
   await expect(page.locator('[data-ui="buy"][data-id="prompt"]')).toBeEnabled();
   await endDay(page);
   await expect(page.locator('[data-testid="day"]')).toHaveText('02');
-  await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','event');
-  await expect(page.locator('#next-step')).toContainText('挑一个回应');
+  await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
+  await expect(page.locator('#next-step')).toContainText('遭遇可选');
 });
 
 test('identity picker starts the chosen role; writing shows a gacha card', async ({ page }) => {
@@ -240,7 +243,7 @@ test('news survives refresh, explains prices, and all small-screen copy is reach
     await page.locator('[data-ui="news"]:visible').first().click();
     await expect(page.locator('.news-headline')).toHaveText(edition.title);
     await readPages(page,'#modal .page-frame');
-    await expect(page.locator('#modal .news-impact')).toContainText('H200 ×1.7');
+    await expect(page.locator('#modal .news-market-line').filter({hasText:'H200'})).toContainText('×1.7');
     expect(await page.locator('#modal .source-link').getAttribute('href')).toContain('bilibili.com');
     await page.screenshot({path:`evidence/news-${width}.png`});
     await page.keyboard.press('Escape');
@@ -271,10 +274,10 @@ test('map cancel keeps destination; map, models and achievements use buttons wit
   for(const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
     await page.setViewportSize({width,height});
     const s=newGame('coder',42);s.event=null;s.ap=0;await start(page,s);
-    await page.locator('[data-ui="map"]').click();await page.locator('.map-pin[data-id="launch"]').click();
+    await page.locator('[data-ui="map"]').click();await page.locator('.map-pin[data-id="home"]').click();
     await page.getByRole('button',{name:'再想想',exact:true}).click();
-    await expect(page.locator('.map-button b')).toContainText('外包接单群');
-    await page.locator('[data-ui="end-day"]').click();expect((await snapshot(page)).location).toBe('jobs');
+    await expect(page.locator('.map-button b')).toContainText('大厂发布会');
+    await page.locator('[data-ui="end-day"]').click();expect((await snapshot(page)).location).toBe('launch');
     await page.keyboard.press('Escape');
     // Return to an event-free fixture to inspect every panel independently.
     await start(page,s);

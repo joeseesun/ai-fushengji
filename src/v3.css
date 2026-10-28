@@ -7,7 +7,7 @@ button.cta:not(:disabled) .icon, button.cta:not(:disabled) small, button.cta:not
 @keyframes cta-pulse { 50% { box-shadow:0 0 0 7px #ffd23f22, inset 1px 1px #fff4b8, inset -1px -1px #b08700; } }
 @media (prefers-reduced-motion: reduce) { button.cta:not(:disabled) { animation:none; } }
 .game-content[data-step="1"] .event-choice:not(:disabled) { background:#fff7d6; border-color:#c9a227; }
-.game-content[data-step="1"] .market-panel, .game-content[data-step="1"] .actions-panel { opacity:.62; }
+.game-content[data-step="1"] .market-panel, .game-content[data-step="1"] .actions-panel { opacity:1; }
 button.action-tile.cta:not(:disabled) em { background:var(--cta-ink)!important; color:var(--cta)!important; }
 dialog.fit:has(.page-frame) { height:fit-content; }
 dialog.fit .modal-content, dialog.fit .modal-content>.page-frame, dialog.fit .page-content { flex:0 1 auto; }
@@ -283,4 +283,31 @@ dialog.map-modal .modal-content, dialog.models .modal-content { overflow:hidden;
 .page-content>.rank-title { margin:0!important; }
 @media (max-width:380px) {
   .menu>button { white-space:nowrap; font-size:11px; padding-inline:3px; }
+}
+
+/* v0.6: readable choices and visible consequences inside the existing one-screen shell. */
+.goal-button { padding:0; min-height:22px; border:0; box-shadow:none; background:none; font-size:13px; font-weight:700; text-align:left; justify-content:flex-start; color:#244d40; }
+.goal-button .icon { width:13px; height:13px; flex-shrink:0; }
+.action-kind { font-size:10px; font-weight:600; color:#6d715d; }
+.assist-note { display:block; font-size:10px; color:#27664e; line-height:1.4; }
+.action-tile .odds { font-size:10px; line-height:1.35; color:#765a32; }
+.action-tile { gap:3px; }
+.news-market-line { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #d6d2bd; }
+.news-market-line span { min-width:0; }
+.news-market-line small { display:block; font-size:11px; color:#626653; }
+.news-market-line strong { font-size:13px; white-space:nowrap; }
+.reader-reaction { border-left:2px solid #c7bb8c; padding-left:10px; }
+.news-price { font-size:10px!important; }
+.victory-label { align-self:flex-start; padding:3px 9px; background:#e4ebcf; color:#244d40; font-weight:700; }
+@media(max-width:760px) {
+  .goal-button { font-size:12px; min-height:20px; }
+  .day-end { column-gap:6px; }
+  .end-day-button { font-size:12px; padding-inline:8px; white-space:normal; }
+  .map-button { min-width:0; }
+  .map-button small { font-size:9px; }
+  .action-kind,.assist-note,.action-tile .odds { font-size:10px; }
+}
+@media(max-height:500px) {
+  .goal-button { min-height:17px; font-size:11px; }
+  #next-step { display:none; }
 }

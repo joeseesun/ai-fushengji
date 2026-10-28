@@ -1,3 +1,4 @@
+import { EXTRA_COPY, EDITION_SHIFTS } from './news-extra.js';
 import { NEWS } from './content.js';
 
 // Original tabloid fiction. Sources document the meme, not the invented headline.
@@ -14,7 +15,7 @@ export const NEWS_SOURCES = {
 };
 
 // Stable edition IDs keep a saved day's headline intact when more copy is added.
-// [suffix, headline, editorial, optional source key]. Every topic has five editions.
+// [suffix, headline, editorial, optional source key]. Every topic has nine editions.
 const COPY = {
   router: [
     ['loop', 'OpenRouter 冲榜选手：一个用户，八个 Agent，九份账单。', '它们互相说了三万遍“收到”。客户的需求仍然是把按钮往左挪。', 'router'],
@@ -162,7 +163,7 @@ const ORIGINAL_COMMENTS = {
 };
 export const NEWS_EDITIONS = NEWS.flatMap(topic => [
   { id: `${topic.id}-original`, topic: topic.id, title: topic.title, comment: ORIGINAL_COMMENTS[topic.id] },
-  ...COPY[topic.id].map(([suffix, title, comment, source]) => ({ id: `${topic.id}-${suffix}`, topic: topic.id, title, comment, source })),
+  ...[...COPY[topic.id], ...EXTRA_COPY[topic.id]].map(([suffix, title, comment, source]) => ({ id: `${topic.id}-${suffix}`, topic: topic.id, title, comment, source, market: EDITION_SHIFTS[`${topic.id}-${suffix}`] })),
 ]);
 const byId = new Map(NEWS_EDITIONS.map(e => [e.id, e]));
 const scheduled = { 8: 'free', 16: 'data', 24: 'enterprise', 32: 'human' };

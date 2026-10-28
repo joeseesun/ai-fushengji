@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newGame, transition, getEvent, usedSpace, isValidSave, parseSave, salePrice, inventoryValue, actionInfo, dailyCost, dailyInterest, productIncome, endingFor, shareText } from '../src/engine.js';
+import { newGame, transition, getEvent, usedSpace, isValidSave, parseSave, salePrice, inventoryValue, actionInfo, dailyCost, dailyInterest, productIncome, endingFor, shareText, travelFare } from '../src/engine.js';
 import { GOODS, EVENTS, MILESTONES } from '../src/content.js';
 
 const ready = (seed = 42) => transition(newGame('coder', seed), { type: 'choose', index: 0 }).state;
@@ -15,10 +15,10 @@ test('deterministic seeds, RNG persisted, no re-roll on reload', () => {
   assert.deepEqual(next(a), next(restored));
   assert.notDeepEqual(a.prices, newGame('coder', 124).prices);
 });
-test('pending events block trading, travel, repayment and work', () => {
+test('optional encounters allow trading, travel, repayment and work', () => {
   const s = newGame();
   for (const c of [{ type: 'buy', id: 'prompt', qty: 1 }, { type: 'travel', location: 'home' }, { type: 'repay', amount: 1 }, { type: 'action', id: 'work' }]) {
-    const r = transition(s, c); assert.ok(r.error); assert.equal(r.state, s);
+    const r = transition(s, c); assert.equal(r.error, null); assert.notEqual(r.state, s);
   }
 });
 test('a same-day round trip loses only the spread, conserving holdings and AP', () => {
@@ -64,11 +64,11 @@ test('repayment reduces compound interest immediately and can never mint cash', 
   for (const amount of [-1, 0, 1001, Infinity]) assert.equal(transition(s, { type: 'repay', amount }).state, s);
   const next = act(s, { type: 'travel', location: 'home' });
   assert.equal(next.debt, 6000 + Math.ceil(6000 * .018));
-  assert.equal(next.cash, 1000 - dailyCost(s)); assert.equal(next.ap, 2); assert.equal(next.day, 2);
+  assert.equal(next.cash, 1000 - dailyCost(s) - travelFare(s, 'home')); assert.equal(next.ap, 2); assert.equal(next.day, 2);
 });
 test('daily shortages are added to debt without negative cash', () => {
   let s = ready(); s.cash = 0;
-  const next = act(s, { type: 'travel', location: 'home' });
+  const next = act(s, { type: 'travel', location: s.location });
   assert.equal(next.cash, 0); assert.equal(next.debt, s.debt + dailyCost(s) + dailyInterest(s));
   assert.equal(next.receipts[0].shortage, dailyCost(s)); assert.ok(isValidSave(next));
 });
