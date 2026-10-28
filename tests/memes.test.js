@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { newGame, transition, getEvent, parseSave, isValidSave, actionInfo } from '../src/engine.js';
 import { EVENTS } from '../src/content.js';
 import { MEME_EVENTS, FOLLOWUPS, MEME_CATALOG, rheostat } from '../src/memes.js';
-import { MODELS, PROFILES } from '../src/models.js';
+import { MODELS } from '../src/models.js';
 const act = (s, c) => { const r = transition(s, c); assert.equal(r.error, null); return r.state; };
 const ready = seed => act(newGame('coder', seed), { type: 'choose', index: 0 });
 
@@ -55,9 +55,9 @@ test('v1 save migrates new fields and goods while preserving cash, quotes and RN
   assert.equal(next.eventDeck.length, EVENTS.length);
 });
 test('all verified models can be hired; contracts cost game money, expire and never auto-renew', () => {
-  assert.ok(MODELS.length >= 25); assert.ok(!MODELS.some(m => /command|cohere/i.test(`${m.id} ${m.name}`)));
+  assert.ok(MODELS.length >= 20); assert.ok(!MODELS.some(m => /command|cohere/i.test(`${m.id} ${m.name}`)));
   for (const m of MODELS) {
-    const s = ready(4); s.event = null; const p = PROFILES[m.profile];
+    const s = ready(4); s.event = null; const p = m;
     const hired = act(s, { type: 'model', id: m.id });
     assert.equal(hired.cash, s.cash - p.fee); assert.equal(hired.ap, 2);
     assert.equal(actionInfo(hired, 'work').effects.cash - actionInfo(s, 'work').effects.cash, p.work);
@@ -119,7 +119,7 @@ test('identities change real numbers, not only opening stats', async () => {
   assert.equal(actionInfo(base('worker'), 'work').effects.stress, Math.round(8 * .6));
   assert.equal(actionInfo(base('grad'), 'learn').effects.skill, actionInfo(base('worker'), 'learn').effects.skill + 4);
   assert.ok(productIncome(base('opc')) > productIncome(base('worker')));
-  assert.equal(modelFee(base('grad'), PROFILES.code), PROFILES.code.fee / 2);
+  assert.equal(modelFee(base('grad'), MODELS[0]), MODELS[0].fee / 2);
   const creator = actionInfo(base('creator'), 'write').outcomes, worker = actionInfo(base('worker'), 'write').outcomes;
   assert.equal(creator[0].effects.cash, Math.round(worker[0].effects.cash * 1.5));
   assert.equal(creator.reduce((n, o) => n + o.weight, 0), 100);
@@ -160,7 +160,7 @@ test('v2 saves holding retired goods are cashed out at their last quote, keeping
   const next = parseSave(JSON.stringify(s));
   assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.cash, s.cash + 720 * 2);
   assert.equal(next.inventory.b300, undefined); assert.equal(next.inventory.invite.qty, 0);
-  assert.equal(next.version, 3); assert.match(next.journal[0].text, /折现/);
+  assert.equal(next.version, 4); assert.match(next.journal[0].text, /折现/);
 });
 test('a save holding a contract with a retired model still loads, with the contract ended', () => {
   const s = ready(44); s.version = 2; s.model = 'stepfun/step-5-preview'; s.modelUntil = 5;
@@ -186,4 +186,51 @@ test('every action can crit or flop with shown odds, persisted and never rerolle
     assert.equal(seen[id].size, ACTION_ROLLS[id].length + 1, `${id}: ${[...seen[id]]}`);
   }
   const bad = ready(3); bad.lastAction = { id: 'work', outcome: 'eureka', flavor: 0 }; assert.equal(isValidSave(bad), false);
+});
+test('each station deals in 8 of 12 goods a day; others cannot be traded there', async () => {
+  const { GOODS, OPENING_GOODS } = await import('../src/content.js');
+  assert.equal(GOODS.length, 12);
+  let s = ready(15); assert.deepEqual(s.available, OPENING_GOODS);
+  const seen = new Set();
+  for (let d = 0; d < 12; d++) {
+    if (s.event) s = act(s, { type: 'choose', index: getEvent(s).options.findIndex(o => (o.effects.cash ?? 0) >= 0 && !o.stance) });
+    s = act(s, { type: 'travel', location: 'market' });
+    assert.equal(s.available.length, 8); s.available.forEach(id => seen.add(id));
+    const away = GOODS.find(g => !s.available.includes(g.id));
+    if (!s.event) assert.equal(transition(s, { type: 'buy', id: away.id, qty: 1 }).state, s);
+    assert.deepEqual(parseSave(JSON.stringify(s)).available, s.available);
+  }
+  assert.equal(seen.size, 12);
+});
+test('daily quests pay out once when met, and expanding storage costs cash but no action', async () => {
+  const { QUESTS } = await import('../src/content.js');
+  let s = ready(19); s.event = null;
+  s.quest = { id: 'cash', base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash - 900, reputation: s.reputation } };
+  const before = s.reputation, done = act(s, { type: 'travel', location: 'home' });
+  assert.equal(done.questsDone, 1); assert.ok(done.reputation >= before + QUESTS.find(q => q.id === 'cash').reward.reputation - 2);
+  assert.ok(done.journal.some(j => j.kind === 'quest'));
+  const e = ready(5); e.event = null; e.cash = 5000;
+  const bigger = act(e, { type: 'expand' });
+  assert.equal(bigger.capacity, 28); assert.equal(bigger.ap, e.ap); assert.equal(bigger.cash, 4300);
+  e.cash = 10; assert.equal(transition(e, { type: 'expand' }).state, e);
+});
+test('stations visited leave intel for the map, and angels drink at launch parties', () => {
+  let s = ready(23); s.event = null;
+  s = act(s, { type: 'travel', location: 'stream' });
+  assert.equal(s.intel.stream.day, s.day); assert.ok(s.intel.market);
+  s.event = null; s.location = 'launch';
+  assert.equal(actionInfo(s, 'social').outcomes.find(o => o.id === 'investor').weight, 14);
+  s.location = 'home';
+  assert.equal(actionInfo(s, 'social').outcomes.find(o => o.id === 'investor').weight, 8);
+});
+test('model prices differ by model; at most two per company; v3 saves gain the new goods', async () => {
+  const fees = new Set(MODELS.map(m => m.fee)); assert.ok(fees.size >= 10);
+  const perCompany = {}; for (const m of MODELS) perCompany[m.id.split('/')[0]] = (perCompany[m.id.split('/')[0]] ?? 0) + 1;
+  assert.ok(Object.values(perCompany).every(n => n <= 2), JSON.stringify(perCompany));
+  assert.ok(!MODELS.some(m => /llama|spark-open|haiku|terra|astra|sensenova/i.test(m.id)));
+  const s = ready(8); s.version = 3;
+  for (const id of ['whale', 'minecard', 'deck', 'robot']) for (const k of ['inventory', 'prices', 'previousPrices', 'history']) delete s[k][id];
+  for (const k of ['available', 'intel', 'quest', 'questsDone']) delete s[k];
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.version, 4); assert.equal(next.rng, s.rng); assert.equal(next.inventory.robot.qty, 0); assert.equal(next.available.length, 8);
 });

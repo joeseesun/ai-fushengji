@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T07:10:17.265Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny lively mood, no purple neon. Scene: a crowded tech networking dinner around a steaming hotpot table, founders in hoodies and blazers exchanging business cards and scanning each other's phone QR codes, one person enthusiastically pitching with hand gestures, a tiny laptop showing a slide, beer glasses and skewers. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition (16:9). Crisp, hard pixel edges with deliberately drawn pixel clusters, no antialiasing or blurry gradients. Warm muted retro palette of teal, warm grey, navy, cream and orange accents. Funny, lively, bustling mood; absolutely no purple neon. Scene: a crowded tech networking dinner around a large steaming hotpot table in a cozy restaurant. Founders wearing hoodies and blazers exchange completely blank business cards and scan abstract QR-like black-and-cream pixel patterns on each other's phones. The phone patterns have no letters, numbers or logos. One person enthusiastically pitches with expressive hand gestures while other diners react with amused interest. A tiny laptop shows a purely pictorial presentation slide of simple abstract shapes and a diagram, with absolutely no text. Beer glasses with golden beer and froth, skewers, plates, chopsticks and hotpot ingredients cover the table. Distinct charming characters, readable silhouettes, richly detailed environmental pixel art and playful social interactions. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere, including clothing, screens, cards, restaurant decor and objects. Fully opaque background; the restaurant interior and warm background colors must cover the entire rectangular canvas edge to edge. No transparency, no cutouts, no empty corners, no black corner regions, no black border, no vignette.",
+  "route": "raw_prompt"
+}

@@ -27,10 +27,12 @@ const showPane = async (page, id) => {
   if (await tab.isVisible()) await tab.click();
 };
 const endDay = async page => {
-  await page.locator('#destination').selectOption('jobs');
+  await page.locator('[data-ui="map"]').click();
+  await page.locator('.map-pin[data-id="jobs"]').click();
+  const go = page.locator('[data-ui="map-go"]'); await expect(go).toBeInViewport(); await go.click();
   await page.locator('[data-ui="end-day"]').click();
-  const go = page.locator('dialog.briefing [data-ui="close-modal"].cta');
-  await expect(go).toBeVisible(); await expect(go).toBeInViewport({ ratio: 1 }); await go.click();
+  const start = page.locator('dialog.briefing [data-ui="close-modal"].cta');
+  await expect(start).toBeVisible(); await expect(start).toBeInViewport({ ratio: 1 }); await start.click();
 };
 const doAction = async (page, id) => {
   await page.locator(`[data-ui="action"][data-id="${id}"]`).click();

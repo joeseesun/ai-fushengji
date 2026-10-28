@@ -10,6 +10,8 @@
 | 新闻与突发插图 | `public/art/scenes/news-*.webp` | 13 |
 | 写稿抽卡结果 | `public/art/scenes/write-*.webp` | 3 |
 | 行动结果（含接单暴击与压价） | `public/art/scenes/act-*.webp` | 9 |
-| 货品图标（由一张 4×2 图集切出） | `public/art/goods/*.webp` | 8 |
+| 货品图标（由 4×2 与 4×1 图集切出） | `public/art/goods/*.webp` | 12 |
+| 北京地图 | `public/art/scenes/map.webp` | 1 |
+| 饭局社交与天使投资 | `public/art/scenes/act-social.webp` 等 | 2 |
 
-每张图的完整提示词保存在 `design-previews/{roles,scenes,news,actions}/*.json`。原始 PNG 约 90MB，未提交；游戏内使用压缩后的 WebP（合计约 3MB，随离线缓存一起下载）。图中不含文字，人物为虚构形象。
+每张图的完整提示词保存在 `design-previews/{roles,scenes,news,actions,map}/*.json`。原始 PNG 约 90MB，未提交；游戏内使用压缩后的 WebP（合计约 3MB，随离线缓存一起下载）。图中不含文字，人物为虚构形象。
