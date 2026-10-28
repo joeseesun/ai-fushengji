@@ -4,8 +4,9 @@ import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.
 import { drawNews, getEdition, validNews } from './news.js';
 import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
 import { careerOffer, careerDemand, careerAction } from './careers.js';
+import { RULESET, MAX_COMMANDS, cleanCommand, validProof } from './run-proof.js';
 
-export const VERSION = 6;
+export const VERSION = 7;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -140,7 +141,8 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
     totalEarned: 0, totalInterest: 0, jobsDone: 0, tradeProfit: 0, daysRested: 0,
-    borrowed: 0, lastBorrowDay: -10, status: 'playing', ending: null,
+    borrowed: 0, lastBorrowDay: -10, status: 'playing', ending: null, failure: null,
+    proof: { ruleset: RULESET, commands: [] },
   };
   s.eventDeck = shuffle(s, EVENTS.map(e => e.id));
   market(s);
@@ -174,6 +176,7 @@ export const combinedEffects = (base, extra) => {
 };
 
 export function actionInfo(s, action) {
+  if (!Object.hasOwn(ACTION_FLAVOR, action)) return null;
   const bonus = modelBonus(s), role = s.role;
   const offer = careerOffer(s), demand = careerDemand(s);
   const wage = Math.round((offer.base + s.skill * offer.skill + s.reputation * offer.rep + (s.location === 'jobs' ? 160 : 0)) * offer.mult * offer.rate * (demand?.active ? demand.rate : 1));
@@ -233,7 +236,7 @@ export function endingFor(s) {
 }
 
 function checkFailure(s) {
-  if (s.health <= 0 || s.stress >= 100 || s.debt > 50000) {
+  if (s.status !== 'ended' && (s.health <= 0 || s.stress >= 100 || s.debt > 50000)) {
     s.status = 'ended'; s.ending = endingFor(s); s.event = null;
     log(s, s.ending.title, 'ending');
   }
@@ -422,7 +425,70 @@ export function transition(original, command) {
     default: return fail('这个动作不存在。');
   }
   checkFailure(s);
+  if (s.status === 'ended' && failureReason(s)) {
+    const reason = failureReason(s);
+    s.failure = { key: reason.key, before: original[reason.key], after: s[reason.key], source: commandLabel(original, command), detail: s.journal.find(j => j.kind !== 'ending')?.text ?? '' };
+  }
+  if (s.proof) {
+    const entry = cleanCommand(command);
+    if (!entry || s.proof.commands.length >= MAX_COMMANDS) s.proof = null;
+    else s.proof.commands.push(entry);
+  }
   return { state: s, error: null, message: message || s.ending?.subtitle || '' };
+}
+
+export function failureReason(s) {
+  if (s.health <= 0) return { key: 'health', label: '健康', title: '健康耗尽，提前出局', rule: '健康降到 0 就会出局', advice: '给休息留一格；压力高时，收工还会额外消耗健康。' };
+  if (s.stress >= 100) return { key: 'stress', label: '压力', title: '压力达到上限，提前出局', rule: '压力达到 100 就会出局', advice: '休息基础减压 22，偶尔会被工作群打断；别把两格行动都拿去硬扛。' };
+  if (s.debt > 50000) return { key: 'debt', label: '欠款', title: '欠款超过额度，提前出局', rule: '欠款超过 ¥50,000 就会出局', advice: '先卖货还债，留出生活费；每天的利息也会计入欠款。' };
+  return null;
+}
+
+export function commandLabel(s, command) {
+  if (command.type === 'action') return actionInfo(s, command.id)?.name ?? '今日安排';
+  if (command.type === 'choose') return `${getEvent(s)?.title ?? '今日遭遇'} → ${getEvent(s)?.options[command.index]?.label ?? '作出选择'}`;
+  if (command.type === 'travel') return `第 ${s.day} 天收工 → ${LOCATIONS.find(l => l.id === command.location)?.name ?? '下一站'}`;
+  if (command.type === 'finish') return '最后一天结算';
+  return '本次操作';
+}
+
+// Use visible odds/effects, never peek at the next RNG draw to warn a player.
+export function commandRisk(s, command) {
+  if (!['action', 'choose', 'travel', 'finish'].includes(command.type) || s.status !== 'playing') return null;
+  let base = copy(s), outcomes = [{ weight: 1, effects: {} }];
+  if (command.type === 'action') {
+    const info = actionInfo(s, command.id);
+    if (!info || info.reason) return null;
+    applyEffects(base, info.effects); outcomes = info.outcomes ?? outcomes;
+  } else if (command.type === 'choose') {
+    const choice = getEvent(s)?.options[command.index];
+    if (!choice || s.cash + (choice.effects.cash ?? 0) < 0) return null;
+    applyEffects(base, choice.effects);
+    if (choice.stance) applyEffects(base, rheostat(command.stance ?? s.stance).effects);
+    outcomes = choice.outcomes ?? outcomes;
+  } else if (['travel', 'finish'].includes(command.type)) {
+    if (command.type === 'travel' && !LOCATIONS.some(l => l.id === command.location)) return null;
+    const fare = command.type === 'finish' ? 0 : travelFare(s, command.location);
+    if (s.cash < fare) return null;
+    base.cash -= fare;
+    const quest = questProgress(base); if (quest?.done) applyEffects(base, quest.reward);
+    base.debt += dailyInterest(base) + Math.max(0, dailyCost(base) - base.cash - productIncome(base));
+    base.health = Math.max(0, base.health - (1 + (base.stress >= 70 ? 5 : base.stress >= 50 ? 2 : 0)));
+    if (!failureReason(base) && command.type === 'travel') {
+      const arrivals = ARRIVALS.filter(a => a.loc === command.location);
+      if (arrivals.length) outcomes = [{ weight: .45, effects: {} }, ...arrivals.flatMap(a => a.amounts ? a.amounts.map(n => ({ weight: .55 / arrivals.length / a.amounts.length, effects: { [a.key]: n } })) : [{ weight: .55 / arrivals.length, effects: a.effects }])];
+    }
+  } else return null;
+  const total = outcomes.reduce((n, o) => n + o.weight, 0), risks = [];
+  let weight = 0;
+  for (const outcome of outcomes) {
+    const after = copy(base); applyEffects(after, outcome.effects);
+    const reason = failureReason(after);
+    if (reason) { weight += outcome.weight; risks.push(reason); }
+  }
+  if (!weight) return null;
+  return { title: commandLabel(s, command), probability: Math.round(weight / total * 1000) / 10,
+    reasons: [...new Map(risks.map(r => [r.key, { ...r, current: s[r.key] }])).values()] };
 }
 
 // Only accept bounded, structurally valid saves. Text is escaped by the renderer too.
@@ -511,11 +577,14 @@ export function parseSave(text) {
       for (const g of EXTRA_GOODS) if (!s.inventory[g.id]) {
         s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.history[g.id] = [g.base];
       }
-      s.newsLegacy = true; s.version = VERSION;
+      s.newsLegacy = true; s.version = 6;
     }
+    if (s?.version === 6) { s.proof = null; s.failure = null; s.version = VERSION; }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
       s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null; s.lastAction ??= null;
+      if (!validProof(s.proof)) s.proof = null;
+      if (!(s.failure && ['health', 'stress', 'debt'].includes(s.failure.key) && integer(s.failure.before) && integer(s.failure.after) && typeof s.failure.source === 'string' && s.failure.source.length <= 200 && typeof s.failure.detail === 'string' && s.failure.detail.length <= 1200)) s.failure = null;
       // A contract on a model that left the roster ends early instead of invalidating the save.
       if (s.model !== null && s.model !== undefined && !MODELS.some(m => m.id === s.model)) { s.model = null; s.modelUntil = 0; }
       s.eventDeck = [...s.eventDeck, ...EVENTS.map(e => e.id).filter(id => !s.eventDeck.includes(id))];
@@ -526,5 +595,5 @@ export function parseSave(text) {
 
 export function shareText(s) {
   const end = s.ending ?? endingFor(s);
-  return `《AI 浮生记》｜${gameResult(s)} · ${end.title}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${end.subtitle}\n你能在 AI 时代，保住多少钱和多少自己？`;
+  return `《AI 浮生记》｜${gameResult(s)} · ${end.title}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${failureReason(s)?.rule ?? end.subtitle}${s.failure ? `\n最后一步：${s.failure.source}` : ''}\n你能在 AI 时代，保住多少钱和多少自己？`;
 }

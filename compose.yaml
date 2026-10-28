@@ -1,0 +1,24 @@
+services:
+  leaderboard:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: ai-fushengji-leaderboard:0.7.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3491:3491"
+    environment:
+      PUBLIC_ORIGIN: https://fusheng.qiaomu.ai
+      TRUST_PROXY: "1"
+    volumes:
+      - /opt/qiaomu-apps/ai-fushengji/data:/data
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
