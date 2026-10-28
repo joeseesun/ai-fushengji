@@ -298,3 +298,50 @@ test('no perk combination lets a same-day buy-then-sell make money', async () =>
     for (const g of GOODS) assert.ok(salePrice(s, g.id) < buyPrice(s, g.id), `${seed} ${g.id}`);
   }
 });
+test('VIPs are announced a day ahead, stay two days, move prices and hand out items at their station', async () => {
+  const { VIPS, ITEMS } = await import('../src/content.js');
+  const { activeVips, upcomingVips, nextStop } = await import('../src/engine.js');
+  let s = ready(61); s.event = null;
+  assert.equal(activeVips(s).length, 1); assert.equal(upcomingVips(s).length, 1);
+  const tomorrow = upcomingVips(s)[0];
+  const there = act(s, { type: 'travel', location: tomorrow.station });
+  const vip = VIPS.find(v => v.id === tomorrow.id), item = ITEMS[vip.item];
+  assert.ok(activeVips(there).some(v => v.id === vip.id));
+  assert.equal(there.items[vip.item], item.charges); assert.ok(there.journal.some(j => j.kind === 'vip'));
+  assert.ok(upcomingVips(there).length === 1 && upcomingVips(there)[0].from === there.day + 1);
+  assert.deepEqual(parseSave(JSON.stringify(there)).vips, there.vips);
+  // Same seed, a different station: same VIP, no item.
+  const elsewhere = act(s, { type: 'travel', location: LOCATIONS_OTHER(tomorrow.station) });
+  assert.ok(!elsewhere.items[vip.item]);
+  // Jensen at the black market makes GPUs cheaper there than the same market without him.
+  const a = ready(62); a.event = null; a.vips = [{ id: 'jensen', station: 'market', from: a.day + 1, until: a.day + 2, claimed: false }];
+  const b = ready(62); b.event = null; b.vips = [{ id: 'zuck', station: 'hackathon', from: b.day + 1, until: b.day + 2, claimed: false }];
+  const withJensen = act(a, { type: 'travel', location: 'market' }), without = act(b, { type: 'travel', location: 'market' });
+  assert.ok(withJensen.prices.compute < without.prices.compute, `${withJensen.prices.compute} vs ${without.prices.compute}`);
+});
+function LOCATIONS_OTHER(station) { return ['market', 'launch', 'jobs', 'course', 'opensource', 'stream', 'hackathon', 'home'].find(l => l !== station); }
+test('items power the matching action once per charge, and VIP auras change rules while present', async () => {
+  const s = ready(63); s.event = null; s.items = { bowl: 2 }; s.vips = [];
+  const plain = { ...structuredClone(s), items: {} };
+  assert.equal(actionInfo(s, 'work').effects.cash, actionInfo(plain, 'work').effects.cash + 300);
+  const used = act(s, { type: 'action', id: 'work' }); assert.equal(used.items.bowl, 1);
+  const done = act(used, { type: 'action', id: 'work' }); assert.equal(done.items.bowl, undefined);
+  const liang = { ...structuredClone(plain), vips: [{ id: 'liang', station: 'opensource', from: s.day, until: s.day + 1, claimed: true }] };
+  assert.ok(actionInfo(liang, 'work').effects.cash > actionInfo(plain, 'work').effects.cash);
+  const sam = { ...structuredClone(plain), vips: [{ id: 'sam', station: 'course', from: s.day, until: s.day + 1, claimed: true }] };
+  assert.equal(actionInfo(sam, 'write').outcomes.find(o => o.id === 'viral').weight, actionInfo(plain, 'write').outcomes.find(o => o.id === 'viral').weight + 6);
+  assert.equal(actionInfo(sam, 'write').outcomes.reduce((n, o) => n + o.weight, 0), 100);
+});
+test('market depth: selling more at one station sinks the bid, buying lifts the ask, and it resets tomorrow', async () => {
+  const { salePrice, buyPrice, nextStop } = await import('../src/engine.js');
+  let s = ready(64); s.event = null; s.cash = 1e5;
+  const id = s.available[0], ask = buyPrice(s, id);
+  s = act(s, { type: 'buy', id, qty: 10 });
+  assert.ok(buyPrice(s, id) > ask);
+  const bid = salePrice(s, id);
+  s = act(s, { type: 'sell', id, qty: 6 });
+  assert.ok(salePrice(s, id) < bid); assert.ok(salePrice(s, id) < buyPrice(s, id));
+  const next = act(s, { type: 'travel', location: nextStop(s) });
+  assert.deepEqual(next.flow, {});
+  const bad = ready(65); bad.flow = { nothing: { b: 1, s: 0 } }; assert.equal(isValidSave(bad), false);
+});

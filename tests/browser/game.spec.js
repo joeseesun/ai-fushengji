@@ -7,13 +7,9 @@ const start = async (page, s = newGame('coder', 42)) => {
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight && document.documentElement.scrollWidth <= innerWidth), 'saved welcome fits the viewport').toBe(true);
   await page.locator('[data-ui="resume"]').click();
 };
+// Encounters are read-only since v0.9; the only pick left in that panel is the perk draft.
 const choose = async page => {
   if ((await snapshot(page)).draft) { await showPane(page, 'event'); await page.locator('[data-ui="perk"]').first().click(); }
-  const s = await snapshot(page), e = getEvent(s); if (!e) return;
-  const index = e.options.map((o, i) => ({ o, i })).filter(({ o }) => s.cash + (o.effects.cash ?? 0) >= 0).sort((a, b) => score(b.o) - score(a.o))[0].i;
-  await showPane(page, 'event');
-  await reveal(page, `[data-ui="choose"][data-index="${index}"]`);
-  await page.locator(`[data-ui="choose"][data-index="${index}"]`).click();
 };
 const reveal = async (page, selector, frame = '.event-pages') => {
   if (frame === '.event-pages') await showPane(page, 'event');
@@ -69,7 +65,6 @@ test('desktop: real 40-day UI run, trades, model contract, save/resume and PNG e
   for (let day = 1; day <= 40; day++) {
     const current = await snapshot(page); expect(current.day).toBe(day); expect(current.status).toBe('playing');
     if (day === 3 || day === 4 || day === 12) await page.screenshot({ path: `evidence/day-${day}-desktop.png`, fullPage: true });
-    if (day === 4) { await reveal(page, '#stance'); await page.locator('#stance').fill('95'); await expect(page.locator('#stance-name')).toHaveText('义父'); }
     await choose(page);
     for (let n = 0; n < 2; n++) { const s = await snapshot(page); await doAction(page, s.health < 70 || s.stress > 35 ? 'rest' : 'work'); }
     const s = await snapshot(page), payment = Math.min(s.debt, Math.max(0, s.cash - 800));
@@ -136,14 +131,14 @@ test('offline resume, valid save import, support and follow images', async ({ pa
   }
 });
 
-test('single screen: every event choice reachable by buttons, without scrolling or clipping', async ({ page }) => {
+test('single screen: VIPs, items and the day\'s meme are readable by buttons, without scrolling or clipping', async ({ page }) => {
   const sizes = [[1365,768], [1440,900], [1024,768], [390,844], [320,568], [844,390], [683,384]];
   for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
     for (const id of ['rheostat', 'fish-rice', 'router-launch', 'gpu-oom', 'budget', 'claude-ban']) {
       const s = newGame('coder', 42); s.day = 20; s.event = id; s.seen.push(id);
       await start(page, s); await showPane(page, 'event');
-      const seen = new Set();
+      let sawMeme = false;
       for (let n = 0; n < 15; n++) {
         const geometry = await page.evaluate(() => {
           const issues = [];
@@ -162,12 +157,13 @@ test('single screen: every event choice reachable by buttons, without scrolling 
         expect(geometry.issues, `${width}x${height} ${id}`).toEqual([]);
         expect(geometry.width).toBeLessThanOrEqual(width); expect(geometry.height).toBeLessThanOrEqual(height);
         expect(geometry.end).toBeLessThanOrEqual(height);
-        for (const index of await page.locator('[data-ui="choose"]:visible').evaluateAll(es => es.map(e => e.dataset.index))) seen.add(index);
+        if (await page.locator('.today-meme h3:visible').count()) sawMeme = true;
+        expect(await page.locator('[data-ui="choose"]').count()).toBe(0);
         const next = page.locator('.event-pages [data-page-turn="1"]');
         if (!await next.isVisible() || !await next.isEnabled()) break;
         await next.click();
       }
-      expect(seen.size).toBe(getEvent(s).options.length);
+      expect(sawMeme, `${width}x${height} ${id}`).toBe(true);
       for (const pane of ['market','actions']) { await showPane(page, pane); expect(await page.evaluate(() => [scrollX,scrollY])).toEqual([0,0]); }
     }
   }
@@ -175,7 +171,7 @@ test('single screen: every event choice reachable by buttons, without scrolling 
 
 test('guidance starts with actions while encounters remain optional', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 }); await start(page);
-  await expect(page.locator('#next-step')).toContainText('遭遇可选');
+  await expect(page.locator('#next-step')).toContainText('看大佬在哪');
   await choose(page);
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
   await expect(page.locator('#next-step')).toContainText('今天选 2 件事');
@@ -190,7 +186,7 @@ test('guidance starts with actions while encounters remain optional', async ({ p
   await endDay(page);
   await expect(page.locator('[data-testid="day"]')).toHaveText('02');
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
-  await expect(page.locator('#next-step')).toContainText('遭遇可选');
+  await expect(page.locator('#next-step')).toContainText('看大佬在哪');
 });
 
 test('identity picker starts the chosen role; writing shows a gacha card', async ({ page }) => {
@@ -262,7 +258,7 @@ test('news survives refresh, explains prices, and all small-screen copy is reach
   }
 });
 
-test('Claw and Token loan choices stay readable; installment persists after reload', async ({ page }) => {
+test('Claw and Token loan stories stay readable as the day\'s meme on small screens', async ({ page }) => {
   for (const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
     await page.setViewportSize({width,height});
     for(const id of ['claw-mini','token-loan','claw-token-bill','claw-budget-win','claw-credit-after']) {
@@ -270,13 +266,7 @@ test('Claw and Token loan choices stay readable; installment persists after relo
       await start(page,s); await readPages(page,'.event-pages');
     }
   }
-  await page.setViewportSize({width:390,height:844});
-  const s=newGame('coder',42);s.day=25;s.event='claw-mini';s.seen.push('claw-mini');
-  await start(page,s);await reveal(page,'[data-ui="choose"][data-index="0"]');
-  await page.locator('[data-ui="choose"][data-index="0"]').click();
-  const after=await snapshot(page);expect(after.debt).toBe(s.debt+4800);expect(after.cash).toBe(s.cash);
-  expect(after.followups).toContainEqual({id:'claw-token-bill',day:28});
-  await page.reload();await page.locator('[data-ui="resume"]').click();expect(await snapshot(page)).toEqual(after);
+  await showPane(page, 'event'); expect(await page.locator('[data-ui="choose"]').count()).toBe(0);
 });
 
 test('map cancel keeps destination; map, models and achievements use buttons without scroll', async ({ page }) => {

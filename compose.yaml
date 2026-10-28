@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-    image: ai-fushengji-leaderboard:0.8.0
+    image: ai-fushengji-leaderboard:0.9.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:3491:3491"

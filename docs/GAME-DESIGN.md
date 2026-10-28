@@ -81,3 +81,12 @@
 - Boss（参考 Balatro 每一关的 Boss Blind）：第 10/20/30 天房租日，金额递增，给中段一个必须提前准备现金的节点；不交不会立刻出局，但 1.5 倍入账。
 - 年度报告（参考 [Spotify Wrapped](https://medium.com/design-bootcamp/why-spotify-wrapped-keeps-you-engaged-and-goes-viral-every-year-bba52a1042b5) 的人格称号与数据卡）：人格由存档中的统计按固定规则得出，刷新不会变。
 - 规则改变后全服榜规则版本升到 0.8.0；服务端需要随新引擎一起部署。
+
+## 2026-10-28 · v0.9 大佬行程、道具与市场深度
+
+借鉴顶级策略游戏的三个机制：
+- **提前亮牌**（[Into the Breach](https://www.destructoid.com/reviews/review-into-the-breach/) 把敌人下一步完整亮给玩家）：明天哪位大佬去哪一站，今天就写在地图上。路线规划变成可以思考的谜题，而不是赌运气。
+- **人物带来地点加成**（《文明》伟人的思路）：大佬改变当地或全城价格，并提供只在对应行动上生效的道具。追大佬、错开大佬、先囤货再等大佬，都是可选策略。
+- **供需反馈**（[Port Royale](https://strategywiki.org/wiki/Port_Royale_2/Goods)：在一座城卖出后价格下降）：同站同日成交越多价格越差，鼓励分站出货、和大佬行程配合。
+
+今日遭遇不再要求回答。原有事件作为只读“今日梗”保留笑点和梗图收集；数值影响改由大佬、道具与外挂承担。
