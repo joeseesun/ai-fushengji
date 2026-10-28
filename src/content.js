@@ -306,6 +306,45 @@ export const MILESTONES = {
   ]),
 };
 
-export const INTRO_EVENT = event('intro', '入场须知', '欢迎加入“人人都能当老板”的时代', '你有 40 天还清培训贷，别把身体一起抵押。每天两格行动；买卖不耗行动，换站会过一天，生活费和利息照收。', [
-  option('知道了，先把今天过好', {}, '第一课：现金不等于净资产，热闹不等于生意。'),
+export const INTRO_EVENT = event('intro', '第 1 天 · 新手须知', '40 天，还清欠款，活着收工', '每天三步：① 先处理一件突发的事（就是现在这件）；② 再干两件事：接单、写稿、学习、休息都行；③ 选个地方过夜，第二天到来。买卖货品和还钱随时可做，不占次数。', [
+  option('懂了，开始第一天', {}, '第一课：现金不等于净资产，热闹不等于生意。'),
 ]);
+
+// Every action can surprise. Odds are shown on the tile; bonus effects add to the base action.
+export const ACTION_ROLLS = {
+  work: [
+    { id: 'jackpot', rank: '暴击', weight: 12, art: 'act-jackpot', bonus: { cashRate: .8, reputation: 2 }, text: '甲方说“效果超出预期”，当场加钱。你怀疑他把你当成了别人。' },
+    { id: 'stiffed', rank: '压价', weight: 10, art: 'act-stiffed', bonus: { cashRate: -.4, stress: 4 }, text: '验收时甲方说“AI 不是一键就有吗”，尾款砍了四成。' },
+  ],
+  rush: [
+    { id: 'jackpot', rank: '暴击', weight: 10, art: 'act-jackpot', bonus: { cashRate: .6 }, text: '凌晨四点交付，客户感动到多打了一笔“咖啡钱”。' },
+    { id: 'spaghetti', rank: '翻车', weight: 15, bonus: { techDebt: 6, stress: 3 }, text: '你写出了一盘意大利面。能跑，但没人敢碰。' },
+  ],
+  learn: [
+    { id: 'eureka', rank: '顿悟', weight: 15, bonus: { skill: 5 }, text: '你突然看懂了 Attention 那张图。不是收藏，是真的懂了。' },
+    { id: 'rabbit', rank: '掉坑', weight: 10, bonus: { stress: 5, skill: -3 }, text: '本来想学原理，结果刷了三小时“三分钟看懂大模型”。' },
+  ],
+  rest: [
+    { id: 'deep', rank: '满血', weight: 15, bonus: { health: 10 }, text: '一觉睡到自然醒，没有一条消息。你怀疑世界停服了。' },
+    { id: 'pinged', rank: '被@', weight: 10, bonus: { stress: 6 }, text: '刚闭眼，工作群弹出：“@所有人 有个小需求。”' },
+  ],
+  build: [
+    { id: 'spark', rank: '灵感', weight: 12, bonus: { reputation: 3, techDebt: -3 }, text: '洗澡时想到了一个更简单的做法，删掉了一半代码。' },
+    { id: 'scope', rank: '加戏', weight: 10, bonus: { techDebt: 5, stress: 3 }, text: '你忍不住“顺手加了个 AI 功能”。现在它也需要你维护了。' },
+  ],
+  maintain: [
+    { id: 'clean', rank: '清爽', weight: 15, bonus: { techDebt: -10 }, text: '你删掉了一个三年前的 TODO，和它背后的 800 行代码。' },
+  ],
+};
+
+// One of these is drawn for an ordinary result, so repeated actions do not read the same.
+export const ACTION_FLAVOR = {
+  work: ['交付完成。客户说“收到”，这两个字比一百颗星值钱。', '需求改了五版，最后用的是第一版。钱照付。', '你用 AI 写了 80%，剩下 20% 用掉了你 80% 的时间。', '客户夸你“很有 AI 感”。你决定把它当成夸奖。', '顺利交付。甲方问能不能再“优化一下颗粒度”，你装没看见。'],
+  rush: ['钱到了。你把明天的自己设成了负责人。', '凌晨三点的代码，有一种特别的自信。', '交付了。注释里写着“别问，能跑”。', '你和咖啡因达成了短期合作协议。'],
+  learn: ['学会了一点。不是看过，不是收藏，是会了。', '你读完了一篇论文的摘要、引言和结论。中间的公式先欠着。', '你终于搞懂了 RAG、Agent 和 MCP 的区别。下周它们又改名了。', '你关掉了 37 个“必看”教程，只跟着官方文档跑通了一个例子。'],
+  rest: ['没有产出的一格行动，也算在认真生活。', '你把手机放进抽屉，世界没有因此塌掉。', '你睡了一个好觉。梦里没有新模型发布。', '你下楼走了一圈，发现外面的树没有接入任何 API。'],
+  build: ['又完成了一小块。不是“平台”，是一个具体的问题。', '你写了一个只有三个按钮的产品。三个都能点。', '第一个用户反馈：“能导出 Excel 吗？”你笑着打开了编辑器。', '你给产品起了一个不带 AI 的名字。感觉很安全。'],
+  maintain: ['删掉一层包装。你终于又能看懂自己的系统了。', '你补上了半年前就该写的测试。它们立刻抓到两个 bug。', '你把“临时方案”改成了真正的方案。临时了八个月。'],
+  write: [''],
+  expand: ['空间变大了。别把它当成一定要买满的理由。'],
+};

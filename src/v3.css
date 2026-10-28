@@ -154,3 +154,39 @@ dialog.briefing .brief-hero img { aspect-ratio:auto; height:clamp(110px,24vh,210
 
 .modal-content>.sticky-actions { flex-shrink:0; margin:10px 0 0; }
 @media (max-height:600px) { dialog.briefing .brief-hero img { height:clamp(70px,18vh,110px); } }
+
+/* v0.4 juice: action results, floating numbers, coins */
+.play-grid { grid-template-columns:minmax(0,.92fr) minmax(0,1.12fr) minmax(0,1.04fr); }
+.actions-panel .action-tile small { display:flex; flex-wrap:wrap; gap:0 6px; font-size:10.5px; line-height:1.3; }
+.actions-panel .action-tile { padding:4px 7px; }
+.actions-panel .action-instruction { font-size:12px; }
+.sfx-toggle { display:inline-flex; gap:4px; }
+.sfx-toggle .icon { width:15px; height:15px; }
+.action-tile .odds { color:#8a6a00; font-weight:600; }
+dialog.act-modal { max-width:520px; }
+.act-art img { aspect-ratio:auto; height:clamp(140px,30vh,260px); }
+.act-run { display:flex; flex-direction:column; gap:8px; padding:6px 0 2px; }
+.act-progress { height:10px; border:1px solid #2b413c; background:#e6e8dc; box-shadow:var(--inset); overflow:hidden; }
+.act-progress i { display:block; height:100%; width:0; background:repeating-linear-gradient(90deg,#213d62 0 8px,#2f5687 8px 16px); animation:act-fill 1.05s steps(14,end) forwards; }
+@keyframes act-fill { to { width:100%; } }
+.act-step { font:600 14px "Courier New",monospace; color:#213d62; text-align:center; min-height:1.5em; }
+.act-result { display:flex; flex-direction:column; gap:8px; animation:act-pop .28s cubic-bezier(.2,1.6,.4,1); }
+.act-stage .act-result { display:none; }
+.act-stage.done .act-run { display:none; }
+.act-stage.done .act-result { display:flex; }
+@keyframes act-pop { from { transform:scale(.88); opacity:0; } }
+.gacha-rank.rank-good { color:#b08700; text-shadow:3px 3px 0 #3a2e00; }
+.gacha-rank.rank-bad { color:#b8322a; text-shadow:3px 3px 0 #ead2c7; }
+dialog.shake { animation:shake .38s; }
+@keyframes shake { 20% { transform:translateX(-8px); } 40% { transform:translateX(7px); } 60% { transform:translateX(-5px); } 80% { transform:translateX(3px); } }
+.stat { position:relative; }
+.float-num { position:absolute; right:12px; top:4px; font:800 18px "Courier New",monospace; pointer-events:none; z-index:20; animation:float-up 1.5s ease-out forwards; text-shadow:1px 1px 0 #fffef4; }
+.float-num.up { color:#1f7a3f; }
+.float-num.down { color:#b8322a; }
+@keyframes float-up { 0% { transform:translateY(10px) scale(.7); opacity:0; } 15% { transform:translateY(0) scale(1.15); opacity:1; } 100% { transform:translateY(-26px) scale(1); opacity:0; } }
+.stat.bump { animation:bump .35s ease-out; }
+@keyframes bump { 40% { background:#fff3c4; } }
+.coin-fly { position:absolute; left:50%; top:60%; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#fff3b0,#f2c230 45%,#a87b00); box-shadow:0 0 0 1px #6d5100; pointer-events:none; z-index:19; animation:coin-fly .9s cubic-bezier(.2,.8,.3,1) var(--d,0ms) both; }
+@keyframes coin-fly { 0% { transform:translate(var(--dx),40px) scale(.4); opacity:0; } 30% { opacity:1; } 100% { transform:translate(0,-14px) scale(1); opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .float-num { animation:none; opacity:1; } .coin-fly,.act-progress i,.act-result,dialog.shake,.stat.bump { animation:none; } }
+@media (max-width:760px) { .sfx-toggle span { display:none; } .act-art img { height:clamp(110px,24vh,200px); } }

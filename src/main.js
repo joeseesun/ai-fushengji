@@ -1,8 +1,9 @@
-import { createElement, Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, BriefcaseBusiness, GraduationCap, GitFork, House, ScrollText, Workflow, Database, Box, Contact, BookOpen, PackagePlus, Wrench, Zap, HardDrive, ArrowRight, ArrowUpRight, ArrowDownRight, Wallet, Heart, Brain, ReceiptText, CircleHelp, RotateCcw, Download, Upload, X, ChevronRight, NotebookPen, Info, Copy, Check, ShieldCheck, ChartNoAxesCombined, Save, CircleDollarSign, Video, PenLine, Trophy, Building2, Sparkles } from 'lucide';
-import { GOODS, LOCATIONS, ROLES, EVENTS, MILESTONES, WRITE_OUTCOMES } from './content.js';
+import { createElement, Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, BriefcaseBusiness, GraduationCap, GitFork, House, ScrollText, Workflow, Database, Box, Contact, BookOpen, PackagePlus, Wrench, Zap, HardDrive, ArrowRight, ArrowUpRight, ArrowDownRight, Wallet, Heart, Brain, ReceiptText, CircleHelp, RotateCcw, Download, Upload, X, ChevronRight, NotebookPen, Info, Copy, Check, ShieldCheck, ChartNoAxesCombined, Save, CircleDollarSign, Video, PenLine, Trophy, Building2, Sparkles, Volume2, VolumeX } from 'lucide';
+import { GOODS, LOCATIONS, ROLES, EVENTS, MILESTONES, WRITE_OUTCOMES, ACTION_FLAVOR } from './content.js';
+import { sfx, sfxEnabled, setSfx } from './sfx.js';
 import { CAST, SOURCES, MEME_CATALOG, rheostat } from './memes.js';
 import { MODELS, PROFILES, MODEL_DATE, getModel, featuredModel } from './models.js';
-import { newGame, transition, parseSave, SAVE_KEY, getEvent, getLocation, getNews, getRumor, getArrival, modelFee, priceHeat, referencePrice, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
+import { newGame, transition, parseSave, SAVE_KEY, getEvent, getLocation, getNews, getRumor, getArrival, modelFee, combinedEffects, priceHeat, referencePrice, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
 import { version as APP_VERSION } from '../package.json';
 import './style.css';
 import './memes.css';
@@ -10,13 +11,14 @@ import './screen.css';
 import './v3.css';
 import { layoutPages, pageFrame } from './pagination.js';
 
-const icons = { Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, BriefcaseBusiness, GraduationCap, GitFork, House, ScrollText, Workflow, Database, Box, Contact, BookOpen, PackagePlus, Wrench, Zap, HardDrive, ArrowRight, ArrowUpRight, ArrowDownRight, Wallet, Heart, Brain, ReceiptText, CircleHelp, RotateCcw, Download, Upload, X, ChevronRight, NotebookPen, Info, Copy, Check, ShieldCheck, ChartNoAxesCombined, Save, CircleDollarSign, Video, PenLine, Trophy, Building2, Sparkles };
+const icons = { Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, BriefcaseBusiness, GraduationCap, GitFork, House, ScrollText, Workflow, Database, Box, Contact, BookOpen, PackagePlus, Wrench, Zap, HardDrive, ArrowRight, ArrowUpRight, ArrowDownRight, Wallet, Heart, Brain, ReceiptText, CircleHelp, RotateCcw, Download, Upload, X, ChevronRight, NotebookPen, Info, Copy, Check, ShieldCheck, ChartNoAxesCombined, Save, CircleDollarSign, Video, PenLine, Trophy, Building2, Sparkles, Volume2, VolumeX };
 const icon = (name, cls = '') => createElement(icons[name] ?? Info, { width: 18, height: 18, 'stroke-width': 1.6, 'aria-hidden': 'true', class: `icon ${cls}` }).outerHTML;
 const esc = str => String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const compactEffects = effects => effectText(effects).replaceAll(' 元', '').replace('现金 ', '¥').split(' · ').map(t => `<span>${esc(t.replaceAll(' ', ''))}</span>`).join('');
 const money = value => `¥${Math.round(value).toLocaleString('zh-CN')}`;
 const app = document.querySelector('#app'), modal = document.querySelector('#modal');
 let activePane = 'event', nextStation = 'jobs', pickedRole = 'coder';
+let pendingAnim = null;
 let state = null, saved = null, toastTimer, restoreFocus = null, saveError = '', startupNotice = '', tradeContext = null;
 try { const raw = localStorage.getItem(SAVE_KEY); saved = raw ? parseSave(raw) : null; if (raw && !saved) startupNotice = '旧存档无法读取，尚未覆盖。你可以导出原始存档备份，或开始新一局。'; } catch { startupNotice = '浏览器限制了本地存储。仍可游玩，请手动导出存档。'; }
 
@@ -33,15 +35,23 @@ function dispatch(command) {
   if (!state) return false;
   const result = transition(state, command);
   if (result.error) { notify(result.error, true); return false; }
-  const focusKey = document.activeElement?.dataset?.focus;
+  const focusKey = document.activeElement?.dataset?.focus, prev = state;
   state = result.state;
   if (command.type === 'travel') activePane = 'event';
   if (command.type === 'choose') activePane = 'actions';
   persist(); render();
-  if (command.type === 'travel') { clearTimeout(toastTimer); document.querySelector('#toast').className = ''; if (state.status === 'playing') briefing(); }
-  else if (command.type === 'action' && command.id === 'write') writeResult();
-  else notify(result.message);
-  if (command.type === 'travel' || command.id === 'write') {}
+  if (command.type === 'travel') { clearTimeout(toastTimer); document.querySelector('#toast').className = ''; if (state.status === 'playing') { pendingAnim = prev; briefing(); sfx.morning(); } }
+  else if (command.type === 'action') { pendingAnim = prev; actionResult(prev, command.id); }
+  else {
+    notify(result.message);
+    if (modal.open) pendingAnim = prev; else animateStats(prev);
+    if (command.type === 'sell') { const gain = state.tradeProfit - prev.tradeProfit; gain > 0 ? sfx.register() : sfx.thud(); }
+    else if (command.type === 'buy') sfx.tick();
+    else if (command.type === 'repay') sfx.coins(prev.debt - state.debt);
+    else if (command.type === 'choose') (state.cash > prev.cash ? sfx.coins(state.cash - prev.cash) : sfx.pop());
+    else sfx.pop();
+  }
+  if (command.type === 'travel' || command.type === 'action') {}
   else if (command.type === 'choose') document.querySelector('.action-tile.suggested')?.focus({ preventScroll: true });
   else if (command.type === 'action' && state.ap === 0) document.querySelector('.end-day-button')?.focus({ preventScroll: true });
   else if (focusKey) document.querySelector(`[data-focus="${CSS.escape(focusKey)}"]`)?.focus({ preventScroll: true });
@@ -50,6 +60,76 @@ function dispatch(command) {
 function closeModal() {
   modal.close(); tradeContext = null;
   if (restoreFocus?.isConnected) restoreFocus.focus({ preventScroll: true });
+  if (pendingAnim && state) { const prev = pendingAnim; pendingAnim = null; animateStats(prev); }
+}
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Numbers move where the player is looking: float the change, count up, and fly a few coins in.
+function animateStats(prev) {
+  if (!prev || !state || state.status !== 'playing') return;
+  const good = { cash: 1, debt: -1, health: 1, stress: -1 };
+  for (const key of Object.keys(good)) {
+    const delta = state[key] - prev[key], box = document.querySelector(`.stat[data-stat="${key}"]`);
+    if (!delta || !box) continue;
+    const float = document.createElement('span');
+    float.className = `float-num ${delta * good[key] > 0 ? 'up' : 'down'}`;
+    float.textContent = `${delta > 0 ? '+' : '−'}${['cash', 'debt'].includes(key) ? money(Math.abs(delta)) : Math.abs(delta)}`;
+    box.append(float); setTimeout(() => float.remove(), 1600);
+    if (reducedMotion()) continue;
+    const strong = box.querySelector('strong'), from = prev[key], to = state[key], start = performance.now();
+    if (['cash', 'debt'].includes(key) && strong) {
+      const step = now => { const t = Math.min(1, (now - start) / 650), v = from + (to - from) * (1 - (1 - t) ** 3); strong.textContent = money(v); if (t < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }
+    box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
+    if (key === 'cash' && delta > 0) for (let i = 0; i < Math.min(8, 1 + Math.floor(delta / 250)); i++) {
+      const c = document.createElement('i'); c.className = 'coin-fly';
+      c.style.setProperty('--dx', `${Math.round((Math.random() - .5) * 120)}px`); c.style.setProperty('--d', `${i * 55}ms`);
+      box.append(c); setTimeout(() => c.remove(), 1200 + i * 55);
+    }
+  }
+}
+const PROCESS = {
+  work: ['正在和甲方对齐颗粒度…', '甲方：“能不能再大气一点？”', 'AI 正在生成第 3 版…', '把“马上好”说了第 4 遍…', '正在等甲方回复“收到”…'],
+  rush: ['第三杯咖啡生效中…', '凌晨两点，键盘冒烟…', 'Stack Overflow 已关闭，改问 AI…', '注释写着“别问，能跑”…'],
+  write: ['正在想一个震惊体标题…', '配图抽卡中（第 17 次）…', '把“颠覆”改成“重塑”…', '检查有没有写 delve…', '等平台审核…'],
+  learn: ['打开论文，先看图…', '关掉第 9 个“三分钟看懂”…', '跟着官方文档跑示例…', '在纸上画 Attention…'],
+  rest: ['手机放进抽屉…', '关闭 37 个群的通知…', '盖好被子，抱紧鲸鱼…', '梦里没有新模型发布…'],
+  build: ['画了三个按钮的原型…', '给产品起个不带 AI 的名字…', '部署到一台 5 美元的服务器…', '第一位用户正在路上…'],
+  maintain: ['打开三年前的代码，深呼吸…', '删除“临时方案”…', '补测试，抓到两只 bug…'],
+  expand: ['联系云厂商销售…', '销售说“现在买最划算”…', '仓库正在扩建…'],
+};
+const GOOD_RANKS = new Set(['SSR', 'SR', '暴击', '顿悟', '满血', '灵感', '清爽']);
+function actionResult(prev, id) {
+  const last = state.lastAction, info = actionInfo({ ...prev, ap: 1, event: null }, id);
+  const o = (last && last.id === id && info.outcomes?.find(x => x.id === last.outcome)) || { id: 'normal', rank: '', effects: {} };
+  const total = o.effects ? combinedEffects(info.effects, o.effects) : info.effects;
+  const text = o.id === 'normal' ? (ACTION_FLAVOR[id]?.[last?.flavor ?? 0] || info.after) : o.text;
+  const launched = id === 'build' && state.products > prev.products;
+  const art = o.art || (id === 'write' ? null : `act-${id}`);
+  const steps = [...(PROCESS[id] ?? ['处理中…'])].sort(() => Math.random() - .5).slice(0, 3);
+  const good = GOOD_RANKS.has(o.rank) || launched, bad = o.rank && !good;
+  openModal(info.name, pageFrame(`${art ? sceneArt(art, '', 'act-art') : roleArt(state.role, 'gacha-sprite')}<div class="act-stage"><div class="act-run"><div class="act-progress"><i></i></div><p class="act-step">${esc(steps[0])}</p></div><div class="act-result">${o.rank ? `<div class="gacha-rank ${good ? 'rank-good' : 'rank-bad'}">${esc(o.rank)}</div>` : ''}${launched ? `<div class="gacha-rank rank-good">新品上线</div>` : ''}<p class="gacha-text">${esc(text)}${launched ? ` 第 ${state.products} 个小产品上线，明天开始每天收钱。` : ''}</p><span class="effect-chips">${compactEffects(total)}</span></div></div>`, '结果') + `<div class="modal-actions sticky-actions"><button class="primary cta" id="act-continue">跳过 ${icon('ArrowRight')}</button></div>`);
+  modal.classList.add('fit', 'act-modal');
+  const stage = modal.querySelector('.act-stage'), button = modal.querySelector('#act-continue'), line = modal.querySelector('.act-step');
+  let shown = false; const timers = [];
+  const reveal = () => {
+    if (shown) return; shown = true; timers.forEach(clearTimeout);
+    stage.classList.add('done'); layoutPages(modal);
+    button.innerHTML = `${good ? '爽，继续' : bad ? '行吧，继续' : '继续'} ${icon('ArrowRight')}`;
+    if (bad && !reducedMotion()) { modal.classList.remove('shake'); void modal.offsetWidth; modal.classList.add('shake'); }
+    if (o.id === 'hospital') sfx.alarm();
+    else if (bad) sfx.fail();
+    else if (o.id === 'jackpot' || o.id === 'viral' || launched) sfx.jackpot();
+    else if (good) { sfx.sparkle(); if (total.cash > 0) setTimeout(() => sfx.coins(total.cash), 250); }
+    else if (total.cash > 0) sfx.coins(total.cash);
+    else if (id === 'rest') sfx.calm();
+    else if (id === 'learn') sfx.sparkle();
+    else sfx.pop();
+  };
+  button.onclick = () => { if (shown) closeModal(); else reveal(); };
+  if (reducedMotion()) { reveal(); return; }
+  steps.slice(1).forEach((t, i) => timers.push(setTimeout(() => { line.textContent = t; sfx.tick(); }, 330 * (i + 1))));
+  timers.push(setTimeout(reveal, 1050));
 }
 function openModal(title, html, wide = false) {
   if (modal.open) modal.close();
@@ -66,7 +146,7 @@ modal.addEventListener('click', e => { if (e.target === modal) { const r = modal
 const monitorArt = `<svg class="monitor-art" viewBox="0 0 260 200" role="img" aria-label="一台还在运转的旧电脑"><path fill="#123e3d" d="M30 177h196v8H30z"/><path fill="#9caa9e" stroke="#283c35" stroke-width="4" d="M31 21h190v127H31z"/><path fill="#e1e0ce" stroke="#35483d" stroke-width="3" d="M24 15h190v127H24z"/><path fill="#203a43" stroke="#7f8e7d" stroke-width="6" d="M39 30h158v92H39z"/><path fill="#f4da8b" d="M78 60h12v12H78zm64 0h12v12h-12zM91 86h51v6H91z"/><path fill="#b4bfaa" d="M105 143h32v19h-32z"/><path fill="#e1e0ce" stroke="#35483d" stroke-width="3" d="M84 160h73v10H84zM44 175h161l14 15H31z"/><path stroke="#9ca38e" stroke-width="3" d="M54 181h138M66 187h116"/><path fill="#244d40" d="M189 132h9v4h-9z"/><text x="116" y="49" text-anchor="middle" fill="#90b7a5" font-size="8" font-family="monospace">HUMAN.EXE</text></svg>`;
 
 function chrome(body) {
-  return `<div class="desktop ${state?.status === 'playing' ? 'is-playing' : 'is-intro'}"><aside class="desktop-icons" aria-label="桌面工具"><button data-ui="home-screen" aria-label="返回游戏">${icon('Monitor')}<span>我的人生</span></button><button data-ui="journal">${icon('NotebookPen')}<span>生存日记</span></button><button data-ui="help">${icon('CircleHelp')}<span>生存指南</span></button><div class="desktop-note">人类进程<br>尚未退出</div></aside><main class="game-window"><div class="window-title"><span>${icon('Monitor')} AI 浮生记.exe <span class="title-hint">— HUMAN IS STILL IN THE LOOP</span></span><button class="window-close" data-ui="help" aria-label="查看玩法">?</button></div><nav class="menu" aria-label="游戏菜单"><button data-ui="new">新开局<span>(N)</span></button><button data-ui="journal">账本<span>(B)</span></button><button data-ui="save">存档<span>(S)</span></button><button data-ui="gallery">梗图<span>(M)</span></button><button data-ui="models">模型<span>(AI)</span></button><button data-ui="help">玩法<span>(H)</span></button><button class="boss-button" data-ui="boss">老板来了 <kbd>F2</kbd></button></nav>${saveError ? `<div class="save-warning" role="alert">${esc(saveError)} <button data-ui="export">导出存档</button></div>` : ''}${body}<footer class="window-status"><span>${icon('ShieldCheck')} ${state ? (saveError ? '请手动导出存档' : '进度自动保存在本机') : '无需登录 · 无需充值'}</span><span class="community-actions"><button data-ui="support" aria-label="打赏支持" title="打赏支持">${icon('Coffee')}</button><button data-ui="follow" aria-label="关注作者" title="关注作者">${icon('Contact')}</button><a href="https://tuijian.qiaomu.ai/" target="_blank" rel="noopener">乔木推荐</a><span>v${APP_VERSION}</span></span></footer></main></div><footer class="taskbar"><button data-ui="home-screen">${icon('Monitor')} <b>开始</b></button><span class="task-active">AI 浮生记</span><span class="taskbar-end">Powered by <a href="https://qiaomu.ai/" target="_blank" rel="noopener">向阳乔木</a><span class="task-clock">${state ? `DAY ${String(state.day).padStart(2, '0')}` : '40 DAYS'}</span></span></footer>`;
+  return `<div class="desktop ${state?.status === 'playing' ? 'is-playing' : 'is-intro'}"><aside class="desktop-icons" aria-label="桌面工具"><button data-ui="home-screen" aria-label="返回游戏">${icon('Monitor')}<span>我的人生</span></button><button data-ui="journal">${icon('NotebookPen')}<span>生存日记</span></button><button data-ui="help">${icon('CircleHelp')}<span>生存指南</span></button><div class="desktop-note">人类进程<br>尚未退出</div></aside><main class="game-window"><div class="window-title"><span>${icon('Monitor')} AI 浮生记.exe <span class="title-hint">— HUMAN IS STILL IN THE LOOP</span></span><button class="window-close" data-ui="help" aria-label="查看玩法">?</button></div><nav class="menu" aria-label="游戏菜单"><button data-ui="new">新开局<span>(N)</span></button><button data-ui="journal">账本<span>(B)</span></button><button data-ui="save">存档<span>(S)</span></button><button data-ui="gallery">梗图<span>(M)</span></button><button data-ui="models">模型<span>(AI)</span></button><button data-ui="help">玩法<span>(H)</span></button><button data-ui="sfx" class="sfx-toggle" aria-pressed="${sfxEnabled()}" aria-label="音效">${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span></button><button class="boss-button" data-ui="boss">老板来了 <kbd>F2</kbd></button></nav>${saveError ? `<div class="save-warning" role="alert">${esc(saveError)} <button data-ui="export">导出存档</button></div>` : ''}${body}<footer class="window-status"><span>${icon('ShieldCheck')} ${state ? (saveError ? '请手动导出存档' : '进度自动保存在本机') : '无需登录 · 无需充值'}</span><span class="community-actions"><button data-ui="support" aria-label="打赏支持" title="打赏支持">${icon('Coffee')}</button><button data-ui="follow" aria-label="关注作者" title="关注作者">${icon('Contact')}</button><a href="https://tuijian.qiaomu.ai/" target="_blank" rel="noopener">乔木推荐</a><span>v${APP_VERSION}</span></span></footer></main></div><footer class="taskbar"><button data-ui="home-screen">${icon('Monitor')} <b>开始</b></button><span class="task-active">AI 浮生记</span><span class="taskbar-end">Powered by <a href="https://qiaomu.ai/" target="_blank" rel="noopener">向阳乔木</a><span class="task-clock">${state ? `DAY ${String(state.day).padStart(2, '0')}` : '40 DAYS'}</span></span></footer>`;
 }
 
 const roleArt = (id, cls = '') => `<img class="role-sprite ${cls}" src="/art/roles/${id}.webp" alt="" width="200" height="300" decoding="async">`;
@@ -77,7 +157,7 @@ function welcome() {
   return `<div class="welcome v3"><section class="welcome-hero" aria-label="AI 浮生记"><div class="hero-copy"><span class="hero-kicker">像素生存 · 40 天 · 嘴很毒</span><h1>AI 浮生记</h1><p>模型在进化。<br>你还好吗？</p><div class="opening-numbers"><span><b>40</b>天还清</span><span><b>¥8k+</b>培训贷</span><span><b>∞</b>个“最后的机会”</span></div></div></section><section class="role-panel"><div class="panel-heading"><h2>选一个你</h2><span>没有天选之人，只有天选之债</span></div>${startupNotice ? `<div class="notice">${esc(startupNotice)}</div>` : ''}${saved ? `<button class="resume cta" data-ui="resume">${icon('Save')}<span><b>继续上次的人生</b><small>第 ${saved.day} 天 · ${saved.status === 'ended' ? '查看结局' : getLocation(saved).name} · 现金 ${money(saved.cash)}</small></span>${icon('ArrowRight')}</button>` : ''}<div class="role-tabs" role="radiogroup" aria-label="选择身份">${tabs}</div><article class="role-card" aria-live="polite">${roleArt(r.id, 'big')}<div class="role-info"><span class="role-title">${esc(r.title)}</span><h3>${esc(r.name)}</h3><p class="role-quote">“${esc(r.quote)}”</p><ul class="role-skills">${r.skills.map(([n, d]) => `<li>${icon('Sparkles')}<b>${esc(n)}</b><span>${esc(d)}</span></li>`).join('')}</ul><p class="role-weak">弱点：${esc(r.weakness)}</p><div class="role-stats">${stat('现金', money(r.cash))}${stat('欠款', money(r.debt), 'negative')}${stat('技能', r.skill)}${stat('口碑', r.reputation)}${stat('压力', r.stress)}</div></div></article><button class="primary start-button ${saved ? '' : 'cta'}" data-ui="start">以「${esc(r.name)}」开局 ${icon('ArrowRight')}</button><button class="text-button start-hint" data-ui="help">${icon('CircleHelp')} 第一次玩？看一分钟指南</button></section></div>`;
 }
 function stats() {
-  return `<header class="dashboard-header"><div class="day-block"><strong>第 <b data-testid="day">${String(state.day).padStart(2, '0')}</b> 天 <small>/ 40</small></strong><span>${getLocation(state).name}</span></div><div class="stats"><div class="stat"><span>现金<strong data-testid="cash">${money(state.cash)}</strong></span></div><div class="stat debt"><span>欠款<strong data-testid="debt">${money(state.debt)}</strong></span><button class="stat-action" data-ui="finance" aria-label="还款与借款">还款</button></div><div class="stat ${state.health < 30 ? 'danger' : ''}"><span>健康<strong>${state.health}<em>/100</em></strong><span class="meter"><i style="width:${state.health}%"></i></span></span></div><div class="stat ${state.stress >= 70 ? 'danger' : ''}"><span>压力<strong>${state.stress}<em>/100</em></strong><span class="meter stress"><i style="width:${state.stress}%"></i></span></span></div></div></header>`;
+  return `<header class="dashboard-header"><div class="day-block"><strong>第 <b data-testid="day">${String(state.day).padStart(2, '0')}</b> 天 <small>/ 40</small></strong><span>${getLocation(state).name}</span></div><div class="stats"><div class="stat" data-stat="cash"><span>现金<strong data-testid="cash">${money(state.cash)}</strong></span></div><div class="stat debt" data-stat="debt"><span>欠款<strong data-testid="debt">${money(state.debt)}</strong></span><button class="stat-action" data-ui="finance" aria-label="还款与借款">还款</button></div><div class="stat ${state.health < 30 ? 'danger' : ''}" data-stat="health"><span>健康<strong>${state.health}<em>/100</em></strong><span class="meter"><i style="width:${state.health}%"></i></span></span></div><div class="stat ${state.stress >= 70 ? 'danger' : ''}" data-stat="stress"><span>压力<strong>${state.stress}<em>/100</em></strong><span class="meter stress"><i style="width:${state.stress}%"></i></span></span></div></div></header>`;
 }
 
 function marketPanel() {
@@ -93,7 +173,7 @@ function marketPanel() {
 
 function eventPanel() {
   const e = getEvent(state), previous = MEME_CATALOG.find(m => m.id === state.lastEvent);
-  const content = e ? `${e.meme ? memeArt(e) : sceneArt(`loc-${state.location}`, getLocation(state).full)}<div class="event-intro"><span class="event-tag">${esc(e.tag)}</span><h3 id="event-heading" tabindex="-1">${esc(e.title)}</h3></div>${e.text.match(/[^。！？]+[。！？]?/g)?.map(t => `<p class="event-story">${esc(t)}</p>`).join('') ?? ''}${e.shock ? `<div class="market-shock">行情已变：${Object.entries(e.shock).map(([id, v]) => `${GOODS.find(g => g.id === id).short} ×${v}`).join(' · ')}<small>已计入交易所当前报价。</small></div>` : ''}${e.interaction === 'rheostat' ? `<div class="rheostat"><label for="stance">今日称谓：<b id="stance-name">${rheostat(state.stance).name}</b></label><input id="stance" type="range" min="0" max="100" value="${state.stance}" aria-describedby="stance-effect"><div class="rheostat-labels"><span>梁子</span><span>梁老师</span><span>梁圣 / 义父</span></div><small id="stance-effect">${effectText(rheostat(state.stance).effects)}</small></div>` : ''}${e.options.map((o, i) => `<button class="event-choice" data-ui="choose" data-index="${i}" ${state.cash + (o.effects.cash ?? 0) < 0 ? 'disabled' : ''}><span>${esc(o.label)}${icon('ArrowUpRight')}</span><small ${o.stance ? 'data-stance-effect' : ''}>${effectText(o.stance ? rheostat(state.stance).effects : o.effects)}${state.cash + (o.effects.cash ?? 0) < 0 ? ' · 现金不足' : ''}</small>${o.outcomes ? `<small class="risk-outcomes">${o.outcomes.map(r => `${r.weight}%：${effectText(r.effects)}`).join('；')}</small>` : ''}${o.followUp ? '<small class="sequel-hint">以后还会有下文…</small>' : ''}</button>`).join('')}` : `<div class="event-intro">${previous ? memeArt(previous) : ''}<span class="event-tag">${icon('Check')} 这关过了</span><h3 id="event-heading" tabindex="-1">${state.ap ? '接下来，安排今天。' : '今天的行动完成了。'}</h3></div><p class="event-story">${esc(state.journal.find(j => j.kind === 'event')?.text || '把时间花在值得的事情上。')}</p><div class="next-card"><b>${state.ap ? `还可以行动 ${state.ap} 次` : '可以结束今天了'}</b><p>${state.ap ? '接单拿钱；累了就休息。想发展长期收入，可以学习、研发。' : state.day === 40 ? '准备好了，点底部“结算这 40 天”。最后一次整理持仓和欠款。' : '买卖和还款不耗行动，想做就做。准备好了，点底部“结束今天”。'}</p><button data-ui="show-pane" data-pane="actions">${state.ap ? '去安排行动' : '查看今日行动'} ${icon('ArrowRight')}</button></div>`;
+  const content = e ? `${e.meme ? memeArt(e) : sceneArt(`loc-${state.location}`, getLocation(state).full)}<div class="event-intro"><span class="event-tag">${esc(e.tag)}</span><h3 id="event-heading" tabindex="-1">${esc(e.title)}</h3></div>${e.text.match(/[^。！？]+[。！？]?/g)?.map(t => `<p class="event-story">${esc(t)}</p>`).join('') ?? ''}${e.shock ? `<div class="market-shock">行情已变：${Object.entries(e.shock).map(([id, v]) => `${GOODS.find(g => g.id === id).short} ×${v}`).join(' · ')}<small>已计入交易所当前报价。</small></div>` : ''}${e.interaction === 'rheostat' ? `<div class="rheostat"><label for="stance">今日称谓：<b id="stance-name">${rheostat(state.stance).name}</b></label><input id="stance" type="range" min="0" max="100" value="${state.stance}" aria-describedby="stance-effect"><div class="rheostat-labels"><span>梁子</span><span>梁老师</span><span>梁圣 / 义父</span></div><small id="stance-effect">${effectText(rheostat(state.stance).effects)}</small></div>` : ''}${e.options.map((o, i) => `<button class="event-choice ${e.options.length === 1 ? 'cta' : ''}" data-ui="choose" data-index="${i}" ${state.cash + (o.effects.cash ?? 0) < 0 ? 'disabled' : ''}><span>${esc(o.label)}${icon('ArrowUpRight')}</span><small ${o.stance ? 'data-stance-effect' : ''}>${effectText(o.stance ? rheostat(state.stance).effects : o.effects)}${state.cash + (o.effects.cash ?? 0) < 0 ? ' · 现金不足' : ''}</small>${o.outcomes ? `<small class="risk-outcomes">${o.outcomes.map(r => `${r.weight}%：${effectText(r.effects)}`).join('；')}</small>` : ''}${o.followUp ? '<small class="sequel-hint">以后还会有下文…</small>' : ''}</button>`).join('')}` : `<div class="event-intro">${previous ? memeArt(previous) : ''}<span class="event-tag">${icon('Check')} 这关过了</span><h3 id="event-heading" tabindex="-1">${state.ap ? '接下来，安排今天。' : '今天的行动完成了。'}</h3></div><p class="event-story">${esc(state.journal.find(j => j.kind === 'event')?.text || '把时间花在值得的事情上。')}</p><div class="next-card"><b>${state.ap ? `还可以行动 ${state.ap} 次` : '可以结束今天了'}</b><p>${state.ap ? '接单拿钱；累了就休息。想发展长期收入，可以学习、研发。' : state.day === 40 ? '准备好了，点底部“结算这 40 天”。最后一次整理持仓和欠款。' : '买卖和还款不耗行动，想做就做。准备好了，点底部“结束今天”。'}</p><button data-ui="show-pane" data-pane="actions">${state.ap ? '去安排行动' : '查看今日行动'} ${icon('ArrowRight')}</button></div>`;
   return `<section class="panel event-panel screen-pane ${e ? 'pending' : ''}" data-pane="event" aria-labelledby="event-heading"><div class="panel-heading"><h2>${icon('NotebookPen')} ${e ? '① 先处理这件事' : '今日遭遇'}</h2><span>${e ? '选一项 · 不耗行动' : '已处理'}</span></div>${pageFrame(content, '事件', 'event-pages')}<div class="event-footer">人物情节为虚构恶搞${e?.meme ? `<button class="inline-link" data-ui="meme-detail" data-id="${e.id}">梗的出处 ↗</button>` : ''}</div></section>`;
 }
 
@@ -104,12 +184,6 @@ function briefing() {
   const l = getLocation(state), news = getNews(state), rumor = getRumor(state), arrival = getArrival(state);
   openModal(`第 ${state.day} 天 · AI 浮生早报`, pageFrame(`${sceneArt(`loc-${l.id}`, '', 'brief-hero')}<div class="brief-place"><small>你到了</small><b>${esc(l.full)}</b><span>${esc(l.line)}</span></div>${arrival ? `<div class="brief-arrival"><b>到站小事</b><p>${esc(arrival.text)}</p><em>${esc(arrival.note)}</em><span class="effect-chips">${compactEffects(arrival.effects)}</span></div>` : ''}${rumor ? `<div class="brief-news breaking">${sceneArt(rumor.art)}<div><small>本站突发 · 只在今天</small><b>${esc(rumor.title)}</b><span>${esc(GOODS.find(g => g.id === rumor.good).short)} 报价 ×${rumor.factor}</span></div></div>` : ''}<div class="brief-news">${sceneArt(news.art)}<div><small>今日头条</small><b>${esc(news.title)}</b><span>${esc(news.detail)}</span></div></div>`, '早报') + `<div class="modal-actions sticky-actions"><button class="primary cta" data-ui="close-modal">开始今天 ${icon('ArrowRight')}</button></div>`, true);
   modal.classList.add('briefing', 'fit');
-}
-function writeResult() {
-  const o = WRITE_OUTCOMES.find(o => o.id === state.lastWrite); if (!o) return;
-  const info = actionInfo({ ...state, ap: 1 }, 'write'), rolled = info.outcomes.find(x => x.id === o.id);
-  openModal(`写稿抽卡 · ${o.rank}`, `${o.art ? sceneArt(o.art) : roleArt(state.role, 'gacha-sprite')}<div class="gacha-rank rank-${o.id}">${esc(o.rank)}</div><p class="gacha-text">${esc(o.text)}</p><span class="effect-chips">${compactEffects({ ...info.effects, ...Object.fromEntries(Object.entries(rolled.effects).map(([k, v]) => [k, (info.effects[k] ?? 0) + v])) })}</span><div class="modal-actions"><button class="primary cta" data-ui="close-modal">${['viral', 'hit'].includes(o.id) ? '赚麻了，继续' : o.id === 'hospital' ? '出院，继续' : '算了，继续'} ${icon('ArrowRight')}</button></div>`);
-  modal.classList.add('fit');
 }
 function portrait(art, cls = '') {
   const c = CAST[art] ?? CAST.worker;
@@ -149,7 +223,7 @@ function actionPanel() {
   const actions = ['work', 'write', 'rush', 'learn', 'rest', 'build', 'maintain', 'expand'];
   const rows = [0, 2, 4, 6].map(start => `<div class="action-row">${actions.slice(start, start + 2).map(id => {
     const a = actionInfo(state, id);
-    return `<button class="action-tile ${id === suggested && !state.event && state.ap ? 'suggested cta' : ''}" data-ui="action" data-id="${id}" data-focus="action-${id}" ${state.event || a.reason ? 'disabled' : ''}><span class="action-name">${icon(a.icon)}<strong>${a.name}</strong>${id === suggested && state.ap && !state.event ? '<em>建议</em>' : ''}</span><small class="action-effects">${a.reason || (a.outcomes ? `<span>抽卡¥0–${Math.max(...a.outcomes.map(o => o.effects.cash ?? 0))}</span><span>爆款${a.outcomes[0].weight}%</span><span>住院${a.outcomes.at(-1).weight}%</span>` : compactEffects(a.effects))}</small></button>`;
+    return `<button class="action-tile ${id === suggested && !state.event && state.ap ? 'suggested cta' : ''}" data-ui="action" data-id="${id}" data-focus="action-${id}" ${state.event || a.reason ? 'disabled' : ''}><span class="action-name">${icon(a.icon)}<strong>${a.name}</strong>${id === suggested && state.ap && !state.event ? '<em>建议</em>' : ''}</span><small class="action-effects">${a.reason || (id === 'write' ? `<span>抽卡¥0–${Math.max(...a.outcomes.map(o => o.effects.cash ?? 0))}</span><span>爆款${a.outcomes[0].weight}%</span><span>住院${a.outcomes.at(-1).weight}%</span>` : `${compactEffects(a.effects)}${a.outcomes ? `<span class="odds">${a.outcomes.slice(1).map(r => `${r.rank}${r.weight}%`).join(' ')}</span>` : ''}`)}</small></button>`;
   }).join('')}</div>`).join('');
   const current = getModel(state);
   return `<section class="panel actions-panel screen-pane" data-pane="actions"><div class="panel-heading"><h2>${icon('Coffee')} ② 安排今天</h2><span class="action-pips">剩余 ${state.ap} / 2 次</span></div>${pageFrame(`<p class="action-instruction">${state.event ? '先选一个事件回应，再安排行动。' : state.ap ? `${suggested === 'rest' ? '身体在报警，点亮的「关机休息」。' : suggested === 'write' ? '点亮的「写稿发帖」：抽一张流量卡。' : '不知道干嘛？点亮的那个就对了。'}每件事耗 1 行动。` : '今天干完了。点右下角亮着的「结束今天」。'}</p>${rows}<div class="compact-tools"><button class="compact-company" data-ui="company">档案 · 技能 ${state.skill} · 产品 ${state.products}</button><button class="compact-model" data-ui="models" title="${esc(current?.name ?? '查看模型广场')}">${icon('Cpu')}<span>${current ? '已签模型 · 查看' : '选 AI 搭子'}</span>${icon('ChevronRight')}</button></div>`, '行动', 'action-pages')}</section>`;
@@ -167,7 +241,7 @@ function travelPanel() {
 function game() {
   const step = state.event ? 1 : state.ap ? 2 : 3;
   const news = getNews(state), rumor = getRumor(state);
-  return `<div class="game-content" data-active-pane="${activePane}" data-step="${step}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：今天的瓜来了，挑一个回应。' : step === 2 ? `现在：还能干 ${state.ap} 件事，点亮的那个最稳。` : state.day === 40 ? '现在：点亮的「结算这 40 天」。' : '现在：挑好下一站，点亮的「结束今天」。'}<small>${step === 1 ? ' 回应完才能干别的。' : ' 低买高卖、还款不耗行动。'}</small></span></div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker ${rumor ? 'breaking' : ''}" data-ui="news">${icon('ReceiptText')}<span>${rumor ? `<b>本站突发</b> ${esc(rumor.title)}` : `<b>快讯</b> ${esc(news.title)}`}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['market', '交易所'], ['actions', `② 行动 ${state.ap}/2`]].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}" class="${activePane !== id && ((step === 1 && id === 'event') || (step === 2 && id === 'actions')) ? 'cta' : ''}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${marketPanel()}${actionPanel()}</div>${travelPanel()}</div>`;
+  return `<div class="game-content" data-active-pane="${activePane}" data-step="${step}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：今天的瓜来了，挑一个回应。' : step === 2 ? `现在：还能干 ${state.ap} 件事，点亮的那个最稳。` : state.day === 40 ? '现在：点亮的「结算这 40 天」。' : '现在：挑好下一站，点亮的「结束今天」。'}<small>${step === 1 ? ' 回应完才能干别的。' : ' 低买高卖、还款不耗行动。'}</small></span></div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker ${rumor ? 'breaking' : ''}" data-ui="news">${icon('ReceiptText')}<span>${rumor ? `<b>本站突发</b> ${esc(rumor.title)}` : `<b>快讯</b> ${esc(news.title)}`}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['actions', `② 行动 ${state.ap}/2`], ['market', '交易所']].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}" class="${activePane !== id && ((step === 1 && id === 'event') || (step === 2 && id === 'actions')) ? 'cta' : ''}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${actionPanel()}${marketPanel()}</div>${travelPanel()}</div>`;
 }
 
 function ending() {
@@ -291,7 +365,8 @@ document.addEventListener('click', e => {
     'end-day': () => travel(nextStation),
     company: () => openModal('产品与个人档案', companyPanel()),
     stations: () => openModal('站点特点 · 选好再结束今天', pageFrame(LOCATIONS.map(l => `<button class="station-choice" data-ui="pick-station" data-id="${l.id}"><b>${icon(l.icon)} ${l.name}</b><span>${l.specialty}</span></button>`).join(''), '站点')),
-    'pick-role': () => { pickedRole = b.dataset.id; render(); document.querySelector(`.role-tab[data-id="${pickedRole}"]`)?.focus({ preventScroll: true }); },
+    sfx: () => { setSfx(!sfxEnabled()); b.setAttribute('aria-pressed', String(sfxEnabled())); b.innerHTML = `${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span>`; if (sfxEnabled()) sfx.coins(300); },
+    'pick-role': () => { pickedRole = b.dataset.id; sfx.pop(); render(); document.querySelector(`.role-tab[data-id="${pickedRole}"]`)?.focus({ preventScroll: true }); },
     'pick-station': () => { nextStation = b.dataset.id; closeModal(); render(); },
     news: () => openModal('今日快讯 · 游戏模拟行情', `${getRumor(state) ? `<div class="market-shock">本站突发：${esc(getRumor(state).title)}<small>${esc(GOODS.find(g => g.id === getRumor(state).good).short)}报价 ×${getRumor(state).factor}，只在今天、只在这一站。</small></div>` : ''}${sceneArt(getNews(state).art)}<h3>${esc(getNews(state).title)}</h3><p>${esc(getNews(state).detail)}</p><p>ROUTER 小报：${esc(featuredModel(state).name)} · ${esc(getNews(state).traffic ?? '发布会永不打烊')}</p><p class="muted">游戏模拟，不是实时排行榜。行情已反映在报价中。</p>`),
     'good-info': () => { const g = GOODS.find(g => g.id === b.dataset.id); openModal(g.name, `<p>${g.desc}</p><p>当前买入 ${money(state.prices[g.id])} / ${g.unit}，回收 ${money(salePrice(state, g.id))}。平常约 ${money(referencePrice(state, g.id))}，今天算<b>${priceHeat(state, g.id).label}</b>。</p><p>持仓 ${state.inventory[g.id].qty}，成本 ${money(state.inventory[g.id].cost)}。买卖不消耗行动。</p>`); },
@@ -299,7 +374,7 @@ document.addEventListener('click', e => {
     support: () => openModal('打赏支持', '<p>游戏永久免费。觉得好玩，可以请作者喝杯咖啡。</p><img class="community-qr" src="/community/support.png" alt="作者打赏二维码">'),
     follow: () => openModal('关注向阳乔木', '<p>微信公众号：向阳乔木推荐看</p><img class="community-qr" src="/community/follow.jpg" alt="向阳乔木推荐看公众号二维码"><p class="community-links"><a href="https://github.com/joeseesun/ai-fushengji" target="_blank" rel="noopener">游戏源码</a><a href="https://x.com/vista8" target="_blank" rel="noopener">X / Twitter</a></p>'),
     'hire-model': () => { if (dispatch({ type: 'model', id: b.dataset.id })) closeModal(); },
-    action: () => { if (b.dataset.id === 'expand') { const a = actionInfo(state, 'expand'); openModal('扩容仓库', `<p>${a.desc}。需要 ${money(-a.effects.cash)} 和 1 格行动。</p><div class="modal-actions"><button data-ui="close-modal">取消</button><button id="confirm-expand">确认扩容</button></div>`); document.querySelector('#confirm-expand').onclick = () => { if (dispatch({ type: 'action', id: 'expand' })) closeModal(); }; } else dispatch({ type: 'action', id: b.dataset.id }); },
+    action: () => { if (b.dataset.id === 'expand') { const a = actionInfo(state, 'expand'); openModal('扩容仓库', `<p>${a.desc}。需要 ${money(-a.effects.cash)} 和 1 格行动。</p><div class="modal-actions"><button data-ui="close-modal">取消</button><button id="confirm-expand">确认扩容</button></div>`); document.querySelector('#confirm-expand').onclick = () => { dispatch({ type: 'action', id: 'expand' }); }; } else dispatch({ type: 'action', id: b.dataset.id }); },
     buy: () => trade(b.dataset.id, 'buy'), sell: () => trade(b.dataset.id, 'sell'), travel: () => travel(b.dataset.id),
     finish: () => { openModal('结算这 40 天', `<p>今天还剩 ${state.ap} 格行动。确认后按当前回收价清仓，扣除最后一天费用，再自动还债。</p><div class="modal-actions"><button data-ui="close-modal">再想想</button><button class="primary" id="confirm-finish">确认结算</button></div>`); document.querySelector('#confirm-finish').onclick = () => { closeModal(); dispatch({ type: 'finish' }); window.scrollTo(0, 0); }; },
     finance, help, journal, save: saveDialog, export: exportSave, boss,

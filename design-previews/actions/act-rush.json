@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:29:59.923Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), darkly funny mood, no purple neon. Scene: 3am, an exhausted programmer with red eyes and hair sticking up types at triple speed with motion lines, five empty energy drink cans and coffee cups, a wall clock showing late night, a tiny devil made of spaghetti code laughing on the shoulder, coins and a mountain of messy cables on the floor. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, rich environmental detail, warm muted retro palette of teal, warm grey, navy, cream, and orange accents. Darkly funny mood, no purple neon. Scene: 3am in a cramped programmer's room. An exhausted adult programmer with visibly bloodshot red eyes, heavy eye bags, and hair sticking straight up frantically types at triple speed, conveyed through several pixelated hand afterimages and expressive motion lines. A cluttered desk holds exactly five empty unbranded energy drink cans plus a couple of used coffee cups. An analog wall clock has a completely blank face with NO numerals and NO characters, its hour hand pointing right and minute hand pointing straight up to suggest 3am. A tiny mischievous devil made from tangled spaghetti-like code cables laughs on the programmer's shoulder, with small orange horns and a curled cable tail; convey spaghetti code purely through tangled strands and abstract shapes, with no actual characters or glyphs. Scattered plain coins and a mountain of messy tangled cables cover the floor. Monitor glow lights the programmer's exhausted face; screens display only abstract rectangular colored blocks and nonlinguistic shapes. Cozy dim late-night lighting with muted orange lamp light and teal screen glow. Carefully composed readable room scene with humorous detail. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere, including screens, cans, clock, clothing, or objects. Background must be fully opaque and fill the entire canvas edge to edge with the room's warm grey/teal walls and floor. No transparency, no cutouts, no black corners, no black empty borders, no vignette, no uncovered canvas. 全画面不透明底色铺满，四角也有完整环境与底色；不要文字、字母、数字、标志。",
+  "route": "raw_prompt"
+}

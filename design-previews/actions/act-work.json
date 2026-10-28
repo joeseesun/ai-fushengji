@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:28:48.914Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satisfying mood, no purple neon. Scene: a freelancer at a desk triumphantly hitting the enter key to deliver a project, a client on a video call giving a thumbs up, gold coins pouring out of the laptop into a piggy bank, a checklist with all boxes ticked floating above. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully crafted pixel clusters, no blur or smooth vector gradients. Warm muted retro palette of teal, warm grey, navy, cream, with orange accents and warm golden coins; no purple neon. Funny, satisfying celebratory mood. Scene: a freelancer at a cozy desk triumphantly pressing the large return/enter key on their laptop keyboard with one hand and celebrating with the other, having just delivered a project. The return key and all other keyboard keys are completely blank with no letters, symbols or labels. On the laptop screen a cheerful client on a video call clearly gives a thumbs-up; the interface has no text, numbers, letters, logos or labeled controls. A lively stream of plain gold coins pours magically out of the laptop toward and into the slot of a cute piggy bank on the desk. Coins are plain gold discs with no inscriptions or symbols. Above the scene floats a cream checklist sheet containing only a column of square boxes, all marked with clear checkmarks, without any writing or text lines. Arrange freelancer, client screen, flowing coins and piggy bank so each element reads clearly, with playful expressive pixel-art faces and rich environmental details. Warm home-office background extending edge to edge, fully opaque cream and teal walls and floor filling the entire rectangular canvas, with cozy lighting. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere in the image. No transparency, no cutouts, no empty transparent areas, no black corners, no black borders, no vignette. Background and base colors must fill the entire image.",
+  "route": "raw_prompt"
+}

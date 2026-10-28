@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T06:32:29.417Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), cozy healing funny mood, no purple neon. Scene: a person deeply asleep under a fluffy blanket hugging a blue whale plush, a laptop closed with a sticky note on it, phone face-down in a drawer, a cat curled on their belly, morning sunlight and steam from a cup of tea, a sleeping mask pushed up on forehead. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, authentic beautiful retro game pixel art, no smooth vector shapes or blur. Warm muted retro palette: teal, warm grey, navy, cream, gentle orange accents; no purple neon. Cozy, healing, gently funny mood. A peaceful sunlit bedroom scene: an adult person deeply asleep in bed under a fluffy cream blanket, hugging a clearly recognizable BLUE WHALE PLUSH with little fins and tail. A small cat is curled up asleep on the blanket atop their belly. A sleeping eye mask is pushed up on the person's forehead, exposing their relaxed closed eyes. Next to the bed sits a CLOSED laptop with a completely blank sticky note on its lid, no writing or symbols. In a partially open bedside drawer, a phone rests FACE DOWN, its plain back visible and its screen hidden, no branding. A cup of tea on the bedside table emits delicate pixel-art wisps of steam. Warm morning sunlight streams through a window and lays soft golden blocks of light across the blanket and room. Rich thoughtful pixel details, cuddly textiles, modest playful sleeping pose, harmonious clearly readable arrangement. Absolutely NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere, including on sticky note, laptop, phone, mug, walls or bedding. Fully opaque image: warm cream and muted room background extends edge to edge and completely fills every part of the canvas. No transparency, no cutouts, no empty corners, no black corner regions, no black framing, no vignette.",
+  "route": "raw_prompt"
+}
