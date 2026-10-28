@@ -8,6 +8,7 @@ const start = async (page, s = newGame('coder', 42)) => {
   await page.locator('[data-ui="resume"]').click();
 };
 const choose = async page => {
+  if ((await snapshot(page)).draft) { await showPane(page, 'event'); await page.locator('[data-ui="perk"]').first().click(); }
   const s = await snapshot(page), e = getEvent(s); if (!e) return;
   const index = e.options.map((o, i) => ({ o, i })).filter(({ o }) => s.cash + (o.effects.cash ?? 0) >= 0).sort((a, b) => score(b.o) - score(a.o))[0].i;
   await showPane(page, 'event');
@@ -27,11 +28,19 @@ const showPane = async (page, id) => {
   const tab = page.locator(`.pane-tabs [data-pane="${id}"]`);
   if (await tab.isVisible()) await tab.click();
 };
+const settleBosses = async page => {
+  const before = await snapshot(page);
+  if (before.draft) { await showPane(page, 'event'); await page.locator('[data-ui="perk"]').first().click(); expect((await snapshot(page)).perks.length).toBe(before.perks.length + 1); }
+  const s = await snapshot(page);
+  if (s.rent && !s.rent.paid && s.cash >= s.rent.due) { await page.locator('[data-ui="rent"]').click(); expect((await snapshot(page)).rent.paid).toBe(true); }
+};
 const endDay = async page => {
+  await settleBosses(page);
   await page.locator('[data-ui="map"]').click();
   await page.locator('.map-pin[data-id="jobs"]').click();
   const go = page.locator('[data-ui="map-go"]'); await expect(go).toBeInViewport(); await go.click();
   await page.locator('[data-ui="end-day"]').click();
+  const confirm = page.locator('#confirm-travel'); if (await confirm.isVisible()) await confirm.click();
   const start = page.locator('dialog.briefing [data-ui="close-modal"].cta');
   await expect(start).toBeVisible(); await expect(start).toBeInViewport({ ratio: 1 }); await start.click();
 };
@@ -133,7 +142,7 @@ test('single screen: every event choice reachable by buttons, without scrolling 
     await page.setViewportSize({ width, height });
     for (const id of ['rheostat', 'fish-rice', 'router-launch', 'gpu-oom', 'budget', 'claude-ban']) {
       const s = newGame('coder', 42); s.day = 20; s.event = id; s.seen.push(id);
-      await start(page, s);
+      await start(page, s); await showPane(page, 'event');
       const seen = new Set();
       for (let n = 0; n < 15; n++) {
         const geometry = await page.evaluate(() => {
@@ -197,7 +206,7 @@ test('identity picker starts the chosen role; writing shows a gacha card', async
   await page.locator('.start-button').click();
   expect((await snapshot(page)).role).toBe('creator');
   await choose(page);
-  await expect(page.locator('[data-ui="action"][data-id="write"]')).toHaveClass(/cta/);
+  await expect(page.locator('[data-ui="action"][data-id="write"]')).toHaveClass(/suggested/);
   await page.locator('[data-ui="action"][data-id="write"]').click();
   await expect(page.locator('.act-progress')).toBeVisible();
   await expect(page.locator('.gacha-rank')).toBeVisible(); await expect(page.locator('#modal .cta')).toBeInViewport({ ratio: 1 });
@@ -282,7 +291,8 @@ test('map cancel keeps destination; map, models and achievements use buttons wit
     // Return to an event-free fixture to inspect every panel independently.
     await start(page,s);
     for(const panel of ['map','models','achievements']) {
-      await page.locator(`[data-ui="${panel}"]`).first().click();
+      if (panel === 'achievements') { await page.locator('.menu [data-ui="leaderboard"]').click(); await page.locator('#modal [data-ui="achievements"]').click(); }
+      else await page.locator(`[data-ui="${panel}"]`).first().click();
       await page.locator('dialog[open]').waitFor();
       await page.evaluate(()=>Promise.all([...document.querySelectorAll('dialog img')].map(i=>i.decode().catch(()=>{}))));
       await readPages(page,'#modal .page-frame');

@@ -1,10 +1,10 @@
 // Shared, bounded command format. No client-reported balance is accepted by the server.
-export const RULESET = '0.7.0';
+export const RULESET = '0.8.0';
 export const MAX_COMMANDS = 1200;
 const fields = {
   'ignore-event': [], model: ['id'], choose: ['index', 'stance'], buy: ['id', 'qty'],
   sell: ['id', 'qty'], action: ['id'], expand: [], repay: ['amount'], borrow: [],
-  travel: ['location'], finish: [],
+  travel: ['location'], finish: [], perk: ['id'], rent: [],
 };
 export function cleanCommand(command) {
   if (!command || typeof command !== 'object' || typeof command.type !== 'string' || !Object.hasOwn(fields, command.type)) return null;
