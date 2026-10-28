@@ -10,13 +10,14 @@
 
 ## 能玩什么
 
-- 40 天生存交易，5 种身份（被优化的程序员、AI 自媒体、一人公司 CEO、普通打工人、应届 AI 原住民），各有真实数值加成；8 个站点、8 类 AI 圈商品（邀请码、Claude 拼车位、AI 副业课……），每天 2 格行动。
-- 每一步只有一个按钮亮成黄色：照着点就能玩完一局。每次行动有过程动画、结果插图、随机暴击或翻车，赚钱有金币声和飘字，菜单可静音。到站有早报：车马费 500/800/1000 随机、黑客松奖金、房东涨租，外加当日头条和“本站突发”暴涨暴跌。
+- 40 天生存交易，5 种身份（被优化的程序员、AI 自媒体、一人公司 CEO、普通打工人、应届 AI 原住民），各有真实数值加成；8 个站点、12 类 AI 圈商品（每站每天交易其中 8 种）（邀请码、Claude 拼车位、AI 副业课……），每天 2 格行动。
+- 第 1 天用黄色按钮引导，每天常驻下一步说明。每次行动有过程动画、结果插图、随机暴击或翻车，赚钱有金币声和飘字，菜单可静音。到站有早报：车马费 500/800/1000 随机、黑客松奖金、房东涨租，外加当日头条和“本站突发”暴涨暴跌。
 - 写稿发帖是抽卡：10 万+、六指图翻车、被限流，或者熬夜住院。全部美术为 Codex 生成的原创像素画：5 张身份立绘、8 个地点、16 张新闻与抽卡插图、8 个货品图标。
-- 105 个日常事件、5 个阶段剧情、2 个条件后续；67 张可收集梗图（含 Claude 封号与降智、DeepSeek 节前发版、相亲对象让你写周报、35 岁面试、AI 女友提醒续费）：大肥鱼吃白饭、服务器繁忙、用户彻底怒了、草莓数 r、皮衣显卡、烤肉酱、Claude 钨块小卖部……
+- 107 个日常事件、5 个阶段剧情、5 个条件后续；72 张可收集梗图（含 Claude 封号与降智、DeepSeek 节前发版、相亲对象让你写周报、35 岁面试、AI 女友提醒续费）：大肥鱼吃白饭、服务器繁忙、用户彻底怒了、草莓数 r、皮衣显卡、烤肉酱、Claude 钨块小卖部……
 - 梁文峰、黄仁勋、马斯克、扎克伯格、奥特曼、达里奥以虚构恶搞角色出场。9 格原创像素插画，搭配事件字幕。
 - 22 个可签约搭子，每家最多两个，含 Meta Muse App、Grok Bot、OpenAI Dots 三个 Agent 应用；按口碑单独定价（¥45–¥600），不是现实能力榜。合约使用游戏币，最多五天，不自动续费。
 - H200 / 5090 机时、邀请码、拼车位交易，OpenRouter 调用热潮、AA 榜单换位、新模型发布会改变行情。报价和流量为游戏模拟。
+- 100 条不重复小报头条与 100 句锐评，一局 40 天同题材间隔至少 3 天；养 Claw 分期买 Mac mini、Token 贷与限额试养走向不同后续。[研究与玩法建议](docs/NEWS-RESEARCH.md)。
 - 自动存档、JSON 导入导出、结局 PNG、离线续玩，以及 F2「老板来了」。适配手机。
 
 人物对白和商业情节为虚构讽刺。本作不调用真实模型接口，没有付费功能。进度仅在浏览器本地；公开网站使用 Umami 统计访问，不上传存档或玩家的游戏数据。
@@ -31,10 +32,10 @@ npm run dev
 ```
 
 ```sh
-npm test             # 25 项测试，含 100 局种子模拟
+npm test             # 43 项测试，含 100 局生存模拟与 100 局新闻去重
 npm run test:e2e     # 构建并启动独立预览，完整浏览器验收
 npm run build       # dist/，含按内容哈希版本化的离线缓存
-npm run package     # release/ai-fushengji-0.2.0-web.zip
+npm run package     # release/ai-fushengji-0.6.0-web.zip
 ```
 
 本地浏览器测试默认使用 Chrome。CI 使用 Playwright Chromium；可用 `CI=1 npx playwright install chromium` 安装后运行。`TEST_URL` 可覆盖待测地址。
@@ -59,7 +60,7 @@ npm run package     # release/ai-fushengji-0.2.0-web.zip
 
 **AI Life Simulator** is a free, Chinese-language, single-player browser game inspired by the 40-day survival and trading loop of *Beijing Fushengji*. Trade GPU time, pay off training debt, deliver client work, build small products, and protect your health in a rapidly changing AI economy.
 
-It includes 80 everyday events, 5 milestones, 2 conditional follow-ups, 42 collectible meme cards, and 34 model companions across 25 families. Public AI figures appear in clearly fictional satirical scenes. All prices, model bonuses, leaderboards, and traffic changes are game mechanics rather than real-world claims. No model API or API key is required.
+It includes 107 everyday events, 5 milestones, 5 conditional follow-ups, 72 collectible meme cards, 100 news editions, and 22 model companions. Public AI figures appear in clearly fictional satirical scenes. All prices, model bonuses, leaderboards, and traffic changes are game mechanics rather than real-world claims. No model API or API key is required.
 
 Local saves, import/export, ending-card PNG export, mobile layouts, and offline play are supported. The public site uses Umami for page analytics; game saves stay on your device. Use Node.js 24+, `npm ci`, and `npm run dev`. Run `npm test` and `npm run test:e2e` to validate the game. Code and original content are MIT licensed; no original Beijing Fushengji assets are reused.
 

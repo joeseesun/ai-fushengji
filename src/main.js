@@ -3,6 +3,7 @@ import { GOODS, LOCATIONS, ROLES, EVENTS, MILESTONES, WRITE_OUTCOMES, ACTION_FLA
 import { sfx, sfxEnabled, setSfx } from './sfx.js';
 import { CAST, SOURCES, MEME_CATALOG, rheostat } from './memes.js';
 import { MODELS, PROFILES, MODEL_DATE, getModel, featuredModel, modelTier, modelBlurb } from './models.js';
+import { NEWS_SOURCES } from './news.js';
 import { ACHIEVEMENTS, checkAchievements, unlocked, runs, recordRun } from './achievements.js';
 import { newGame, transition, parseSave, SAVE_KEY, getEvent, getLocation, getNews, getRumor, getArrival, modelFee, combinedEffects, expandCost, sells, questProgress, priceHeat, referencePrice, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
 import { version as APP_VERSION } from '../package.json';
@@ -18,7 +19,7 @@ const esc = str => String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&
 const compactEffects = effects => effectText(effects).replaceAll(' 元', '').replace('现金 ', '¥').split(' · ').map(t => `<span>${esc(t.replaceAll(' ', ''))}</span>`).join('');
 const money = value => `¥${Math.round(value).toLocaleString('zh-CN')}`;
 const app = document.querySelector('#app'), modal = document.querySelector('#modal');
-let activePane = 'event', nextStation = 'jobs', pickedRole = 'coder';
+let activePane = 'event', nextStation = 'jobs', mapStation = 'jobs', pickedRole = 'coder';
 let pendingAnim = null, lastRank = null;
 let state = null, saved = null, toastTimer, restoreFocus = null, saveError = '', startupNotice = '', tradeContext = null;
 try { const raw = localStorage.getItem(SAVE_KEY); saved = raw ? parseSave(raw) : null; if (raw && !saved) startupNotice = '旧存档无法读取，尚未覆盖。你可以导出原始存档备份，或开始新一局。'; } catch { startupNotice = '浏览器限制了本地存储。仍可游玩，请手动导出存档。'; }
@@ -142,11 +143,11 @@ function actionResult(prev, id) {
   steps.slice(1).forEach((t, i) => timers.push(setTimeout(() => { line.textContent = t; sfx.tick(); }, 330 * (i + 1))));
   timers.push(setTimeout(reveal, 1050));
 }
-function openModal(title, html, wide = false, scroll = false) {
+function openModal(title, html, wide = false) {
   if (modal.open) modal.close();
   restoreFocus = document.activeElement;
   modal.className = wide ? 'wide' : '';
-  modal.innerHTML = `<div class="window-title"><span id="modal-title">${esc(title)}</span><button class="window-close" data-ui="close-modal" aria-label="关闭对话框">${icon('X')}</button></div><div class="modal-content ${scroll ? 'scroll' : ''}">${scroll || html.includes('class="page-frame') ? html : pageFrame(html, '内容')}</div>`;
+  modal.innerHTML = `<div class="window-title"><span id="modal-title">${esc(title)}</span><button class="window-close" data-ui="close-modal" aria-label="关闭对话框">${icon('X')}</button></div><div class="modal-content">${html.includes('class="page-frame') ? html : pageFrame(html, '内容')}</div>`;
   modal.showModal();
   layoutPages(modal);
   modal.querySelectorAll('img').forEach(img => img.addEventListener('load', () => layoutPages(modal), { once: true }));
@@ -157,7 +158,7 @@ modal.addEventListener('click', e => { if (e.target === modal) { const r = modal
 const monitorArt = `<svg class="monitor-art" viewBox="0 0 260 200" role="img" aria-label="一台还在运转的旧电脑"><path fill="#123e3d" d="M30 177h196v8H30z"/><path fill="#9caa9e" stroke="#283c35" stroke-width="4" d="M31 21h190v127H31z"/><path fill="#e1e0ce" stroke="#35483d" stroke-width="3" d="M24 15h190v127H24z"/><path fill="#203a43" stroke="#7f8e7d" stroke-width="6" d="M39 30h158v92H39z"/><path fill="#f4da8b" d="M78 60h12v12H78zm64 0h12v12h-12zM91 86h51v6H91z"/><path fill="#b4bfaa" d="M105 143h32v19h-32z"/><path fill="#e1e0ce" stroke="#35483d" stroke-width="3" d="M84 160h73v10H84zM44 175h161l14 15H31z"/><path stroke="#9ca38e" stroke-width="3" d="M54 181h138M66 187h116"/><path fill="#244d40" d="M189 132h9v4h-9z"/><text x="116" y="49" text-anchor="middle" fill="#90b7a5" font-size="8" font-family="monospace">HUMAN.EXE</text></svg>`;
 
 function chrome(body) {
-  return `<div class="desktop ${state?.status === 'playing' ? 'is-playing' : 'is-intro'}"><aside class="desktop-icons" aria-label="桌面工具"><button data-ui="home-screen" aria-label="返回游戏">${icon('Monitor')}<span>我的人生</span></button><button data-ui="journal">${icon('NotebookPen')}<span>生存日记</span></button><button data-ui="help">${icon('CircleHelp')}<span>生存指南</span></button><div class="desktop-note">人类进程<br>尚未退出</div></aside><main class="game-window"><div class="window-title"><span>${icon('Monitor')} AI 浮生记.exe <span class="title-hint">— HUMAN IS STILL IN THE LOOP</span></span><button class="window-close" data-ui="help" aria-label="查看玩法">?</button></div><nav class="menu" aria-label="游戏菜单"><button data-ui="new">新开局<span>(N)</span></button><button data-ui="journal">账本<span>(B)</span></button><button data-ui="save">存档<span>(S)</span></button><button data-ui="gallery">梗图<span>(M)</span></button><button data-ui="models">模型<span>(AI)</span></button><button data-ui="achievements">成就<span>(A)</span></button><button data-ui="help">玩法<span>(H)</span></button><button data-ui="sfx" class="sfx-toggle" aria-pressed="${sfxEnabled()}" aria-label="音效">${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span></button><button class="boss-button" data-ui="boss">老板来了 <kbd>F2</kbd></button></nav>${saveError ? `<div class="save-warning" role="alert">${esc(saveError)} <button data-ui="export">导出存档</button></div>` : ''}${body}<footer class="window-status"><span>${icon('ShieldCheck')} ${state ? (saveError ? '请手动导出存档' : '进度自动保存在本机') : '无需登录 · 无需充值'}</span><span class="community-actions"><button data-ui="support" aria-label="打赏支持" title="打赏支持">${icon('Coffee')}</button><button data-ui="follow" aria-label="关注作者" title="关注作者">${icon('Contact')}</button><a href="https://tuijian.qiaomu.ai/" target="_blank" rel="noopener">乔木推荐</a><span>v${APP_VERSION}</span></span></footer></main></div><footer class="taskbar"><button data-ui="home-screen">${icon('Monitor')} <b>开始</b></button><span class="task-active">AI 浮生记</span><span class="taskbar-end">Powered by <a href="https://qiaomu.ai/" target="_blank" rel="noopener">向阳乔木</a><span class="task-clock">${state ? `DAY ${String(state.day).padStart(2, '0')}` : '40 DAYS'}</span></span></footer>`;
+  return `<div class="desktop ${state?.status === 'playing' ? 'is-playing' : 'is-intro'}"><aside class="desktop-icons" aria-label="桌面工具"><button data-ui="home-screen" aria-label="返回游戏">${icon('Monitor')}<span>我的人生</span></button><button data-ui="journal">${icon('NotebookPen')}<span>生存日记</span></button><button data-ui="help">${icon('CircleHelp')}<span>生存指南</span></button><div class="desktop-note">人类进程<br>尚未退出</div></aside><main class="game-window"><div class="window-title"><span>${icon('Monitor')} AI 浮生记.exe <span class="title-hint">— HUMAN IS STILL IN THE LOOP</span></span><button class="window-close" data-ui="help" aria-label="查看玩法">?</button></div><nav class="menu" aria-label="游戏菜单"><button data-ui="new">新开局<span>(N)</span></button><button data-ui="journal">账本<span>(B)</span></button><button data-ui="news" ${state ? '' : 'disabled'}>小报</button><button data-ui="save">存档<span>(S)</span></button><button data-ui="gallery">梗图<span>(M)</span></button><button data-ui="models">模型<span>(AI)</span></button><button data-ui="achievements">成就<span>(A)</span></button><button data-ui="help">玩法<span>(H)</span></button><button data-ui="sfx" class="sfx-toggle" aria-pressed="${sfxEnabled()}" aria-label="音效">${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span></button><button class="boss-button" data-ui="boss">老板来了 <kbd>F2</kbd></button></nav>${saveError ? `<div class="save-warning" role="alert">${esc(saveError)} <button data-ui="export">导出存档</button></div>` : ''}${body}<footer class="window-status"><span>${icon('ShieldCheck')} ${state ? (saveError ? '请手动导出存档' : '进度自动保存在本机') : '无需登录 · 无需充值'}</span><span class="community-actions"><button data-ui="support" aria-label="打赏支持" title="打赏支持">${icon('Coffee')}</button><button data-ui="follow" aria-label="关注作者" title="关注作者">${icon('Contact')}</button><a href="https://tuijian.qiaomu.ai/" target="_blank" rel="noopener">乔木推荐</a><span>v${APP_VERSION}</span></span></footer></main></div><footer class="taskbar"><button data-ui="home-screen">${icon('Monitor')} <b>开始</b></button><span class="task-active">AI 浮生记</span><span class="taskbar-end">Powered by <a href="https://qiaomu.ai/" target="_blank" rel="noopener">向阳乔木</a><span class="task-clock">${state ? `DAY ${String(state.day).padStart(2, '0')}` : '40 DAYS'}</span></span></footer>`;
 }
 
 const roleArt = (id, cls = '') => `<img class="role-sprite ${cls}" src="/art/roles/${id}.webp" alt="" width="200" height="300" decoding="async">`;
@@ -193,30 +194,46 @@ function sceneArt(name, caption = '', cls = '') {
 }
 function briefing() {
   const l = getLocation(state), news = getNews(state), rumor = getRumor(state), arrival = getArrival(state);
-  openModal(`第 ${state.day} 天 · AI 浮生早报`, pageFrame(`${sceneArt(`loc-${l.id}`, '', 'brief-hero')}<div class="brief-place"><small>你到了</small><b>${esc(l.full)}</b><span>${esc(l.line)}</span></div>${arrival ? `<div class="brief-arrival"><b>到站小事</b><p>${esc(arrival.text)}</p><em>${esc(arrival.note)}</em><span class="effect-chips">${compactEffects(arrival.effects)}</span></div>` : ''}${rumor ? `<div class="brief-news breaking">${sceneArt(rumor.art)}<div><small>本站突发 · 只在今天</small><b>${esc(rumor.title)}</b><span>${esc(GOODS.find(g => g.id === rumor.good).short)} 报价 ×${rumor.factor}</span></div></div>` : ''}<div class="brief-news">${sceneArt(news.art)}<div><small>今日头条</small><b>${esc(news.title)}</b><span>${esc(news.detail)}</span></div></div>`, '早报') + `<div class="modal-actions sticky-actions"><button class="primary cta" data-ui="close-modal">开始今天 ${icon('ArrowRight')}</button></div>`, true);
+  openModal(`第 ${state.day} 天 · AI 浮生早报`, pageFrame(`${sceneArt(`loc-${l.id}`, '', 'brief-hero')}<div class="brief-place"><small>你到了</small><b>${esc(l.full)}</b><span>${esc(l.line)}</span></div>${arrival ? `<div class="brief-arrival"><b>到站小事</b><p>${esc(arrival.text)}</p><em>${esc(arrival.note)}</em><span class="effect-chips">${compactEffects(arrival.effects)}</span></div>` : ''}${rumor ? `<div class="brief-news breaking">${sceneArt(rumor.art)}<div><small>本站突发 · 只在今天</small><b>${esc(rumor.title)}</b><span>${esc(GOODS.find(g => g.id === rumor.good).short)} 报价 ×${rumor.factor}</span></div></div>` : ''}<div class="brief-news">${sceneArt(news.art)}<div><small>今日头条</small><b>${esc(news.title)}</b><span>${esc(news.detail)}</span></div></div><p class="news-comment"><b>小报锐评</b> ${esc(news.comment ?? '账单负责让人清醒。')}</p>`, '早报') + `<div class="modal-actions sticky-actions"><button class="primary cta" data-ui="close-modal">开始今天 ${icon('ArrowRight')}</button></div>`, true);
   modal.classList.add('briefing', 'fit');
 }
 // Pin positions on the map art, in percent.
 const MAP_PINS = { market: [20, 16], launch: [75, 17], jobs: [16, 40], course: [79, 40], opensource: [18, 62], stream: [46, 66], hackathon: [80, 63], home: [55, 87] };
+function openNews() {
+  const news = getNews(state), rumor = getRumor(state), source = NEWS_SOURCES[news.source];
+  openModal('AI 浮生小报 · 今日快讯', `${sceneArt(news.art)}<h3 class="news-headline">${esc(news.title)}</h3><p class="news-comment">${esc(news.comment ?? '本报提醒：热搜负责热，账单负责搜你的余额。')}</p><div class="news-impact"><b>今天怎么影响你</b><p>${esc(news.detail)}</p></div>${rumor ? `<div class="market-shock">本站突发：${esc(rumor.title)}<small>${esc(GOODS.find(g => g.id === rumor.good).short)}报价 ×${rumor.factor}，只在今天、只在这一站。</small></div>` : ''}<p>ROUTER 小报：${esc(featuredModel(state).name)} · ${esc(news.traffic ?? '发布会永不打烊')}</p><p class="muted">原创游戏小报，不是现实新闻或实时排行榜。行情已反映在报价中。</p>${source ? `<a class="source-link" href="${esc(source.url)}" target="_blank" rel="noopener">梗的传播样例：${esc(source.label)} ↗</a>` : ''}`);
+  modal.classList.add('news-modal'); layoutPages(modal);
+}
 function openMap() {
   if (!state || state.event) return;
-  openModal('北京地图 · 明天去哪', `<p class="map-intro">每晚选一个地方过夜，第二天在那里醒来。不同地方：<b>收的货不同、价格不同</b>（低买高卖靠这个）；各有<b>专属加成</b>；到站还有不同的小事。去过的地方会记下当天的行情。</p><div class="map-wrap"><img src="/art/scenes/map.webp" alt="" width="1200" height="800">${LOCATIONS.map(l => `<button class="map-pin ${l.id === nextStation ? 'picked' : ''} ${l.id === state.location ? 'here' : ''}" style="left:${MAP_PINS[l.id][0]}%;top:${MAP_PINS[l.id][1]}%" data-ui="map-pick" data-id="${l.id}" aria-label="${esc(l.name)}">${icon(l.icon)}<span>${esc(l.name)}</span></button>`).join('')}</div><div class="map-detail" aria-live="polite"></div>`, true, true);
+  mapStation = nextStation;
+  openModal('北京地图 · 明天去哪', pageFrame(`<p class="map-intro">点地点看加成和行情，再确认明天去哪。<b>点“再想想”不会换站。</b></p><div class="map-wrap"><img src="/art/scenes/map.webp" alt="北京地点示意图" width="1200" height="800">${LOCATIONS.map(l => `<button class="map-pin ${l.id === mapStation ? 'picked' : ''} ${l.id === state.location ? 'here' : ''}" style="left:${MAP_PINS[l.id][0]}%;top:${MAP_PINS[l.id][1]}%" data-ui="map-pick" data-id="${l.id}" aria-label="${esc(l.name)}">${icon(l.icon)}<span>${esc(l.name)}</span></button>`).join('')}</div><h3 data-map-title></h3><p data-map-line></p><p class="map-perk" data-map-perk></p><p data-map-trend></p><p class="map-intel" data-map-intel></p>`, '地图', 'map-pages') + `<div class="modal-actions sticky-actions"><button data-ui="close-modal">再想想</button><button class="primary cta" data-ui="map-go"></button></div>`, true);
   modal.classList.add('map-modal');
   drawMapDetail();
 }
 function drawMapDetail() {
-  const box = modal.querySelector('.map-detail'); if (!box) return;
-  modal.querySelectorAll('.map-pin').forEach(p => p.classList.toggle('picked', p.dataset.id === nextStation));
-  const l = LOCATIONS.find(l => l.id === nextStation), intel = state.intel?.[l.id];
+  if (!modal.querySelector('.map-pages')) return;
+  modal.querySelectorAll('.map-pin').forEach(p => p.classList.toggle('picked', p.dataset.id === mapStation));
+  const l = LOCATIONS.find(l => l.id === mapStation), intel = state.intel?.[l.id];
   const names = ids => ids.map(id => GOODS.find(g => g.id === id).short).join('、') || '无';
   const tops = Object.entries(l.factors).sort((a, b) => a[1] - b[1]);
-  box.innerHTML = `<div class="map-card">${sceneArt(`loc-${l.id}`, '', 'map-thumb')}<div><b>${esc(l.full)}${l.id === state.location ? ' · 你在这里' : ''}</b><p>${esc(l.line)}</p><p class="map-perk">${icon('Sparkles')} ${esc(l.specialty)}</p><p class="map-trend">常年便宜：${names(tops.filter(t => t[1] < 1).slice(0, 3).map(t => t[0]))} · 常年贵：${names(tops.filter(t => t[1] > 1).slice(-3).map(t => t[0]))}</p><p class="map-intel">${intel ? `第 ${intel.day} 天来过：当时便宜 ${names(intel.cheap)}；贵 ${names(intel.dear)}` : '还没来过，行情未知。'}</p></div></div><div class="modal-actions"><button data-ui="close-modal">再想想</button><button class="primary cta" data-ui="map-go" data-id="${l.id}">${icon('MapPin')} 明天就去${esc(l.name)}</button></div>`;
+  const values = {
+    title: `${l.full}${l.id === state.location ? ' · 你在这里' : ''}`,
+    line: l.line, perk: l.specialty,
+    trend: `常年便宜：${names(tops.filter(t => t[1] < 1).slice(0, 3).map(t => t[0]))}；常年贵：${names(tops.filter(t => t[1] > 1).slice(-3).map(t => t[0]))}`,
+    intel: intel ? `第 ${intel.day} 天来过：当时便宜 ${names(intel.cheap)}；贵 ${names(intel.dear)}` : '还没来过，行情未知。',
+  };
+  for (const [key, value] of Object.entries(values)) modal.querySelector(`[data-map-${key}]`).textContent = value;
+  modal.querySelector('[data-ui="map-go"]').textContent = `明天就去${l.name}`;
+  layoutPages(modal);
 }
 function openAchievements() {
   const have = unlocked(), list = runs();
-  openModal(`成就与排行 · 已解锁 ${ACHIEVEMENTS.filter(a => have[a.id]).length}/${ACHIEVEMENTS.length}`, `<div class="ach-grid">${ACHIEVEMENTS.map(a => `<div class="ach ${have[a.id] ? 'got' : ''}">${icon('Award')}<span><b>${have[a.id] ? esc(a.title) : '？？？'}</b><small>${esc(a.desc)}</small></span></div>`).join('')}</div><h3 class="rank-title">本机排行榜 · 最好的 10 局</h3>${list.length ? `<ol class="rank-list">${list.map(r => `<li><b>${money(r.worth)}</b><span>${esc(r.role)} · ${esc(r.ending)} · 第 ${r.day} 天</span><small>${esc(r.date)}</small></li>`).join('')}</ol>` : '<p class="muted">还没有结算过的一局。打完 40 天（或提前下线）就会上榜。</p>'}<p class="muted">成就和排行只存在这台设备的浏览器里，不上传。</p>`, true, true);
-  modal.classList.add('models');
+  const cards = ACHIEVEMENTS.map(a => `<div class="ach ${have[a.id] ? 'got' : ''}">${icon('Award')}<span><b>${have[a.id] ? esc(a.title) : '？？？'}</b><small>${esc(a.desc)}</small></span></div>`);
+  const rows = cards.filter((_, i) => i % 2 === 0).map((_, i) => `<div class="ach-row">${cards.slice(i * 2, i * 2 + 2).join('')}</div>`).join('');
+  openModal(`成就与排行 · 已解锁 ${ACHIEVEMENTS.filter(a => have[a.id]).length}/${ACHIEVEMENTS.length}`, pageFrame(`${rows}<h3 class="rank-title">本机排行榜 · 最好的 10 局</h3>${list.length ? list.map((r, i) => `<p class="rank-entry">${i + 1}. <b>${money(r.worth)}</b> · ${esc(r.role)} · ${esc(r.ending)} · 第 ${r.day} 天<br><small>${esc(r.date)}</small></p>`).join('') : '<p class="muted">还没有结算过的一局。打完 40 天（或提前下线）就会上榜。</p>'}<p class="muted">成就和排行只存在这台设备的浏览器里，不上传。</p>`, '成就'), true);
 }
+
 function portrait(art, cls = '') {
   const c = CAST[art] ?? CAST.worker;
   return `<span class="cast-portrait ${cls}" role="img" aria-label="${c.name}的原创像素插画" style="background-position:${c.x}% ${c.y}%"></span>`;
@@ -236,16 +253,18 @@ function memeDetail(id) {
   openModal(e.title.replace('{model}', '新模型'), `${memeArt(e)}<p>${esc(e.text.replaceAll('{model}', '新模型'))}</p><p class="muted">网络梗改编，人物情节为虚构；游戏插画为原创生成，未搬运第三方表情包。</p>${source?.url ? `<a class="source-link" href="${esc(source.url)}" target="_blank" rel="noopener">查看传播样例：${esc(source.name)} ${icon('ArrowUpRight')}</a>` : '<p class="muted">本作根据 AI 打工生活创作的原创段子。</p>'}<div class="modal-actions"><button data-ui="gallery">回到梗图图鉴</button><button data-ui="close-modal">继续过日子</button></div>`);
 }
 function modelSquare() {
-  openModal('模型广场 · 你选模型，账单选你', `<p class="model-intro">${MODELS.length} 个模型条目 · 国内外 ${new Set(MODELS.map(m => m.family)).size} 个家族 · 名称核对 ${MODEL_DATE}。租约使用游戏币，最多 5 天；无需真实 API，不会自动续费。下面加成为游戏设定。</p><div class="model-filters"><input id="model-search" type="search" placeholder="搜索模型 / 家族，例如 Kimi、豆包" aria-label="搜索模型"><select id="model-region" aria-label="模型地区"><option value="全部">全部模型</option><option>国内</option><option>海外</option></select></div>${state?.event ? '<p class="model-status">先处理今天的事件，再来签约。</p>' : state && getModel(state) ? `<p class="model-status">当前搭子 ${esc(getModel(state).name)}，合约至第 ${state.modelUntil} 天。到期后可以换模型，不会自动续费。</p>` : !state || state.status !== 'playing' ? '<p class="model-status">开局后可用游戏币签约，当前仅供浏览。</p>' : ''}<div class="model-scroll" tabindex="0" aria-label="模型列表，可上下滑动"></div>`, true, true);
+  openModal('模型广场 · 你选模型，账单选你', `<p class="model-intro">${MODELS.length} 个模型条目 · 国内外 ${new Set(MODELS.map(m => m.family)).size} 个家族 · 名称核对 ${MODEL_DATE}。租约使用游戏币，最多 5 天；无需真实 API，不会自动续费。下面加成为游戏设定。</p><div class="model-filters"><input id="model-search" type="search" placeholder="搜索模型 / 家族，例如 Kimi、豆包" aria-label="搜索模型"><select id="model-region" aria-label="模型地区"><option value="全部">全部模型</option><option>国内</option><option>海外</option></select></div>${state?.event ? '<p class="model-status">先处理今天的事件，再来签约。</p>' : state && getModel(state) ? `<p class="model-status">当前搭子 ${esc(getModel(state).name)}，合约至第 ${state.modelUntil} 天。到期后可以换模型，不会自动续费。</p>` : !state || state.status !== 'playing' ? '<p class="model-status">开局后可用游戏币签约，当前仅供浏览。</p>' : ''}${pageFrame('', '模型', 'model-list-frame')}`, true);
   modal.classList.add('models');
   const draw = () => {
     const q = document.querySelector('#model-search').value.toLowerCase(), region = document.querySelector('#model-region').value;
     const found = MODELS.filter(m => `${m.name} ${m.family}`.toLowerCase().includes(q) && (region === '全部' || region === m.region));
-    document.querySelector('.model-scroll').innerHTML = found.length ? found.map(m => {
+    document.querySelector('.model-list-frame>.page-content').innerHTML = found.length ? found.map(m => {
       const fee = state ? modelFee(state, m) : m.fee, active = state && getModel(state), disabled = !state || state.status !== 'playing' || state.event || active || state.cash < fee;
       const value = Math.min(5, Math.max(1, Math.round(m.work / m.fee * 2.2)));
       return `<article class="model-card"><div class="model-card-top">${portrait(m.art, 'mini')}<span><small>${m.region} · ${m.family} · ${PROFILES[m.profile].label}</small><h3>${esc(m.name)}</h3></span><em class="tier tier-${modelTier(m)}">${modelTier(m)}</em></div><p>${m.joke}</p><div class="model-perks">${modelBlurb(m)}<span class="value">性价比 ${'★'.repeat(value)}${'☆'.repeat(5 - value)}</span></div><div class="model-card-bottom"><a href="${esc(m.source)}" target="_blank" rel="noopener">来源 ↗</a><button data-ui="hire-model" data-id="${esc(m.id)}" ${disabled ? 'disabled' : ''}>${active?.id === m.id ? '已签约' : `${money(fee)} / ${state ? Math.min(5, 41 - state.day) : 5} 天`}</button></div></article>`;
     }).join('') : '<p class="empty-models">没有找到这个名字。可以试试模型家族名。</p>';
+    document.querySelector('.model-list-frame').dataset.page = 0;
+    layoutPages(modal);
   };
   document.querySelector('#model-search').oninput = draw; document.querySelector('#model-region').onchange = draw; draw();
 }
@@ -275,7 +294,7 @@ function travelPanel() {
 function game() {
   const step = state.event ? 1 : state.ap ? 2 : 3;
   const news = getNews(state), rumor = getRumor(state);
-  return `<div class="game-content" data-active-pane="${activePane}" data-step="${step}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：今天的瓜来了，挑一个回应。' : step === 2 ? `现在：还能干 ${state.ap} 件事${state.day === 1 ? '，先试试亮着的那个' : '，自己挑'}。` : state.day === 40 ? '现在：点亮的「结算这 40 天」。' : '现在：挑好下一站，点亮的「结束今天」。'}<small>${step === 1 ? ' 回应完才能干别的。' : ' 低买高卖、还款不耗行动。'}</small></span>${(() => { const q = questProgress(state); return q ? `<span class="quest-chip ${q.done ? 'done' : ''}" title="今天收工时检查，完成就发奖励">${q.done ? '✓' : '委托'} ${esc(q.title)}${q.track === 'calm' ? `（现在 ${q.value}）` : q.done ? '' : `（${q.track === 'cash' || q.track === 'tradeProfit' || q.track === 'repaid' ? money(Math.max(0, q.value)) : Math.max(0, q.value)}/${q.track === 'cash' || q.track === 'tradeProfit' || q.track === 'repaid' ? money(q.need) : q.need}）`} · 奖 ${esc(effectText(q.reward))}</span>` : ''; })()}</div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker ${rumor ? 'breaking' : ''}" data-ui="news">${icon('ReceiptText')}<span>${rumor ? `<b>本站突发</b> ${esc(rumor.title)}` : `<b>快讯</b> ${esc(news.title)}`}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['actions', `② 行动 ${state.ap}/2`], ['market', '交易所']].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}" class="${activePane !== id && ((step === 1 && id === 'event') || (step === 2 && id === 'actions')) ? 'cta' : ''}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${actionPanel()}${marketPanel()}</div>${travelPanel()}</div>`;
+  return `<div class="game-content" data-active-pane="${activePane}" data-step="${step}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：今天的瓜来了，挑一个回应。' : step === 2 ? `现在：还能干 ${state.ap} 件事${state.day === 1 ? '，先试试亮着的那个' : '，自己挑'}。` : state.day === 40 ? '现在：点亮的「结算这 40 天」。' : '现在：挑好下一站，点亮的「结束今天」。'}<small>${step === 1 ? ' 回应完才能干别的。' : ' 低买高卖、还款不耗行动。'}</small></span>${(() => { const q = questProgress(state); return q ? `<span class="quest-chip ${q.done ? 'done' : ''}" title="今天收工时检查，完成就发奖励">${q.done ? '✓' : '委托'} ${esc(q.title)}${q.track === 'calm' ? `（现在 ${q.value}）` : q.done ? '' : `（${q.track === 'cash' || q.track === 'tradeProfit' || q.track === 'repaid' ? money(Math.max(0, q.value)) : Math.max(0, q.value)}/${q.track === 'cash' || q.track === 'tradeProfit' || q.track === 'repaid' ? money(q.need) : q.need}）`} · 奖 ${esc(effectText(q.reward))}</span>` : ''; })()}</div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker ${rumor ? 'breaking' : ''}" data-ui="news">${icon('ReceiptText')}<span><b>${rumor ? '快讯＋异动' : '快讯'}</b> ${esc(news.title)}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['actions', `② 行动 ${state.ap}/2`], ['market', '交易所']].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}" class="${activePane !== id && ((step === 1 && id === 'event') || (step === 2 && id === 'actions')) ? 'cta' : ''}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${actionPanel()}${marketPanel()}</div>${travelPanel()}</div>`;
 }
 
 function ending() {
@@ -400,7 +419,7 @@ document.addEventListener('click', e => {
     company: () => openModal('产品与个人档案', companyPanel()),
     sfx: () => { setSfx(!sfxEnabled()); b.setAttribute('aria-pressed', String(sfxEnabled())); b.innerHTML = `${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span>`; if (sfxEnabled()) sfx.coins(300); },
     'pick-role': () => { pickedRole = b.dataset.id; sfx.pop(); render(); document.querySelector(`.role-tab[data-id="${pickedRole}"]`)?.focus({ preventScroll: true }); },
-    news: () => openModal('今日快讯 · 游戏模拟行情', `${getRumor(state) ? `<div class="market-shock">本站突发：${esc(getRumor(state).title)}<small>${esc(GOODS.find(g => g.id === getRumor(state).good).short)}报价 ×${getRumor(state).factor}，只在今天、只在这一站。</small></div>` : ''}${sceneArt(getNews(state).art)}<h3>${esc(getNews(state).title)}</h3><p>${esc(getNews(state).detail)}</p><p>ROUTER 小报：${esc(featuredModel(state).name)} · ${esc(getNews(state).traffic ?? '发布会永不打烊')}</p><p class="muted">游戏模拟，不是实时排行榜。行情已反映在报价中。</p>`),
+    news: () => openNews(),
     'good-info': () => { const g = GOODS.find(g => g.id === b.dataset.id); openModal(g.name, `<p>${g.desc}</p><p>当前买入 ${money(state.prices[g.id])} / ${g.unit}，回收 ${money(salePrice(state, g.id))}。平常约 ${money(referencePrice(state, g.id))}，今天算<b>${priceHeat(state, g.id).label}</b>。</p><p>持仓 ${state.inventory[g.id].qty}，成本 ${money(state.inventory[g.id].cost)}。买卖不消耗行动。</p>`); },
     gallery, models: modelSquare, 'meme-detail': () => memeDetail(b.dataset.id),
     support: () => openModal('打赏支持', '<p>游戏永久免费。觉得好玩，可以请作者喝杯咖啡。</p><img class="community-qr" src="/community/support.png" alt="作者打赏二维码">'),
@@ -409,8 +428,8 @@ document.addEventListener('click', e => {
     action: () => dispatch({ type: 'action', id: b.dataset.id }),
     expand: () => { openModal('扩仓 · 能囤更多货', `<p>仓库决定你最多能同时囤多少件货。现在 <b>${usedSpace(state)}/${state.capacity}</b> 件。</p><p>扩仓后上限 <b>${state.capacity} → ${state.capacity + 10}</b> 件，花 <b>${money(expandCost(state))}</b>，不占行动次数。最多扩到 58 件。</p><p class="muted">适合发现“跳水”货想多囤一些的时候。空着的仓库不会生钱。</p><div class="modal-actions"><button data-ui="close-modal">先不扩</button><button class="primary cta" id="confirm-expand" ${state.cash < expandCost(state) ? 'disabled' : ''}>花 ${money(expandCost(state))} 扩仓</button></div>`); document.querySelector('#confirm-expand').onclick = () => { if (dispatch({ type: 'expand' })) closeModal(); }; },
     map: () => openMap(),
-    'map-pick': () => { nextStation = b.dataset.id; drawMapDetail(); },
-    'map-go': () => { nextStation = b.dataset.id; closeModal(); render(); },
+    'map-pick': () => { mapStation = b.dataset.id; drawMapDetail(); },
+    'map-go': () => { nextStation = mapStation; closeModal(); render(); },
     achievements: () => openAchievements(),
     buy: () => trade(b.dataset.id, 'buy'), sell: () => trade(b.dataset.id, 'sell'), travel: () => travel(b.dataset.id),
     finish: () => { openModal('结算这 40 天', `<p>今天还剩 ${state.ap} 格行动。确认后按当前回收价清仓，扣除最后一天费用，再自动还债。</p><div class="modal-actions"><button data-ui="close-modal">再想想</button><button class="primary" id="confirm-finish">确认结算</button></div>`); document.querySelector('#confirm-finish').onclick = () => { closeModal(); dispatch({ type: 'finish' }); window.scrollTo(0, 0); }; },

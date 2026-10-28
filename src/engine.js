@@ -1,8 +1,9 @@
 import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
+import { drawNews, getEdition, validNews } from './news.js';
 
-export const VERSION = 4;
+export const VERSION = 5;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -27,7 +28,10 @@ function shuffle(s, list) {
   return result;
 }
 export const getLocation = s => LOCATIONS.find(l => l.id === s.location);
-export const getNews = s => NEWS.find(n => n.id === s.news);
+export const getNews = s => {
+  const topic = NEWS.find(n => n.id === s.news), edition = getEdition(s.newsEdition);
+  return edition?.topic === s.news ? { ...topic, ...edition, id: topic.id } : topic;
+};
 export const getEvent = s => {
   const e = allEvents.find(e => e.id === s.event);
   if (!e) return null;
@@ -80,8 +84,7 @@ function log(s, text, kind = 'normal') {
 
 function market(s) {
   s.previousPrices = { ...s.prices };
-  const forced = s.day === 8 ? 'free' : s.day === 16 ? 'data' : s.day === 24 ? 'enterprise' : s.day === 32 ? 'human' : null;
-  s.news = forced ?? NEWS[Math.floor(random(s) * NEWS.length)].id;
+  drawNews(s, random);
   const news = getNews(s), place = getLocation(s);
   for (const g of GOODS) {
     const age = Math.max(.22, 1 - g.decay * (s.day - 1));
@@ -120,7 +123,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -390,6 +393,7 @@ export function isValidSave(s) {
   if (!s || typeof s !== 'object' || s.version !== VERSION) return false;
   if (!integer(s.day, 1, DAYS) || !integer(s.rng, 1, 0xffffffff) || !integer(s.seed, 1, 0xffffffff)) return false;
   if (!ROLES.some(r => r.id === s.role) || !LOCATIONS.some(l => l.id === s.location) || !NEWS.some(n => n.id === s.news)) return false;
+  if (!validNews(s)) return false;
   for (const k of ['cash', 'debt', 'totalEarned', 'totalInterest', 'jobsDone', 'daysRested', 'borrowed']) if (!integer(s[k])) return false;
   if (!integer(s.tradeProfit, -1e9) || !integer(s.lastBorrowDay, -10, DAYS)) return false;
   for (const k of ['health', 'stress', 'skill', 'reputation', 'techDebt']) if (!integer(s[k], 0, 100)) return false;
@@ -458,7 +462,11 @@ export function parseSave(text) {
       for (const g of GOODS) if (!s.inventory[g.id]) {
         s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
       }
-      s.available = [...OPENING_GOODS]; s.intel = {}; s.quest = null; s.questsDone = 0; s.version = VERSION;
+      s.available = [...OPENING_GOODS]; s.intel = {}; s.quest = null; s.questsDone = 0; s.version = 4;
+    }
+    if (s?.version === 4) {
+      // Keep today's original headline, quotes and RNG. Only future days draw new copy.
+      s.newsEdition = `${s.news}-original`; s.newsSeen = [s.newsEdition]; s.version = VERSION;
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.

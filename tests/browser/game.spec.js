@@ -202,3 +202,91 @@ test('identity picker starts the chosen role; writing shows a gacha card', async
   await page.locator('#act-continue').click(); await expect(page.locator('#modal')).not.toBeVisible();
   await expect(page.locator('.stat[data-stat="health"] .float-num')).toBeVisible();
 });
+
+// Check the actual content box, not just the page root: overflow hidden can mask clipping.
+const readPages = async (page, frameSelector) => {
+  const seen = new Set();
+  const frame = page.locator(frameSelector);
+  const count = await frame.locator(':scope > .page-content > *').count();
+  for (let i = 0; i < 45; i++) {
+    const measured = await frame.evaluate(frame => {
+      const box = frame.querySelector(':scope > .page-content'), r = box.getBoundingClientRect();
+      const seen = [], clipped = [];
+      [...box.children].forEach((child, index) => {
+        if (child.hidden) return;
+        seen.push(index); const c = child.getBoundingClientRect();
+        if (c.bottom > r.bottom + 1 || c.right > r.right + 1 || c.top < r.top - 1 || c.left < r.left - 1) clipped.push(child.textContent.slice(0, 70));
+      });
+      return { seen, clipped };
+    });
+    expect(measured.clipped, `${frameSelector} ${JSON.stringify(page.viewportSize())}`).toEqual([]);
+    measured.seen.forEach(n => seen.add(n));
+    const next = frame.locator(':scope > .page-controls [data-page-turn="1"]');
+    if (!await next.isVisible() || !await next.isEnabled()) break;
+    await next.click();
+  }
+  expect(seen.size, `${frameSelector}: every block reachable`).toBe(count);
+};
+
+test('news survives refresh, explains prices, and all small-screen copy is reachable', async ({ page }) => {
+  const { NEWS_EDITIONS } = await import('../../src/news.js');
+  for (const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    const s = newGame('coder',42); s.event=null; s.rumor=null;
+    const edition = NEWS_EDITIONS.find(e => e.id === 'tokens-claw');
+    s.news=edition.topic; s.newsEdition=edition.id; s.newsSeen=[edition.id];
+    await start(page,s);
+    await expect(page.locator('.news-ticker')).toContainText(edition.title);
+    await page.locator('[data-ui="news"]:visible').first().click();
+    await expect(page.locator('.news-headline')).toHaveText(edition.title);
+    await readPages(page,'#modal .page-frame');
+    await expect(page.locator('#modal .news-impact')).toContainText('H200 ×1.7');
+    expect(await page.locator('#modal .source-link').getAttribute('href')).toContain('bilibili.com');
+    await page.screenshot({path:`evidence/news-${width}.png`});
+    await page.keyboard.press('Escape');
+    const before=await snapshot(page); await page.reload(); await page.locator('[data-ui="resume"]').click();
+    expect(await snapshot(page)).toEqual(before);
+    await expect(page.locator('.news-ticker')).toContainText(edition.title);
+  }
+});
+
+test('Claw and Token loan choices stay readable; installment persists after reload', async ({ page }) => {
+  for (const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    for(const id of ['claw-mini','token-loan','claw-token-bill','claw-budget-win','claw-credit-after']) {
+      const s=newGame('coder',42);s.day=25;s.event=id;s.seen.push(id);
+      await start(page,s); await readPages(page,'.event-pages');
+    }
+  }
+  await page.setViewportSize({width:390,height:844});
+  const s=newGame('coder',42);s.day=25;s.event='claw-mini';s.seen.push('claw-mini');
+  await start(page,s);await reveal(page,'[data-ui="choose"][data-index="0"]');
+  await page.locator('[data-ui="choose"][data-index="0"]').click();
+  const after=await snapshot(page);expect(after.debt).toBe(s.debt+4800);expect(after.cash).toBe(s.cash);
+  expect(after.followups).toContainEqual({id:'claw-token-bill',day:28});
+  await page.reload();await page.locator('[data-ui="resume"]').click();expect(await snapshot(page)).toEqual(after);
+});
+
+test('map cancel keeps destination; map, models and achievements use buttons without scroll', async ({ page }) => {
+  for(const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    const s=newGame('coder',42);s.event=null;s.ap=0;await start(page,s);
+    await page.locator('[data-ui="map"]').click();await page.locator('.map-pin[data-id="launch"]').click();
+    await page.getByRole('button',{name:'再想想',exact:true}).click();
+    await expect(page.locator('.map-button b')).toContainText('外包接单群');
+    await page.locator('[data-ui="end-day"]').click();expect((await snapshot(page)).location).toBe('jobs');
+    await page.keyboard.press('Escape');
+    // Return to an event-free fixture to inspect every panel independently.
+    await start(page,s);
+    for(const panel of ['map','models','achievements']) {
+      await page.locator(`[data-ui="${panel}"]`).first().click();
+      await page.locator('dialog[open]').waitFor();
+      await page.evaluate(()=>Promise.all([...document.querySelectorAll('dialog img')].map(i=>i.decode().catch(()=>{}))));
+      await readPages(page,'#modal .page-frame');
+      const scrolling=await page.locator('#modal .modal-content').evaluate(el=>({x:el.scrollWidth>el.clientWidth+1,y:el.scrollHeight>el.clientHeight+1}));
+      expect(scrolling,`${panel} ${width}x${height}`).toEqual({x:false,y:false});
+      if(panel==='map') await expect(page.locator('[data-ui="map-go"]')).toBeInViewport({ratio:1});
+      await page.keyboard.press('Escape');
+    }
+  }
+});

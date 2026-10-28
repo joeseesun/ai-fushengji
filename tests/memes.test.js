@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newGame, transition, getEvent, parseSave, isValidSave, actionInfo } from '../src/engine.js';
+import { VERSION, newGame, transition, getEvent, parseSave, isValidSave, actionInfo } from '../src/engine.js';
 import { EVENTS } from '../src/content.js';
 import { MEME_EVENTS, FOLLOWUPS, MEME_CATALOG, rheostat } from '../src/memes.js';
 import { MODELS } from '../src/models.js';
@@ -160,7 +160,7 @@ test('v2 saves holding retired goods are cashed out at their last quote, keeping
   const next = parseSave(JSON.stringify(s));
   assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.cash, s.cash + 720 * 2);
   assert.equal(next.inventory.b300, undefined); assert.equal(next.inventory.invite.qty, 0);
-  assert.equal(next.version, 4); assert.match(next.journal[0].text, /折现/);
+  assert.equal(next.version, VERSION); assert.match(next.journal[0].text, /折现/);
 });
 test('a save holding a contract with a retired model still loads, with the contract ended', () => {
   const s = ready(44); s.version = 2; s.model = 'stepfun/step-5-preview'; s.modelUntil = 5;
@@ -232,5 +232,5 @@ test('model prices differ by model; at most two per company; v3 saves gain the n
   for (const id of ['whale', 'minecard', 'deck', 'robot']) for (const k of ['inventory', 'prices', 'previousPrices', 'history']) delete s[k][id];
   for (const k of ['available', 'intel', 'quest', 'questsDone']) delete s[k];
   const next = parseSave(JSON.stringify(s));
-  assert.ok(next); assert.equal(next.version, 4); assert.equal(next.rng, s.rng); assert.equal(next.inventory.robot.qty, 0); assert.equal(next.available.length, 8);
+  assert.ok(next); assert.equal(next.version, VERSION); assert.equal(next.rng, s.rng); assert.equal(next.inventory.robot.qty, 0); assert.equal(next.available.length, 8);
 });
