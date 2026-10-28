@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:51:22.492Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a worried client in a suit shining a flashlight into a giant filing cabinet that has a pipe leaking documents out of the window into a distant cloud, a padlock lying broken on the floor, a consultant offering a small safe box labeled only with a lock icon. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully crafted pixel clusters and retro dithering, warm muted retro palette of teal, warm grey, navy, cream, with orange accents. Funny satirical editorial news illustration mood. Interior of an office: a visibly worried client wearing a suit shines a flashlight into a giant filing cabinet. The filing cabinet has a clearly visible pipe connected to it that passes out through an office window; loose paper documents leak and flow from the pipe toward a distant cloud visible outside the window, making the absurd data leak visually clear. A broken padlock lies on the office floor in the foreground. Nearby, a consultant offers the client a small safe box bearing ONLY a simple padlock pictogram, no lettering. Communicate the story through expressive poses, clear silhouette staging, and witty visual details. No purple and no neon. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere, including on papers, drawers, clothing, and objects. Papers may have simple blank rectangles but no writing. Fully opaque image: warm cream and warm grey background and the illustrated environment must extend to every edge and fill the entire canvas. No transparency, no cutouts, no black corner regions, no black border, no vignette. Complete full-bleed rectangular illustration.",
+  "route": "raw_prompt"
+}

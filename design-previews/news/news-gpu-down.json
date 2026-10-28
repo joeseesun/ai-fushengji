@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:41:22.686Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a clearance sale in a GPU shop, graphics cards dumped into a bargain bin, a sad vendor holding a big down arrow sign, people using old graphics cards as doorstops and frying pans, dust clouds, a tumbleweed rolling past servers. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, intentionally pixelated sprites and environmental details, warm muted retro palette of teal, warm grey, navy, cream, and orange accents. Funny satirical editorial news-illustration mood. Scene: an absurd clearance sale in a GPU shop. Graphics cards with clearly recognizable fans and circuit boards are dumped chaotically into a large bargain bin in the foreground. A sad slumped vendor holds a large sign showing ONLY a bold downward arrow pictogram, with no other markings. Nearby one person wedges an old graphics card under an open door as a doorstop, while another person uses an old graphics card as a frying pan, holding its improvised handle over a small cooking burner with a fried egg on the flat card surface. Show expressive comic poses, dust clouds, and a tumbleweed rolling past forlorn server racks in the background. Build a cohesive richly detailed shop interior and street-facing storefront with visual depth, small humorous environmental details, and readable silhouettes. No purple neon. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WORDS, NO WATERMARKS anywhere; all products, shop fixtures, signs, screens and packages are completely unbranded with no writing. Only the downward arrow pictogram is permitted on the sign. Fully opaque background: cream and warm-grey ground and wall colors extend to all four edges of the entire rectangular canvas. Full-bleed artwork, no transparency, no cutouts, no empty black corners, no black border areas, no vignette, no frame.",
+  "route": "raw_prompt"
+}

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:36:10.915Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a livestream and short-video creator base, a row of tiny booths each with a ring light, phone on tripod and a creator making an exaggerated shocked face, giant floating hearts and like icons rising to the ceiling, a manager with a stopwatch, piles of product samples, a cat wearing a tiny headset being filmed. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, authentic carefully placed pixel clusters, no antialiasing or smooth painterly gradients. Warm muted retro palette: teal, warm grey, navy, cream with orange accents. Funny satirical mood, no purple neon. Scene: an absurd livestream and short-video creator factory/base, a clearly readable row of tiny recording booths, each with a ring light, phone mounted on a tripod, and an expressive creator performing an exaggerated shocked face. Giant floating heart symbols and simple thumbs-up like pictograms rise toward the ceiling. A manager holding an analog stopwatch watches the production line; stopwatch face has only simple tick marks, absolutely no numerals or letters. Piles of unbranded product samples, plain boxes, generic bottles and household items crowd the floor. A charming cat wearing a tiny headset is being filmed in a prominent foreground setup, visibly recognizable, contributing to the satire. Rich environmental detail, coherent perspective and clear character silhouettes, nicely balanced composition, retro video game environment art. All phone screens and packaging are plain or use purely abstract non-linguistic shapes. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere. Completely opaque full-bleed background covering the entire canvas edge to edge: warm cream and muted teal interior walls and floor. No transparency, no cutouts, no empty black corner regions, no vignette, no black bars, no framing border.",
+  "route": "raw_prompt"
+}

@@ -48,14 +48,14 @@ test('v1 save migrates new fields and goods while preserving cash, quotes and RN
   const s = ready(97); s.version = 1;
   for (const k of ['seen', 'followups', 'lastEvent', 'stance', 'model', 'modelUntil']) delete s[k];
   s.eventDeck = s.eventDeck.filter(id => !MEME_EVENTS.some(e => e.id === id));
-  for (const id of ['b300', 'rtx']) for (const key of ['prices', 'previousPrices', 'history', 'inventory']) delete s[key][id];
+  for (const id of ['claude', 'rtx']) for (const key of ['prices', 'previousPrices', 'history', 'inventory']) delete s[key][id];
   const next = parseSave(JSON.stringify(s)); assert.ok(next); assert.equal(next.rng, s.rng);
   assert.equal(next.cash, s.cash); assert.equal(next.prices.compute, s.prices.compute);
-  assert.equal(next.inventory.b300.qty, 0); assert.equal(next.model, null);
+  assert.equal(next.inventory.claude.qty, 0); assert.equal(next.model, null);
   assert.equal(next.eventDeck.length, EVENTS.length);
 });
 test('all verified models can be hired; contracts cost game money, expire and never auto-renew', () => {
-  assert.ok(MODELS.length >= 30); assert.ok(!MODELS.some(m => /command|cohere/i.test(`${m.id} ${m.name}`)));
+  assert.ok(MODELS.length >= 25); assert.ok(!MODELS.some(m => /command|cohere/i.test(`${m.id} ${m.name}`)));
   for (const m of MODELS) {
     const s = ready(4); s.event = null; const p = PROFILES[m.profile];
     const hired = act(s, { type: 'model', id: m.id });
@@ -71,7 +71,99 @@ test('all verified models can be hired; contracts cost game money, expire and ne
 test('market shock is already in quote history and never reapplied on reload', () => {
   let s = ready(8); s.day = 11;
   s = act(s, { type: 'travel', location: 'market' });
-  assert.equal(s.event, 'router-launch'); assert.equal(s.history.b300.at(-1), s.prices.b300);
+  assert.equal(s.event, 'router-launch'); assert.equal(s.history.claude.at(-1), s.prices.claude);
   const restored = parseSave(JSON.stringify(s)); assert.deepEqual(restored.prices, s.prices);
   assert.ok(!getEvent(s).title.includes('{model}'));
+});
+test('black-market rumors are rare, persisted in the quote and never rerolled on reload', async () => {
+  const { RUMORS } = await import('../src/content.js');
+  const { priceHeat, referencePrice } = await import('../src/engine.js');
+  let s = ready(11), rumorDays = 0;
+  for (let day = 1; day < 39 && s.status === 'playing'; day++) {
+    if (s.event) s = act(s, { type: 'choose', index: getEvent(s).options.findIndex(o => (o.effects.cash ?? 0) >= 0 && !o.stance) });
+    s = act(s, { type: 'travel', location: 'home' });
+    if (!s.rumor) continue;
+    rumorDays++;
+    const r = RUMORS.find(r => r.id === s.rumor);
+    assert.equal(s.history[r.good].at(-1), s.prices[r.good]);
+    assert.ok(Number.isSafeInteger(s.prices[r.good]) && s.prices[r.good] >= 8);
+    assert.deepEqual(parseSave(JSON.stringify(s)).prices, s.prices);
+    assert.ok(referencePrice(s, r.good) > 0 && priceHeat(s, r.good).label);
+  }
+  assert.ok(rumorDays > 3 && rumorDays < 30, `rumor days ${rumorDays}`);
+  const bad = structuredClone(s); bad.rumor = 'made-up';
+  assert.equal(isValidSave(bad), false);
+});
+test('price heat labels follow the ratio to the reference quote', async () => {
+  const { priceHeat, referencePrice } = await import('../src/engine.js');
+  const s = ready(5), ref = referencePrice(s, 'avatar');
+  for (const [ratio, id] of [[2.1, 'hot'], [1.4, 'high'], [1, 'fair'], [.7, 'cheap'], [.4, 'crash']]) {
+    s.prices.avatar = Math.round(ref * ratio); assert.equal(priceHeat(s, 'avatar').id, id);
+  }
+});
+test('saves from before the new meme events load with RNG intact and the new events appended', () => {
+  const s = ready(21); const fresh = new Set(['absolutely-right', 'invite-code', 'scaling-wall']);
+  s.eventDeck = s.eventDeck.filter(id => !fresh.has(id)); delete s.rumor;
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.rumor, null);
+  assert.equal(next.eventDeck.length, EVENTS.length);
+  assert.deepEqual(next.eventDeck.slice(0, s.eventDeck.length), s.eventDeck);
+});
+test('identities change real numbers, not only opening stats', async () => {
+  const { ROLES } = await import('../src/content.js');
+  const { productIncome, modelFee } = await import('../src/engine.js');
+  const base = id => { const s = act(newGame(id, 9), { type: 'choose', index: 0 }); s.skill = 20; s.reputation = 20; s.location = 'market'; s.techDebt = 0; s.products = 2; return s; };
+  assert.equal(ROLES.length, 5);
+  assert.equal(actionInfo(base('coder'), 'work').effects.cash, Math.round(actionInfo(base('worker'), 'work').effects.cash * 1.2));
+  assert.equal(actionInfo(base('coder'), 'rush').effects.techDebt, 5);
+  assert.equal(actionInfo(base('worker'), 'work').effects.stress, Math.round(8 * .6));
+  assert.equal(actionInfo(base('grad'), 'learn').effects.skill, actionInfo(base('worker'), 'learn').effects.skill + 4);
+  assert.ok(productIncome(base('opc')) > productIncome(base('worker')));
+  assert.equal(modelFee(base('grad'), PROFILES.code), PROFILES.code.fee / 2);
+  const creator = actionInfo(base('creator'), 'write').outcomes, worker = actionInfo(base('worker'), 'write').outcomes;
+  assert.equal(creator[0].effects.cash, Math.round(worker[0].effects.cash * 1.5));
+  assert.equal(creator.reduce((n, o) => n + o.weight, 0), 100);
+  assert.equal(worker.reduce((n, o) => n + o.weight, 0), 100);
+});
+test('writing is a persisted gacha that never rerolls and keeps money non-negative', () => {
+  const seen = new Set();
+  for (let seed = 1; seed <= 120; seed++) {
+    const s = ready(seed); s.event = null;
+    const a = act(s, { type: 'action', id: 'write' });
+    const b = act(parseSave(JSON.stringify(s)), { type: 'action', id: 'write' });
+    assert.deepEqual(a, b); assert.equal(a.ap, s.ap - 1); assert.ok(a.cash >= 0 && a.debt >= 0);
+    assert.ok(isValidSave(a)); seen.add(a.lastWrite);
+  }
+  assert.ok(seen.has('viral') && seen.has('hospital') && seen.has('gacha'), [...seen].join());
+});
+test('arrivals happen at their own station, pay listed amounts and survive reload', async () => {
+  const { ARRIVALS } = await import('../src/content.js');
+  const { getArrival } = await import('../src/engine.js');
+  let fares = new Set();
+  for (let seed = 1; seed <= 80; seed++) {
+    const s = ready(seed); s.event = null;
+    const next = act(s, { type: 'travel', location: 'launch' });
+    if (!next.arrival) continue;
+    const a = ARRIVALS.find(a => a.id === next.arrival.id);
+    assert.equal(a.loc, 'launch'); assert.ok(getArrival(next).note);
+    if (a.id === 'fare') { fares.add(next.arrival.amount); assert.ok(next.journal.some(j => j.kind === 'arrival')); }
+    assert.deepEqual(parseSave(JSON.stringify(next)), next);
+  }
+  assert.deepEqual([...fares].sort((x, y) => x - y), [500, 800, 1000]);
+  const bad = ready(2); bad.arrival = { id: 'fare', amount: 999 }; assert.equal(isValidSave(bad), false);
+});
+test('v2 saves holding retired goods are cashed out at their last quote, keeping RNG', () => {
+  const s = ready(33); s.version = 2;
+  for (const id of ['invite', 'claude', 'lesson']) for (const k of ['inventory', 'prices', 'previousPrices', 'history']) delete s[k][id];
+  delete s.arrival; delete s.lastWrite;
+  s.inventory.b300 = { qty: 2, cost: 1500 }; s.prices.b300 = 800; s.previousPrices.b300 = 780; s.history.b300 = [800];
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.cash, s.cash + 720 * 2);
+  assert.equal(next.inventory.b300, undefined); assert.equal(next.inventory.invite.qty, 0);
+  assert.equal(next.version, 3); assert.match(next.journal[0].text, /折现/);
+});
+test('a save holding a contract with a retired model still loads, with the contract ended', () => {
+  const s = ready(44); s.version = 2; s.model = 'stepfun/step-5-preview'; s.modelUntil = 5;
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.model, null); assert.equal(next.modelUntil, 0); assert.equal(next.rng, s.rng);
 });

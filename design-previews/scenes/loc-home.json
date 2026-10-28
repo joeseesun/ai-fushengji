@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:38:33.690Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), cozy funny mood, no purple neon. Scene: a tiny Beijing suburban rental room at night doubling as headquarters, bed, desk and kitchen all within arm's reach, a laptop on an ironing board standing desk, instant noodles boiling on a hot plate, laundry drying over a chair, a sleeping cat, a sticky note wall planning a startup, warm desk lamp, window with apartment blocks and a subway train passing. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully crafted readable pixel clusters, no blur or smooth vector rendering. Warm muted retro palette of teal, warm grey, navy, cream, and orange accents; cozy, gently funny mood; absolutely no purple neon. Scene: a tiny Beijing suburban rental room at night doubling as a scrappy startup headquarters. A bed, desk area, and kitchenette are all within arm's reach, cleverly and cozily squeezed into the little room. A laptop sits on an ironing board used as a standing desk; its screen shows only abstract colored blocks without any glyphs. Instant noodles boil in a small pot on a hot plate, visible steam in pixel clusters. Laundry dries draped over a chair. A cat sleeps peacefully curled up in the cramped room. A startup planning wall is covered with completely blank colorful sticky notes connected by simple lines, no writing or symbols. A warm desk lamp lights the room. Through the window, see densely packed Beijing suburban apartment blocks and a subway train passing at night. Rich environmental storytelling, charming compact furniture, playful domestic ingenuity, balanced composition, attractive handcrafted retro game background. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere, including screens, sticky notes, packages, buildings, and the train. Background must be fully opaque and artwork must fill the entire canvas edge to edge with colored environment or base color. No transparency, no cutouts, no black corner regions, no vignette, no empty margins, no border.",
+  "route": "raw_prompt"
+}

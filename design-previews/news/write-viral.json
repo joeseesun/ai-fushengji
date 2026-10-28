@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:56:35.798Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), triumphant funny mood, no purple neon. Scene: a young content creator in a cap leaping out of a desk chair in victory as a huge explosion of like hearts, thumbs-up icons and gold coins bursts out of the laptop screen, notification badges raining down like confetti, a cat knocked off the desk by the blast. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Detailed 16-bit pixel art illustration, wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, no smoothing or blurry edges. Warm muted retro palette of teal, warm grey, navy, cream, with orange accents and gold coins. Triumphant, funny, exuberant mood. A young adult content creator wearing a cap leaps out of a rolling desk chair in victory, arms raised, expressive jubilant face, dynamic airborne pose. On the desk an open laptop erupts with a huge spectacular explosion of like-heart symbols, thumbs-up icons, and gleaming gold coins, radiating out from the screen. Blank pictographic notification badges rain down like confetti, icons only and never numbers or writing. A surprised cat is comically knocked off the edge of the desk by the blast, tumbling harmlessly toward a soft cushion, with exaggerated wide eyes and splayed paws. Cozy creator home workspace, strong readable silhouettes, appealing detailed pixel-art furnishings, cinematic balanced composition, playful physical comedy. Absolutely no text, no letters, no words, no numbers, no logos, no watermarks anywhere, including on laptop, clothes, coins, badges, walls or furnishings. Coins have simple gleams and no inscriptions. No purple neon. Full-bleed opaque background across the entire image: warm cream and muted teal room background fills every edge and corner. No transparency, no cutout, no holes, no black corner regions, no vignette, no border.",
+  "route": "raw_prompt"
+}

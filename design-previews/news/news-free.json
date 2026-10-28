@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:43:56.852Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a giant tech company bulldozer labeled only with a cute smiley face pushes a huge free gift box over a tiny startup booth, the startup founder sitting stunned among broken product boxes holding a single coin, crowds cheering for the free gift. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape format, ideally 16:9. Crisp hard pixel edges, carefully crafted pixel clusters, warm muted retro palette of teal, warm grey, navy, cream, with orange accents. Funny satirical editorial news-illustration mood. Scene: a gigantic powerful tech-company bulldozer, carrying ONLY a simple cute smiley face pictogram on its body, pushes an enormous beautifully wrapped gift box with a large ribbon over a tiny independent startup booth, crushing the little booth. Convey that the gift is free entirely through the visual scene, with absolutely no signage or written prices. In the foreground, a small startup founder sits stunned amid broken product boxes and booth debris, holding a single plain unmarked coin. On the opposite side, enthusiastic crowds cheer and reach toward the enormous free gift, oblivious to the founder's plight. Clear visual storytelling, expressive pixel faces and gestures, humorous exaggerated scale contrast, detailed but readable composition. The bulldozer and massive gift dominate, the founder and coin remain easy to see. No purple neon. ABSOLUTELY NO TEXT, no letters, no numbers, no logos, no watermarks anywhere; no glyphs on boxes, coin, booth, clothing or background. The cute generic smiley face is the only pictogram on the bulldozer and is not a brand logo. Fully opaque background, warm cream paper-like ground and environment fill the entire canvas edge to edge. No transparency, no cutouts, no blank alpha areas, no black corner regions, no vignette, no black frame. Pixel-art texture across the complete image.",
+  "route": "raw_prompt"
+}

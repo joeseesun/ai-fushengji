@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:24:54.847Z",
+  "prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions (about 3.5 heads tall), standing in a confident 3/4 pose facing the viewer, crisp hard pixel edges, no anti-aliasing blur, warm muted retro palette (teal, warm grey, navy, cream, small accents of red). Character: a laid-off Chinese software engineer around 30, thinning messy black hair, square glasses, tired but stubborn smile, grey hoodie over a plaid shirt, a company badge lanyard cut in half, carrying a cardboard box with a mechanical keyboard, a small cactus and a rubber duck sticking out. Fully transparent background, nothing behind the character, no floor, no shadow plate, no text, no frame. Centered with margin around the figure.",
+  "aspect_ratio": "3:4",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1024,
+    "height": 1536
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art character sprite: exactly one single character, full body, slightly chibi proportions about 3.5 heads tall, standing in a confident three-quarter pose facing the viewer. Crisp hard pixel edges and clean deliberate pixel clusters, no anti-aliasing blur. Warm muted retro palette of teal, warm grey, navy, cream, and small red accents. Character is a laid-off Chinese software engineer around age 30, thinning messy black hair, square glasses, tired but stubborn smile. Wears a grey hoodie over a plaid shirt, navy trousers and casual shoes. A company badge lanyard is visibly cut in half with dangling severed ends; badge contains no text. He carries a cardboard box with a mechanical keyboard, a small potted cactus and a rubber duck clearly sticking out of the box. Expressive charming original game character, readable silhouette, finely detailed pixel art clothing and props. Entire head, body and feet visible. Center the character with generous transparent margin all around the figure. Fully transparent alpha background; absolutely nothing behind the character, no backdrop, no floor, no ground, no shadow plate, no text, no frame, no extra characters.",
+  "route": "raw_prompt"
+}

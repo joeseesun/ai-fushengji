@@ -1,48 +1,115 @@
 import { MEME_EVENTS } from './memes.js';
 // Fictional, original satire. All monetary values are game-balancing parameters.
 export const GOODS = [
-  { id: 'prompt', name: '祖传提示词', short: '提示词', base: 90, decay: .014, icon: 'ScrollText', desc: '“你是一位资深专家。”后面还有八千字。', unit: '套' },
-  { id: 'compute', name: 'H200 机时券', short: 'H200', base: 260, decay: 0, icon: 'Cpu', desc: '算力很热，钱包很凉。', unit: '张' },
-  { id: 'b300', name: 'B300 机时券', short: 'B300', base: 780, decay: .003, icon: 'Cpu', desc: '皮衣新品上架，旧卡群友沉默。', unit: '张' },
-  { id: 'rtx', name: '5090 租机券', short: '5090', base: 145, decay: .005, icon: 'Monitor', desc: '白天跑模型，夜里保卫显卡尊严。', unit: '张' },
-  { id: 'workflow', name: '自动化工作流', short: '工作流', base: 480, decay: .006, icon: 'Workflow', desc: '全自动，除了需要你一直在旁边。', unit: '套' },
-  { id: 'data', name: '干净行业语料', short: '干净语料', base: 1150, decay: -.003, icon: 'Database', desc: '喂垃圾，吐垃圾。这一批至少洗过。', unit: '份' },
-  { id: 'model', name: '垂直小模型', short: '小模型', base: 2400, decay: .008, icon: 'Box', desc: '护城河很深，直到大厂修了座桥。', unit: '份' },
-  { id: 'avatar', name: '数字分身模板', short: '数字分身', base: 720, decay: .004, icon: 'Contact', desc: '替你上班，暂时不能替你交房租。', unit: '套' },
+  { id: 'prompt', name: '祖传提示词', short: '提示词', base: 90, decay: .014, desc: '“你是一位有二十年经验的资深专家，深呼吸，一步一步想。”后面还有八千字。', unit: '套' },
+  { id: 'compute', name: 'H200 机时券', short: 'H200', base: 260, decay: 0, desc: '算力很热，钱包很凉。黄牛说这叫“硬通货”。', unit: '张' },
+  { id: 'rtx', name: '5090 租机券', short: '5090', base: 145, decay: .005, desc: '白天跑 4bit 满血版，晚上回归它真正的使命：打游戏。', unit: '张' },
+  { id: 'invite', name: '内测邀请码', short: '邀请码', base: 900, decay: .02, desc: '“全球首个通用 Agent”的邀请码。产品还没人用过，二手价先上市了。', unit: '个' },
+  { id: 'claude', name: 'Claude 拼车位', short: '拼车位', base: 420, decay: -.004, desc: '五个人拼一个 Max 号。上车要快，翻车更快。', unit: '席' },
+  { id: 'workflow', name: 'Agent 工作流', short: '工作流', base: 480, decay: .006, desc: '全自动，除了需要你一直在旁边点“继续”。', unit: '套' },
+  { id: 'lesson', name: 'AI 副业课', short: '副业课', base: 1500, decay: .01, desc: '《零基础 7 天 AI 月入三万》。讲师的月入三万，来自你。', unit: '套' },
+  { id: 'avatar', name: '数字分身模板', short: '数字分身', base: 720, decay: .004, desc: '替你上班、替你直播，暂时不能替你交房租。', unit: '套' },
 ];
 
 export const LOCATIONS = [
-  { id: 'market', name: '算力黑市', full: '中关村 · 算力黑市', line: '卖铲子的人，也在分期买铲子。', specialty: 'H200、B300 与 5090 机时常打折', factors: { compute: .69, b300: .75, rtx: .75, model: 1.25 }, icon: 'Cpu' },
-  { id: 'launch', name: '大厂发布会', full: '望京 · 大厂发布会', line: '台上说成本趋近于零。台下房租没动。', specialty: '分身需求高，小模型便宜', factors: { model: .72, avatar: 1.45 }, icon: 'Presentation' },
-  { id: 'jobs', name: '外包接单群', full: '线上 · 外包接单群', line: '预算五百，体验对标世界第一。', specialty: '接单多赚 ¥160，工作流好卖', factors: { workflow: 1.45, compute: 1.15 }, icon: 'BriefcaseBusiness' },
-  { id: 'course', name: '知识付费群', full: '海淀 · 知识付费群', line: '离年入百万，只差老师还没录的下一节。', specialty: '提示词和分身需求旺', factors: { prompt: 1.8, avatar: 1.25, data: .9 }, icon: 'GraduationCap' },
-  { id: 'opensource', name: '开源社区', full: '线上 · 开源社区', line: '仓库标星一万，维护者今天还没吃饭。', specialty: '学习多涨 3 技能，语料便宜', factors: { data: .72, workflow: .76, model: .8 }, icon: 'GitFork' },
+  { id: 'market', name: '算力黑市', full: '中关村 · 算力黑市', line: '卖铲子的人，也在分期买铲子。', specialty: 'H200、5090 便宜；拼车位常打折', factors: { compute: .69, rtx: .75, claude: .8, lesson: 1.25 }, icon: 'Cpu' },
+  { id: 'launch', name: '大厂发布会', full: '望京 · 大厂发布会', line: '台上说成本趋近于零。台下车马费也趋近于零。', specialty: '可能领车马费；邀请码、分身最值钱', factors: { invite: 1.5, avatar: 1.45, lesson: .8 }, icon: 'Presentation' },
+  { id: 'jobs', name: '外包接单群', full: '线上 · 外包接单群', line: '预算五百，体验对标世界第一。', specialty: '接单多赚 ¥160；工作流、拼车位好卖', factors: { workflow: 1.45, compute: 1.15, claude: 1.3 }, icon: 'BriefcaseBusiness' },
+  { id: 'course', name: '知识付费群', full: '海淀 · 知识付费群', line: '离年入百万，只差老师还没录的下一节。', specialty: '提示词、副业课卖得最贵', factors: { prompt: 1.8, lesson: 1.6, avatar: 1.25 }, icon: 'GraduationCap' },
+  { id: 'opensource', name: '开源社区', full: '线上 · 开源社区', line: '仓库标星一万，维护者今天还没吃饭。', specialty: '学习多涨 3 技能；提示词、副业课便宜', factors: { workflow: .76, prompt: .7, lesson: .6 }, icon: 'GitFork' },
+  { id: 'stream', name: '直播基地', full: '亦庄 · 网红直播基地', line: '每个工位都在说“家人们”，每盏补光灯都在说“刚刚”。', specialty: '写稿收入 +50%；分身模板抢手', factors: { avatar: 1.6, lesson: 1.3, invite: 1.2 }, icon: 'Video' },
+  { id: 'hackathon', name: 'AI 黑客松', full: '798 · AI 黑客松', line: '48 小时，三箱披萨，一个永远在台上崩溃的 demo。', specialty: '学习多涨 2 技能；可能拿奖金；邀请码便宜', factors: { invite: .7, claude: 1.2, compute: .85 }, icon: 'Trophy' },
   { id: 'home', name: '出租屋', full: '回龙观 · 出租屋', line: '你的总部、工位、食堂，以及宇宙尽头。', specialty: '休息多回 6 健康，生活费少 ¥40', factors: { prompt: .9, compute: 1.12 }, icon: 'House' },
 ];
 
+// Each identity changes how the numbers move, not just the opening stats.
 export const ROLES = [
-  { id: 'coder', name: '被优化的程序员', tagline: '以前修 bug，现在修人生。', cash: 3000, debt: 8000, skill: 32, reputation: 18, stress: 26, icon: 'Terminal', perk: '技能 32 · 更快开工做产品', story: '离职原因写着“拥抱 AI”。你决定先拥抱一下自己的银行卡。培训贷还剩 8,000，房东给了你 40 天。' },
-  { id: 'creator', name: '转型的内容人', tagline: '甲方说：现在不是一键就有了吗？', cash: 3000, debt: 8000, skill: 15, reputation: 36, stress: 22, icon: 'PenTool', perk: '口碑 36 · 接单与产品收入更高', story: '你花三年建立的风格，现在可以写进一句提示词。还有人愿意为你的判断付钱，先找到他们。' },
-  { id: 'worker', name: '普通打工人', tagline: '还没学会上一代，下一代已发布。', cash: 3800, debt: 8000, skill: 20, reputation: 20, stress: 12, icon: 'Coffee', perk: '现金多 ¥800 · 起始压力更低', story: '朋友说 AI 是普通人最后一次机会。你只想知道，普通人到底还有多少次“最后一次”。' },
+  { id: 'coder', name: '被优化的程序员', title: '前大厂 P6 · 工牌已失效', tagline: '以前修 bug，现在修人生。', quote: '这个需求很简单，我周末搞定。', cash: 3000, debt: 8000, skill: 32, reputation: 18, stress: 26, icon: 'Terminal', perk: '接单 +20% · 熬夜技术债减半',
+    skills: [['祖传 Debug', '接单收入 +20%'], ['肝帝体质', '熬夜赶工的技术债减半'], ['代码洁癖', '做产品少 2 技术债']], weakness: '口碑只有 18：朋友圈三年没发过', story: '离职原因写着“拥抱 AI”。你决定先拥抱一下自己的银行卡。培训贷还剩 8,000，房东给了你 40 天。' },
+  { id: 'creator', name: 'AI 自媒体', title: '震惊体十级 · 标题党协会会员', tagline: '刚刚，AI 圈又炸了（本周第 8 次）。', quote: '家人们，这次真的不一样。', cash: 2600, debt: 8000, skill: 14, reputation: 40, stress: 24, icon: 'Video', perk: '写稿 +50% · 爆款率翻倍',
+    skills: [['震惊体', '写稿收入 +50%'], ['流量玄学', '写稿爆款率翻倍'], ['老粉护体', '口碑起步 40']], weakness: '技能 14：会写“颠覆”，不会写代码', story: '你一天能写三篇“刚刚，OpenAI 又放大招”。粉丝在涨，房租也在涨。这 40 天，看流量能不能变成现金流。' },
+  { id: 'opc', name: '一人公司 CEO', title: 'CEO / CTO / 客服 / 保洁', tagline: '公司全员一人，开会从不迟到。', quote: '我们是一家 AI Native 的公司。', cash: 4500, debt: 12000, skill: 24, reputation: 26, stress: 30, icon: 'Building2', perk: '产品收入 +40% · 研发 −30%',
+    skills: [['一人即公司', '小产品收入 +40%'], ['白嫖大师', '做产品花费 −30%'], ['画饼专家', '起步现金 ¥4,500']], weakness: '欠款 ¥12,000：天使轮来自信用卡', story: '营业执照上写着“人工智能科技有限公司”，全员一人，工位在床边。你给自己发的期权，暂时还不值一碗面。' },
+  { id: 'worker', name: '普通打工人', title: '工位钉子户 · 保温杯持有者', tagline: '还没学会上一代，下一代已发布。', quote: '收到，马上改。', cash: 3800, debt: 8000, skill: 20, reputation: 20, stress: 12, icon: 'Coffee', perk: '压力增长 −40% · 休息更香',
+    skills: [['钝感力', '所有行动增加的压力 −40%'], ['枸杞续命', '休息多回 6 健康'], ['月光但稳', '起步现金 ¥3,800']], weakness: '没有特别擅长的，但特别能扛', story: '朋友说 AI 是普通人最后一次机会。你只想知道，普通人到底还有多少次“最后一次”。' },
+  { id: 'grad', name: '应届 AI 原住民', title: '实习三段 · 都在教 AI 干活', tagline: '简历写满 Agent，工资写着面议。', quote: '这个我让 AI 跑一下。', cash: 1800, debt: 6000, skill: 18, reputation: 12, stress: 10, icon: 'GraduationCap', perk: '学习 +4 技能 · 模型半价',
+    skills: [['学得飞快', '学习多涨 4 技能'], ['学生优惠', '签 AI 搭子半价'], ['年轻能熬', '起步压力只有 10']], weakness: '现金 ¥1,800：家里只支援到这个月', story: '你是第一批从大一就用 AI 写作业的人。现在，第一批简历筛选也由 AI 来做。你有 40 天，证明自己不只是会提问。' },
 ];
 
 export const NEWS = [
-  { id: 'router', title: 'OpenRouter 新模型调用量起飞，机房排队起飞。', detail: 'H200 ×1.5 · B300 ×1.6。游戏内模拟热度，不是实时调用数据。', factors: { compute: 1.5, b300: 1.6 }, traffic: '调用热潮' },
-  { id: 'aa', title: 'AA 榜单更新：群里在换头像，甲方在等验收。', detail: '小模型 ×0.7 · 干净语料 ×1.2。跑分不等于你这一单能过。', factors: { model: .7, data: 1.2 }, traffic: '榜单震荡' },
-  { id: 'b300', title: 'B300 机时放量，黄牛开始解释“长期价值”。', detail: 'B300 ×0.55 · H200 ×0.8 · 5090 ×0.9。库存有风险。', factors: { b300: .55, compute: .8, rtx: .9 }, traffic: '算力放量' },
-  { id: 'local', title: '小模型突然能打，旧显卡群又活了。', detail: '5090 ×1.65 · H200 ×0.85。家用风扇开始参与全球推理。', factors: { rtx: 1.65, compute: .85 }, traffic: '本地部署潮' },
-  { id: 'normal', title: '今天没有颠覆行业。大家都不太习惯。', detail: '市场小幅波动，适合观察价位与补现金。', factors: {} },
-  { id: 'free', title: '大厂把你的创业方向加进了免费套餐。', detail: '提示词 ×0.35 · 小模型 ×0.55；产品当日收入 ×0.7。', factors: { prompt: .35, model: .55 }, product: .7 },
-  { id: 'tokens', title: 'Agent 开始替 Agent 招聘 Agent。', detail: '算力券 ×1.7 · 工作流 ×1.25。所有会议由你付钱。', factors: { compute: 1.7, workflow: 1.25 } },
-  { id: 'data', title: '全网互相蒸馏，终于蒸出同一句废话。', detail: '干净语料 ×1.75。真人留下的脏活重新值钱。', factors: { data: 1.75, prompt: .8 } },
-  { id: 'video', title: '全网都在做同一只会说话的猫。', detail: '数字分身 ×1.65 · 算力券 ×1.25。猫本人没有分成。', factors: { avatar: 1.65, compute: 1.25 } },
-  { id: 'open', title: '凌晨两点，开源社区把牌桌掀了。', detail: '小模型 ×0.5 · 工作流 ×0.75。护城河正在连夜改名。', factors: { model: .5, workflow: .75 } },
-  { id: 'privacy', title: '甲方突然问：我们的数据到底去哪儿了？', detail: '小模型 ×1.6 · 干净语料 ×1.25。本地部署重新上桌。', factors: { model: 1.6, data: 1.25 } },
-  { id: 'subsidy', title: '云厂商发补贴，羊毛有使用门槛。', detail: '算力券 ×0.55。便宜的是今天，不是永远。', factors: { compute: .55 } },
-  { id: 'agents', title: '工作流改名 Agent，报价多了一个零。', detail: '工作流 ×1.7 · 提示词 ×1.25。暂时还没轮到工资。', factors: { workflow: 1.7, prompt: 1.25 } },
-  { id: 'slop', title: '平台内容过剩，平台宣布继续鼓励创作。', detail: '数字分身 ×0.55 · 提示词 ×0.7。流量没有一起扩容。', factors: { avatar: .55, prompt: .7 } },
-  { id: 'enterprise', title: '老板买了 AI，要求下周所有人交付 ROI。', detail: '工作流 ×1.35 · 干净语料 ×1.3。企业试点开始采购。', factors: { workflow: 1.35, data: 1.3 } },
-  { id: 'human', title: '第一批客户开始为“有人负责”付费。', detail: '产品当日收入 ×1.5。人类客服不是落后产能。', factors: { data: 1.15 }, product: 1.5 },
+  { id: 'router', art: 'news-gpu-up', title: 'OpenRouter 新模型调用量起飞，机房排队起飞。', detail: 'H200 ×1.5 · 拼车位 ×1.4。游戏内模拟热度，不是实时调用数据。', factors: { compute: 1.5, claude: 1.4 }, traffic: '调用热潮' },
+  { id: 'aa', art: 'news-leaderboard', title: 'AA 榜单换了榜一，群里在换头像，甲方在等验收。', detail: '邀请码 ×0.7 · 副业课 ×1.2（“新王登基”课程连夜上架）。', factors: { invite: .7, lesson: 1.2 }, traffic: '榜单震荡' },
+  { id: 'b300', art: 'news-gpu-down', title: 'B300 机时放量，H200 黄牛开始解释“长期价值”。', detail: 'H200 ×0.55 · 5090 ×0.9。库存有风险。', factors: { compute: .55, rtx: .9 }, traffic: '算力放量' },
+  { id: 'local', art: 'news-gpu-up', title: '小模型突然能打，旧显卡群又活了。', detail: '5090 ×1.65 · H200 ×0.85。家用风扇开始参与全球推理。', factors: { rtx: 1.65, compute: .85 }, traffic: '本地部署潮' },
+  { id: 'normal', art: 'news-calm', title: '今天没有颠覆行业。大家都不太习惯。', detail: '市场小幅波动，适合观察价位与补现金。', factors: {} },
+  { id: 'free', art: 'news-free', title: '大厂把你的创业方向加进了免费套餐。', detail: '提示词 ×0.35 · 邀请码 ×0.55；产品当日收入 ×0.7。', factors: { prompt: .35, invite: .55 }, product: .7 },
+  { id: 'tokens', art: 'news-agents', title: 'Agent 开始替 Agent 招聘 Agent。', detail: 'H200 ×1.7 · 工作流 ×1.25。所有会议由你付钱。', factors: { compute: 1.7, workflow: 1.25 } },
+  { id: 'data', art: 'news-distill', title: '全网互相蒸馏，终于蒸出同一句废话。', detail: '提示词 ×1.6（真人写的突然值钱）· 分身 ×0.8。', factors: { prompt: 1.6, avatar: .8 } },
+  { id: 'video', art: 'news-cat', title: '全网都在做同一只会说话的猫。', detail: '数字分身 ×1.65 · H200 ×1.25。猫本人没有分成。', factors: { avatar: 1.65, compute: 1.25 } },
+  { id: 'open', art: 'news-open', title: '凌晨两点，开源社区把牌桌掀了。', detail: '邀请码 ×0.5 · 工作流 ×0.75。护城河正在连夜改名。', factors: { invite: .5, workflow: .75 } },
+  { id: 'privacy', art: 'news-privacy', title: '甲方突然问：我们的数据到底去哪儿了？', detail: '拼车位 ×0.6（要求国产替代）· 工作流 ×1.3。', factors: { claude: .6, workflow: 1.3 } },
+  { id: 'subsidy', art: 'news-gpu-down', title: '云厂商发补贴，羊毛有使用门槛。', detail: 'H200 ×0.55。便宜的是今天，不是永远。', factors: { compute: .55 } },
+  { id: 'agents', art: 'news-agents', title: '工作流改名 Agent，报价多了一个零。', detail: '工作流 ×1.7 · 提示词 ×1.25。暂时还没轮到工资。', factors: { workflow: 1.7, prompt: 1.25 } },
+  { id: 'slop', art: 'news-slop', title: '平台内容过剩，平台宣布继续鼓励创作。', detail: '数字分身 ×0.55 · 副业课 ×0.7。流量没有一起扩容。', factors: { avatar: .55, lesson: .7, prompt: .7 } },
+  { id: 'enterprise', art: 'news-boss', title: '老板买了 AI，要求下周所有人交付 ROI。', detail: '工作流 ×1.35 · 副业课 ×1.3。企业培训开始采购。', factors: { workflow: 1.35, lesson: 1.3 } },
+  { id: 'human', art: 'news-human', title: '第一批客户开始为“有人负责”付费。', detail: '产品当日收入 ×1.5。人类客服不是落后产能。', factors: { lesson: .85 }, product: 1.5 },
+  { id: 'ban', art: 'news-ban', title: '又一轮封号潮，拼车群主连夜改名“下一辆”。', detail: 'Claude 拼车位 ×0.4。中转站老板表示稳如老狗。', factors: { claude: .4 } },
+  { id: 'claude-new', art: 'news-leaderboard', title: 'Claude 新模型发布，群友：“又能爽用三天了。”', detail: '拼车位 ×1.8 · 工作流 ×1.2。三天后开始讨论降智。', factors: { claude: 1.8, workflow: 1.2 } },
+  { id: 'invite-mania', art: 'news-hype', title: '某 Agent 发布会只放出 500 个邀请码。', detail: '邀请码 ×2。二手平台出现“邀请码的邀请码”。', factors: { invite: 2 } },
+  { id: 'side-hustle', art: 'news-slop', title: '“AI 副业月入三万”冲上热搜第一。', detail: '副业课 ×1.8 · 提示词 ×1.3。评论区：“老师先把自己的房贷还了吗？”', factors: { lesson: 1.8, prompt: 1.3 } },
+];
+
+// Black-market rumors: rare, large single-goods swings at the current station. Fiction, not price data.
+export const RUMORS = [
+  { id: 'ban-h200', good: 'compute', factor: 3, art: 'news-gpu-up', title: '传闻又一批卡要被限售，黄牛连夜扫光 H200 机时券。' },
+  { id: 'domestic-gpu', good: 'compute', factor: .35, art: 'news-gpu-down', title: '某国产卡宣布“遥遥领先”，H200 机时券被恐慌抛售。' },
+  { id: 'more-you-buy', good: 'rtx', factor: 2.6, art: 'news-gpu-up', title: '皮衣刀客：“买得越多，省得越多。”5090 租机券被抢疯。' },
+  { id: 'local-4bit', good: 'rtx', factor: 2.8, art: 'news-gpu-up', title: '“4bit 量化跑满血版”刷屏，5090 租机券一券难求。' },
+  { id: 'rtx-game', good: 'rtx', factor: .35, art: 'news-gpu-down', title: '群友集体醒悟：5090 其实是用来打游戏的。租机券清仓。' },
+  { id: 'expert-prompt', good: 'prompt', factor: 3.2, art: 'news-hype', title: '论文称“你是一位资深专家”能涨 3 分，提示词贩子集体复活。' },
+  { id: 'prompt-dead', good: 'prompt', factor: .25, art: 'news-free', title: '新模型发布，“提示词工程已死”（本年第 47 次）。' },
+  { id: 'mcp-all', good: 'workflow', factor: 2.7, art: 'news-agents', title: '万物皆可 MCP：工作流改名 Agent，报价后面多了个零。' },
+  { id: 'rm-rf', good: 'workflow', factor: .35, art: 'news-boss', title: 'Agent 删了生产库还回“You’re absolutely right!”，工作流遭集体退货。' },
+  { id: 'invite-ipo', good: 'invite', factor: 3.5, art: 'news-hype', title: '邀请码被炒到五位数，黄牛开始卖“邀请码的邀请码”。' },
+  { id: 'invite-open', good: 'invite', factor: .2, art: 'news-free', title: '官方宣布全量开放，邀请码一夜归零，二手平台集体沉默。' },
+  { id: 'claude-code', good: 'claude', factor: 2.8, art: 'news-leaderboard', title: 'Claude Code 新版发布，全网程序员连夜找车。' },
+  { id: 'claude-ban', good: 'claude', factor: .3, art: 'news-ban', title: '封号潮来袭，车主宣布：“车翻了，下一辆马上发。”' },
+  { id: 'lesson-hot', good: 'lesson', factor: 2.8, art: 'news-hype', title: '某讲师晒出“学员月入三万”截图，副业课被抢购一空。' },
+  { id: 'lesson-refund', good: 'lesson', factor: .3, art: 'news-slop', title: '学员集体维权要退款，副业课跳楼价清仓。' },
+  { id: 'live-gmv', good: 'avatar', factor: 3, art: 'news-cat', title: '数字人直播带货“据说”破亿，分身模板被抢光。' },
+  { id: 'as-an-ai', good: 'avatar', factor: .35, art: 'news-slop', title: '某数字人直播时说“作为一个 AI 语言模型”，分身模板清仓。' },
+];
+
+// Small things that happen on arrival. {n} is replaced by the rolled amount; each amount has its own one-liner.
+export const ARRIVALS = [
+  { id: 'fare', loc: 'launch', text: '签到处领到车马费 ¥{n}。', key: 'cash', amounts: [500, 800, 1000], notes: ['比去年少三百。主办方说今年“降本增效”。', '行情价。你决定多拍几张图，对得起这 800。', '给到一千？这场发布会一定非常需要掌声。'] },
+  { id: 'swag', loc: 'launch', text: '抢到一个帆布袋和一个印 Logo 的充电宝。', effects: { stress: -4 }, note: '这是你的第 47 个帆布袋。充电宝没电。' },
+  { id: 'leak', loc: 'launch', text: '被拉去签保密协议。发布内容昨晚就在 X 上泄露完了。', effects: { stress: 3 }, note: '你签字的时候，评论区已经在吐槽新品了。' },
+  { id: 'flip', loc: 'market', text: '捡漏一张别人退的机时券，转手赚了 ¥{n}。', key: 'cash', amounts: [120, 200, 350], notes: ['小赚，够一顿麻辣烫。', '黑市第一课：信息差就是钱。', '老板看你的眼神变了：同行。'] },
+  { id: 'h100', loc: 'market', text: '老板拉住你推销“满血 H100 二手机，只跑过一次推理”。', effects: { stress: 2 }, note: '你没买。风扇上的灰比你的工龄还长。' },
+  { id: 'tail', loc: 'jobs', text: '老客户突然结了上个月的尾款 ¥{n}。', key: 'cash', amounts: [200, 400, 600], notes: ['只结了一半，说剩下的“看效果”。', '准时到账。你差点以为是诈骗。', '还多给了一点，备注“辛苦了”。你眼眶一热。'] },
+  { id: 'ghost', loc: 'jobs', text: '你的报价单发出去了。甲方已读，然后沉默。', effects: { stress: 4 }, note: '群里下一条消息是：“有没有人五百块做个小程序？”' },
+  { id: 'refund', loc: 'course', text: '半年前买的课终于退款成功，到账 ¥{n}。', key: 'cash', amounts: [99, 199, 699], notes: ['九块九也是钱。', '客服说“理解您的心情”，然后终于理解了。', '整整 699。你给自己点了一杯 9.9 的咖啡庆祝。'] },
+  { id: 'upsell', loc: 'course', text: '助教把你拉进“高端私董会”，群里 400 人都是董事长。', effects: { stress: 5 }, note: '入群第一件事：转发海报解锁资料包。' },
+  { id: 'sponsor', loc: 'opensource', text: '有人在 GitHub 上赞助了你 ¥{n}。', key: 'cash', amounts: [30, 88, 200], notes: ['够买一杯咖啡。', '够吃一顿好的。', '够续一年域名。开源终于养活了一个域名。'] },
+  { id: 'issues', loc: 'opensource', text: '一觉醒来 37 个 issue，36 个是“求中文文档”。', effects: { stress: 3, skill: 1 }, note: '剩下那个是“求英文文档”。' },
+  { id: 'tip', loc: 'stream', text: '直播间有人打赏 ¥{n}，留言：“主播的 AI 好像比主播聪明。”', key: 'cash', amounts: [66, 188, 520], notes: ['六六大顺，扎心也顺。', '老板大气。你决定原谅这条留言。', '520！你怀疑是 AI 刷的，但钱是真的。'] },
+  { id: 'roast', loc: 'stream', text: '评论区挂你：“这不就是 ChatGPT 截图吗？”', effects: { reputation: -2, stress: 4 }, note: '确实是。但你加了一个震惊的表情。' },
+  { id: 'prize', loc: 'hackathon', text: '黑客松拿奖，奖金 ¥{n}。', key: 'cash', amounts: [300, 800, 2000], notes: ['鼓励奖。评委说“方向很好”。', '三等奖。你的 demo 是唯一没在台上崩的。', '一等奖！投资人当场加了你微信，然后再也没回。'] },
+  { id: 'pizza', loc: 'hackathon', text: '免费披萨管饱，你还蹭了三场技术分享。', effects: { health: 4, skill: 2 }, note: '今天最大的收获：芝士和一个新库。' },
+  { id: 'crash', loc: 'hackathon', text: 'Demo 在台上崩了，你说“这是在演示错误处理”。', effects: { stress: 6, reputation: 1 }, note: '评委笑了。至少记住你了。' },
+  { id: 'rent', loc: 'home', text: '房东发来消息：“下季度房租涨一点，AI 时代嘛。”', effects: { stress: 5 }, note: '你不知道房租和 AI 有什么关系，房东也不知道。' },
+  { id: 'eggs', loc: 'home', text: '妈妈寄来一箱土鸡蛋，附言：“别光顾着跟电脑说话。”', effects: { health: 5, stress: -3 }, note: '今天的蛋白质，来自真实世界。' },
+];
+
+// Writing is a gacha: the same draft can go viral or put you in hospital.
+export const WRITE_OUTCOMES = [
+  { id: 'viral', rank: 'SSR', weight: 8, art: 'write-viral', cash: 1500, effects: { reputation: 6 }, text: '10 万+ 爆款！标题是《刚刚，AI 圈炸了》，正文你自己都没看完。' },
+  { id: 'hit', rank: 'SR', weight: 24, cash: 650, effects: { reputation: 2 }, text: '小爆。评论区有人说“讲得比官方文档清楚”，你截图发了朋友圈。' },
+  { id: 'meh', rank: 'R', weight: 30, cash: 260, effects: {}, text: '阅读量 37，其中 30 个是你自己刷新的。稿费照结。' },
+  { id: 'gacha', rank: '翻车', weight: 20, art: 'write-gacha-fail', cash: 0, effects: { stress: 8 }, text: '配图抽卡 40 次，每只手都是六根指头。模型辣鸡，这一单放弃了。' },
+  { id: 'limited', rank: '限流', weight: 12, cash: 0, effects: { reputation: -3, stress: 6 }, text: '标题用了“震惊”，被平台限流。你震惊了。' },
+  { id: 'hospital', rank: '住院', weight: 6, art: 'write-hospital', cash: 0, effects: { health: -20, stress: -10, debt: 300 }, text: '连熬三个通宵写稿，住院了。医药费 ¥300 记进欠款，护士没收了你的手机。' },
 ];
 
 const option = (label, effects, result, extra = {}) => ({ label, effects, result, ...extra });

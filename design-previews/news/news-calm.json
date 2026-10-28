@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:50:31.893Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), calm gently funny mood, no purple neon. Scene: a quiet ordinary sunny afternoon in a tech office street, a news stand with blank newspapers, pigeons, a programmer sipping tea on a bench looking slightly confused that nothing dramatic happened, a calendar flipping, a sleepy server humming softly. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate square pixels, carefully composed retro game background with fine environmental storytelling. Warm muted retro palette: teal, warm grey, navy, cream, subtle orange accents. No purple neon. Calm, gently funny mood. Scene: a quiet ordinary sunny afternoon on a pedestrian street outside tech offices. A charming small newsstand displays folded newspapers whose pages are completely blank cream paper, with no marks or typography. Several pigeons quietly peck around the pavement. On a nearby bench sits a casually dressed programmer sipping tea from a plain mug, with a mildly confused, bemused expression because absolutely nothing dramatic has happened. Show a small desk-style or wall calendar caught mid-flip in a gentle breeze, its pages completely blank with no dates, grids, symbols, or writing. Nearby, a sleepy anthropomorphic server cabinet has half-closed eyes, relaxed posture and a few subtle warm orange indicator lights, suggesting a soft hum without any drawn sound symbols or lettering. Plain building facades, leafy planters, gentle afternoon sunlight, warm soft pixel shadows, small ordinary street details, balanced composition with all main subjects clearly readable. ABSOLUTELY NO TEXT, no letters, no numbers, no logos, no signage typography, no watermark, no pseudo-writing anywhere. All newspapers and calendar sheets must be entirely blank. OPAQUE FULL-BLEED BACKGROUND: sky, buildings, pavement and warm background colors fill the entire rectangular canvas edge to edge. No transparency, no cutouts, no empty black corners, no black framing or vignette. Use navy only for appropriate small shadows and details, never empty border areas.",
+  "route": "raw_prompt"
+}

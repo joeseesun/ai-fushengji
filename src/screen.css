@@ -27,7 +27,7 @@ body { overflow:hidden; }
 .stat.debt { padding-right:52px; }
 .stat-action { right:8px; top:12px; min-height:30px; padding:3px 6px; border:1px solid #b1b5a8; background:#fffdf2; }
 .meter { height:4px; margin-top:3px; }
-.flow-guide { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 12px; background:#f9f6e9; border-left:4px solid #476449; }
+.flow-guide { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 12px; background:#eef1e2; border:1px solid #c9d0b8; }
 .flow-guide>div { display:flex; flex-direction:column; gap:2px; }
 .flow-guide b { font-size:14px; }
 #next-step { font-size:13px; color:#355c41; }
@@ -511,4 +511,25 @@ dialog[open] { display:flex; flex-direction:column; }
   .role-panel .role-option,.role-panel:has(.resume) .role-option { padding:4px 8px; min-height:0; }
   .role-icon { height:26px; width:26px; }
   .role-panel .start-hint { display:none; }
+}
+
+.heat-tag { display:inline-block; padding:0 4px; border-radius:2px; background:#e6e8dc; color:#4f5b4a; font-weight:600; }
+.heat-cheap .heat-tag { background:#d8ead9; color:#22553c; }
+.heat-crash .heat-tag { background:#286047; color:#fff; }
+.heat-high .heat-tag { background:#f3dfc9; color:#8a3d1c; }
+.heat-hot .heat-tag { background:#b8322a; color:#fff; }
+.quote-row.heat-hot,.quote-row.heat-crash { background:#fbf3df; }
+.news-ticker.breaking { background:#f7e1cf; border-color:#c98a68; }
+.news-ticker.breaking b { color:#9b2e22; }
+@media(max-width:760px) and (max-height:640px) {
+  .welcome:has(.resume) .welcome-story { padding-block:6px; }
+  .welcome:has(.resume) .welcome-story h1 { font-size:20px; margin:2px 0; }
+  .welcome:has(.resume) .welcome-story .version-label { display:none; }
+}
+.quote-holding small { white-space:nowrap; }
+@media(max-width:380px) { .avg-label { display:none; } }
+@media(max-width:380px) and (max-height:600px) {
+  .news-ticker,.quote-row .delta { display:none; }
+  .quote-row>div:first-child { display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .quote-row { min-height:36px; padding-block:2px; }
 }

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:35:07.618Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a cozy messy open-source community hackerspace, volunteers in hoodies around long tables with laptops, a giant pile of glowing gold stars on the floor like treasure, one exhausted maintainer under a mountain of issue tickets eating cold noodles, octocat-like friendly cat mascot (generic, not a real logo), sticky notes and cables. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape 16:9 composition. Crisp hard pixel edges, carefully placed pixels, retro game background art with rich environmental storytelling. Warm muted retro palette: teal, warm grey, navy, cream, with orange accents and glowing gold. Funny satirical mood, cozy and humane. Absolutely no purple neon. Scene: a cozy messy open-source community hackerspace, volunteers wearing hoodies seated around long tables with laptops, sticky notes and tangled cables. A giant pile of glowing golden five-pointed stars on the floor looks like an absurd treasure hoard, humorously contrasting with the overworked volunteers. One prominently visible exhausted maintainer is half-buried under a mountain of blank issue-ticket paper slips, eating cold noodles from a bowl with chopsticks; slumped posture, tired expression, comedic but sympathetic. Include a friendly original generic cat mascot with a few cute tentacle-like legs, visibly distinct from any real brand mascot or logo, interacting playfully with the star pile. Lived-in workshop shelves, mugs, scattered tools and warm ceiling lights. Make the story readable and the composition charming, with strong foreground/middle-ground/background separation. All laptop screens show only abstract nonverbal colored shapes. All tickets and sticky notes are completely blank. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO TYPOGRAPHY, NO WATERMARKS, NO LOGOS anywhere. Fully opaque full-bleed background: warm cream and teal interior surfaces must fill every edge and corner of the entire rectangular canvas. No transparency, no cutouts, no empty black corners, no black vignette, no borders. 背景不透明，底色和室内场景铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "route": "raw_prompt"
+}

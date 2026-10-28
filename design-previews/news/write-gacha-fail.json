@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:57:37.554Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny frustrated mood, no purple neon. Scene: a creator slumped at a desk surrounded by dozens of printed AI-generated images scattered everywhere, every image shows a hand with six or seven fingers and melted faces, a slot-machine style gacha lever on the monitor pulled again and again, an empty wallet, a dramatic sweat drop. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate square pixel clusters, no smooth gradients or antialiasing. Warm muted retro palette of teal, warm grey, navy, cream, and restrained orange accents; no purple neon. Funny, deeply frustrated mood. Scene: an exhausted adult creator slumped at a desk in a cozy cluttered studio, head drooping, shoulders sagging, one huge dramatic cartoon sweat drop beside their face. Dozens of printed AI-generated images cover the desk and scatter across the floor in layered piles. EVERY visible printed image clearly depicts a bizarre malformed hand with six or seven fingers together with a melted, distorted face, comically bad AI output, not graphic horror. Make several foreground printouts large enough for the extra fingers and melted faces to read clearly. A monitor is built like a playful slot machine, with a physical gacha lever on its side, orange ball handle, held and pulled yet again by the creator; pixel motion arcs and repeated handle silhouettes suggest endless repeated pulls. The display has only visual picture reels showing the same failed hand-and-face images, with NO interface labels or glyphs. An open, unmistakably empty wallet lies prominently on the desk. Strong visual storytelling, charming expressive character, carefully composed detailed retro game environment. ABSOLUTELY NO text, letters, words, numbers, captions, logos, signatures, watermarks, typographic symbols or readable markings anywhere, including all papers, screen, wallet and background. The background must be completely opaque and filled edge-to-edge across the entire rectangular canvas with warm cream/grey studio walls and teal-grey floor. No transparency, no cutouts, no empty black corners, no black corner regions, no vignette, no framing border. Full-bleed opaque illustration.",
+  "route": "raw_prompt"
+}

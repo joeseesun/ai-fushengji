@@ -34,6 +34,7 @@ export function layoutPages(root = document) {
       const [prev, next] = controls.querySelectorAll('button');
       prev.disabled = current === 0; next.disabled = current === groups.length - 1;
       next.textContent = frame.classList.contains('event-pages') && current === 0 ? '继续阅读 →' : '下页 →';
+      next.classList.toggle('cta', frame.classList.contains('event-pages') && current < groups.length - 1);
     };
     controls.querySelectorAll('button').forEach(button => { button.onclick = () => show(Number(frame.dataset.page) + Number(button.dataset.pageTurn)); });
     show(focusedItem ? groups.findIndex(group => group.includes(focusedItem)) : previous);

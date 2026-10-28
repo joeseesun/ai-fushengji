@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:47:02.397Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a wall of hundreds of phone screens all showing the exact same orange cat talking with a speech bubble that has only a dot, creators in front of each phone filming the same cat, the real orange cat sitting on top of the wall looking bored and unpaid. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, intentional pixel clusters, no antialiasing or blur. Warm muted retro palette: teal, warm grey, navy, cream, with orange accents; no purple neon. Funny satirical editorial news-illustration mood. Scene: an enormous wall made of hundreds of small phone screens arranged in a dense regular grid extending across the composition. Every single screen shows the EXACT SAME orange cat, identical portrait and pose, with one speech bubble containing ONLY a single round dot. Many creators stand in front of the phones, each filming the same cat content with a phone or tiny camera, repetitive copycat behavior, expressive humorous silhouettes and poses; use layered tiers and perspective so the huge scale and rows of phones remain clear. On top of the wall sits the actual orange cat, visibly bored, half-lidded eyes, slumped posture and dangling tail, ignored and unpaid while everybody copies its image. Convey this visually through staging and expression, with no labels. Clear focal point on the real cat, readable repeated cat portraits and the crowd, rich pixel-art environmental detail. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS, NO signatures, NO interface text anywhere. The only mark within speech bubbles is a single dot, never ellipses. Background must be completely opaque and fill the entire rectangular canvas edge to edge with warm cream paper-like pixel texture or fully rendered muted scenery. No transparency, cutouts, empty alpha areas, black corner regions, black border, or vignette.",
+  "route": "raw_prompt"
+}

@@ -1,8 +1,8 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 
-export const VERSION = 2;
+export const VERSION = 3;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -35,11 +35,32 @@ export const getEvent = s => {
   const name = featuredModel(s).name;
   return { ...e, title: e.title.replaceAll('{model}', name), text: e.text.replaceAll('{model}', name) };
 };
+export const getRumor = s => RUMORS.find(r => r.id === s.rumor) ?? null;
+export const getArrival = s => {
+  const a = s.arrival && ARRIVALS.find(a => a.id === s.arrival.id);
+  if (!a) return null;
+  const n = s.arrival.amount, i = a.amounts?.indexOf(n) ?? -1;
+  return { ...a, text: a.text.replace('{n}', n.toLocaleString('zh-CN')), note: i >= 0 ? a.notes[i] : a.note, effects: a.key ? { [a.key]: n } : a.effects };
+};
+export const modelFee = (s, profile) => s.role === 'grad' ? Math.ceil(profile.fee / 2) : profile.fee;
+// Typical quote for today, ignoring station and news, so players can tell cheap from expensive.
+export const referencePrice = (s, id) => {
+  const g = GOODS.find(g => g.id === id);
+  return Math.round(g.base * Math.max(.22, 1 - g.decay * (s.day - 1)) * 1.175);
+};
+export function priceHeat(s, id) {
+  const ratio = s.prices[id] / referencePrice(s, id);
+  if (ratio >= 2) return { id: 'hot', label: '暴涨', ratio };
+  if (ratio >= 1.3) return { id: 'high', label: '偏贵', ratio };
+  if (ratio <= .5) return { id: 'crash', label: '跳水', ratio };
+  if (ratio <= .75) return { id: 'cheap', label: '便宜', ratio };
+  return { id: 'fair', label: '平价', ratio };
+}
 export const usedSpace = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty, 0);
 export const salePrice = (s, id) => Math.max(1, Math.floor(s.prices[id] * .9));
 export const inventoryValue = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty * salePrice(s, g.id), 0);
 export const netWorth = s => s.cash + inventoryValue(s) - s.debt;
-export const productIncome = s => Math.max(0, Math.floor(s.products * Math.max(25, 140 + s.reputation * 1.6 - s.techDebt * 1.3) * (getNews(s)?.product ?? 1)));
+export const productIncome = s => Math.max(0, Math.floor(s.products * Math.max(25, 140 + s.reputation * 1.6 - s.techDebt * 1.3) * (getNews(s)?.product ?? 1) * (s.role === 'opc' ? 1.4 : 1)));
 export const dailyCost = s => 90 + (s.location === 'home' ? 0 : 40) + 20 + s.products * 12;
 export const dailyInterest = s => Math.ceil(s.debt * INTEREST);
 
@@ -58,6 +79,22 @@ function market(s) {
     s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1)));
     s.history[g.id] = [...(s.history[g.id] ?? []), s.prices[g.id]].slice(-8);
   }
+  s.rumor = null;
+  if (s.day > 1 && random(s) < .4) {
+    const r = RUMORS[Math.floor(random(s) * RUMORS.length)];
+    s.prices[r.good] = Math.max(8, Math.round(s.prices[r.good] * r.factor));
+    s.history[r.good][s.history[r.good].length - 1] = s.prices[r.good];
+    s.rumor = r.id;
+  }
+  s.arrival = null;
+  const here = ARRIVALS.filter(a => a.loc === s.location);
+  if (s.day > 1 && here.length && random(s) < .55) {
+    const a = here[Math.floor(random(s) * here.length)];
+    s.arrival = { id: a.id, amount: a.amounts ? a.amounts[Math.floor(random(s) * a.amounts.length)] : 0 };
+    const got = getArrival(s);
+    applyEffects(s, got.effects);
+    log(s, `到站：${got.text}${got.note}`, 'arrival');
+  }
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -68,7 +105,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal',
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -82,7 +119,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
 }
 
 export function effectText(effects) {
-  const labels = { cash: '现金', health: '健康', stress: '压力', skill: '技能', reputation: '口碑', techDebt: '技术债' };
+  const labels = { cash: '现金', health: '健康', stress: '压力', skill: '技能', reputation: '口碑', techDebt: '技术债', debt: '欠款' };
   return Object.entries(effects).map(([key, value]) => `${labels[key] ?? key} ${value > 0 ? '+' : ''}${value}${key === 'cash' ? ' 元' : ''}`).join(' · ') || '不消耗行动';
 }
 
@@ -94,20 +131,28 @@ function applyEffects(s, effects) {
   }
 }
 
+// Odds and payouts shown to the player are the ones rolled.
+export function writeOutcomes(s) {
+  const mult = (s.role === 'creator' ? 1.5 : 1) * (s.location === 'stream' ? 1.5 : 1);
+  return WRITE_OUTCOMES.map(o => ({ ...o, weight: s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight, effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) } : {}), ...o.effects } }));
+}
+
 export function actionInfo(s, action) {
-  const bonus = modelBonus(s);
-  const job = 360 + s.skill * 6 + s.reputation * 3 + (s.location === 'jobs' ? 160 : 0) + (bonus?.work ?? 0);
+  const bonus = modelBonus(s), role = s.role;
+  const job = Math.round((220 + s.skill * 4 + s.reputation * 2 + (s.location === 'jobs' ? 160 : 0)) * (role === 'coder' ? 1.2 : 1)) + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
-    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
-    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
-    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0), stress: -22 }, after: '没有产出的一格行动，也算在认真生活。' },
-    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -(260 + s.products * 90), health: -2, stress: 6, techDebt: 3 + (bonus?.build ?? 0), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
+    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
+    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
+    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0), stress: -22 }, after: '没有产出的一格行动，也算在认真生活。' },
+    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
+    write: { name: '写稿发帖', desc: '抽卡式创作：可能 10 万+，也可能住院。', icon: 'PenLine', effects: { health: -3, stress: 5 }, outcomes: writeOutcomes(s), after: '' },
     maintain: { name: '还一点技术债', desc: '修旧坑，也保护每天的产品收入。', icon: 'Wrench', effects: { cash: -90, techDebt: -18, stress: -5, skill: 2 }, after: '删掉一层包装。你终于又能看懂自己的系统了。' },
     expand: { name: '扩容云仓库', desc: `多放 10 件 · 当前 ${s.capacity} 件`, icon: 'HardDrive', effects: { cash: -(700 + (s.capacity - 18) * 40) }, after: '空间变大了。别把它当成一定要买满的理由。', reason: s.capacity >= 58 ? '仓库已到上限' : '' },
   };
   const info = infos[action];
   if (!info) return null;
+  if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
   return { ...info, reason: info.reason || (s.cash + (info.effects.cash ?? 0) < 0 ? '现金不足' : s.ap < 1 ? '今天的行动已用完' : '') };
 }
 
@@ -149,9 +194,10 @@ export function transition(original, command) {
       if (!model) return fail('这个模型不在当前目录中。');
       if (getModel(s)) return fail('当前搭子还在合同期，结束后再换，别重复付费。');
       const profile = PROFILES[model.profile];
-      if (s.cash < profile.fee) return fail('现金不够，先靠自己也能玩。');
-      s.cash -= profile.fee; s.model = model.id; s.modelUntil = Math.min(DAYS, s.day + 4);
-      message = `签下 ${model.name}，支付游戏币 ¥${profile.fee}，有效至第 ${s.modelUntil} 天。不会自动续费。`;
+      const fee = modelFee(s, profile);
+      if (s.cash < fee) return fail('现金不够，先靠自己也能玩。');
+      s.cash -= fee; s.model = model.id; s.modelUntil = Math.min(DAYS, s.day + 4);
+      message = `签下 ${model.name}，支付游戏币 ¥${fee}，有效至第 ${s.modelUntil} 天。不会自动续费。`;
       log(s, message, 'model'); break;
     }
     case 'choose': {
@@ -202,6 +248,14 @@ export function transition(original, command) {
       if (!info) return fail('这个行动不存在。');
       if (info.reason) return fail(info.reason);
       applyEffects(s, info.effects); s.ap--;
+      if (info.outcomes) {
+        let roll = random(s) * info.outcomes.reduce((n, o) => n + o.weight, 0);
+        const o = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
+        applyEffects(s, o.effects); s.lastWrite = o.id;
+        message = `【${o.rank}】${o.text}`;
+        log(s, `${info.name}：${message}（${effectText({ ...info.effects, ...Object.fromEntries(Object.entries(o.effects).map(([k, v]) => [k, (info.effects[k] ?? 0) + v])) })}）`, 'action');
+        break;
+      }
       if (command.id === 'work' || command.id === 'rush') s.jobsDone++;
       if (command.id === 'rest') s.daysRested++;
       if (command.id === 'expand') s.capacity += 10;
@@ -289,6 +343,9 @@ export function isValidSave(s) {
   if (!integer(s.tradeProfit, -1e9) || !integer(s.lastBorrowDay, -10, DAYS)) return false;
   for (const k of ['health', 'stress', 'skill', 'reputation', 'techDebt']) if (!integer(s[k], 0, 100)) return false;
   if (!integer(s.ap, 0, 2) || !integer(s.products, 0, 6) || !integer(s.progress, 0, 2) || ![18, 28, 38, 48, 58].includes(s.capacity)) return false;
+  if (s.rumor !== null && !RUMORS.some(r => r.id === s.rumor)) return false;
+  if (s.arrival !== null && !(s.arrival && ARRIVALS.some(a => a.id === s.arrival.id && (a.amounts ? a.amounts.includes(s.arrival.amount) : s.arrival.amount === 0)))) return false;
+  if (s.lastWrite !== null && !WRITE_OUTCOMES.some(o => o.id === s.lastWrite)) return false;
   if (!s.inventory || !s.prices || !s.previousPrices || !s.history) return false;
   for (const g of GOODS) {
     const item = s.inventory[g.id];
@@ -321,11 +378,30 @@ export function parseSave(text) {
       if (new Set(oldIds).size !== oldIds.length || !oldIds.every(id => EVENTS.some(e => e.id === id))) return null;
       s.seen = [...new Set(['intro', ...oldIds.slice(0, s.eventIndex), ...(s.event ? [s.event] : [])])];
       s.eventDeck = [...oldIds, ...EVENTS.map(e => e.id).filter(id => !oldIds.includes(id))];
-      s.followups = []; s.stance = 50; s.lastEvent = null; s.model = null; s.modelUntil = 0; s.version = VERSION;
-      for (const g of GOODS.filter(g => ['b300', 'rtx'].includes(g.id))) {
-        s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base;
-        s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
+      s.followups = []; s.stance = 50; s.lastEvent = null; s.model = null; s.modelUntil = 0; s.version = 2;
+    }
+    if (s?.version === 2 && s.inventory && s.prices && s.previousPrices && s.history) {
+      // v3 swapped three goods. Holdings of retired goods are sold at their last quote; RNG and day are untouched.
+      let refund = 0;
+      for (const id of Object.keys(s.inventory).filter(id => !GOODS.some(g => g.id === id))) {
+        const qty = s.inventory[id]?.qty, price = s.prices[id];
+        if (integer(qty) && integer(price)) refund += Math.max(1, Math.floor(price * .9)) * qty;
+        for (const key of ['inventory', 'prices', 'previousPrices', 'history']) delete s[key][id];
       }
+      for (const g of GOODS) if (!s.inventory[g.id]) {
+        s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
+      }
+      if (integer(s.cash)) s.cash += refund;
+      if (Array.isArray(s.journal) && refund) s.journal.unshift({ day: s.day, text: `货架换新：下架的旧货按回收价折现 ¥${refund}。`, kind: 'finance' });
+      if (s.rumor && !RUMORS.some(r => r.id === s.rumor)) s.rumor = null;
+      s.arrival = null; s.lastWrite = null; s.version = VERSION;
+    }
+    if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
+      // Saves from before new events were added keep their order; new events join the end of the deck.
+      s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null;
+      // A contract on a model that left the roster ends early instead of invalidating the save.
+      if (s.model !== null && s.model !== undefined && !MODELS.some(m => m.id === s.model)) { s.model = null; s.modelUntil = 0; }
+      s.eventDeck = [...s.eventDeck, ...EVENTS.map(e => e.id).filter(id => !s.eventDeck.includes(id))];
     }
     return isValidSave(s) ? s : null;
   } catch { return null; }

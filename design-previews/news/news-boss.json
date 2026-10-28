@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:49:06.857Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a corporate boss in a big chair points at a giant whiteboard with an upward arrow, while a row of tired employees each hold a shiny new AI robot like a pet, the robots are asleep, an hourglass on the table, stacks of reports titled with only blank lines. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Detailed 16-bit pixel art illustration, wide landscape composition, crisp hard pixel edges, carefully clustered pixel shading, warm muted retro palette of teal, warm grey, navy, cream and small orange accents, funny satirical editorial news illustration mood, no purple neon. A corporate boss sits in an exaggerated oversized executive chair on the left, pointing confidently at a giant whiteboard with a single bold upward arrow. The whiteboard has ONLY the pictorial upward arrow, no axes, ticks, labels or writing. On the right, a row of visibly tired office employees, slumped shoulders and exhausted expressions, each cradles a shiny new small AI robot like a cherished pet. The cute metallic robots are all fast asleep with closed eyelids and limp relaxed poses; show sleep through their poses and closed eyes only, with no Z symbols or other text. Foreground conference table features a visible hourglass with orange sand and stacks of reports whose pages contain only simple blank horizontal rules, no writing. Warm office lighting, humorous contrast between boss enthusiasm and exhausted employees holding useless sleeping robots. Strong readable silhouettes, thoughtfully composed office details, authentic polished retro game pixel art rather than smooth illustration. Absolutely no text, letters, numbers, logos, signatures, watermarks, typographic marks or speech bubbles anywhere. Background must be fully opaque and fill the entire rectangular image edge to edge with warm cream and muted office scenery. No transparency, cutout areas, empty corners, black corner regions, vignette or black border. Wide landscape image, ideally 16:9.",
+  "route": "raw_prompt"
+}

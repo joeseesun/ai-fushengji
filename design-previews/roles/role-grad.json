@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:28:22.653Z",
+  "prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions (about 3.5 heads tall), energetic 3/4 pose facing the viewer, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, small accents of red). Character: a fresh Chinese college graduate, graduation cap tilted sideways, big backpack, sneakers, holding a tablet that shows a glowing chat bubble, bright hopeful eyes, a resume sheet sticking out of the backpack with many sticky tabs. Fully transparent background, nothing behind the character, no floor, no shadow plate, no text, no frame. Centered with margin around the figure.",
+  "aspect_ratio": "3:4",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1149,
+    "height": 1369
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art character sprite: exactly one character, full body, centered with generous transparent margin around the entire figure. Slightly chibi proportions, about 3.5 heads tall. Energetic three-quarter pose facing toward the viewer. Character is a fresh Chinese college graduate, youthful adult with bright hopeful eyes, short dark hair, graduation cap tilted sideways, a big backpack, casual graduate clothing and sneakers. Holding a tablet angled toward the viewer; on the tablet screen is a luminous chat bubble icon, no letters or words. A resume sheet sticks visibly out of the backpack, with many small colorful sticky tabs along the sheet; indicate the resume with tiny graphical line motifs, not legible writing. Warm muted retro palette dominated by teal, warm grey, navy, cream, with small accents of red. Authentic carefully placed pixel clusters, crisp hard pixel edges, stepped contours, limited-color pixel shading, highly readable silhouette, charming professional game sprite quality. No smooth vector lines, no anti-aliasing, no blurry edges, no painterly rendering. Fully transparent alpha background, absolutely nothing behind the character, no scenery, no floor, no cast shadow or shadow plate, no text, no labels, no frame. The tablet chat icon can have a small pixelated glow confined to its screen. Keep cap, backpack, paper, tablet, hands and shoes fully inside the image without clipping.",
+  "route": "raw_prompt"
+}

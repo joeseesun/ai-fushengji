@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:27:30.513Z",
+  "prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions (about 3.5 heads tall), steady 3/4 pose facing the viewer, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, small accents of red). Character: an ordinary Chinese office worker, white shirt with loosened tie, dark eye bags but an unbreakable calm smile, company lanyard, holding a huge thermos bottle with goji berries visible inside in one hand and a tall wobbly stack of paper documents in the other, backpack straps. Fully transparent background, nothing behind the character, no floor, no shadow plate, no text, no frame. Centered with margin around the figure.",
+  "aspect_ratio": "3:4",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1024,
+    "height": 1536
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Detailed 16-bit pixel art character sprite, exactly one character, full body, slightly chibi proportions about 3.5 heads tall, steady three-quarter pose facing the viewer. Crisp hard pixel edges and deliberate pixel clusters, no smoothing, no antialiasing, no blurry edges. Warm muted retro palette of teal, warm grey, navy, cream, with small accents of red. Character: an ordinary adult Chinese office worker wearing a white shirt with a loosened tie, dark eye bags and an unbreakable calm smile, company lanyard with a blank badge and backpack straps. Holding an oversized thermos bottle with a clear window revealing red goji berries inside in one hand, and a tall wobbly stack of paper documents in the other hand. Make both props clearly legible and the pose balanced, charming and gently humorous. Fully transparent background, nothing behind the character, no scenery, no floor, no shadow plate, no text, no lettering, no frame. Center the entire figure and both props with generous transparent margins; all hair, shoes, thermos and documents fully within canvas.",
+  "route": "raw_prompt"
+}

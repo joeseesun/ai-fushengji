@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:37:36.619Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a 48-hour AI hackathon in a converted warehouse, teams sleeping on beanbags, mountains of free pizza boxes, a giant oversized prize cheque on an easel, judges with clipboards, one team presenting a demo that is visibly on fire with a small cartoon flame, coffee urns. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully constructed pixel clusters, no smoothing or blurry gradients. Warm muted retro palette of teal, warm grey, navy, cream, and orange accents, absolutely no purple neon. A funny satirical scene of a grueling 48-hour AI hackathon inside a converted warehouse with exposed beams, brick walls, tall windows, and hanging industrial lamps. Show multiple exhausted teams sleeping in slumped funny poses on beanbags; comically huge mountains of plain unbranded free pizza boxes, some open revealing pizzas; an oversized prize cheque displayed on an easel, recognizable by its horizontal rectangular paper format, ornate border and decorative abstract seal, but completely without writing or digits; judges holding blank clipboards seriously assessing a team presenting a prototype computer demo that is visibly on fire with one small cartoon orange flame, amused and weary expressions; large metal coffee urns and scattered plain coffee cups. Display only simple abstract non-symbolic shapes on computer screens, no interfaces with writing. Rich environmental storytelling, coherent warehouse perspective, readable distinct figures, strong balanced composition, charming handcrafted retro game background quality. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS, NO TYPOGRAPHY, NO PSEUDO-WRITING ANYWHERE, including cheque, pizza boxes, screens, clothing, clipboards, walls and cups. The entire image must have an opaque background with colored environment or base color filling every pixel edge to edge. No transparency, cutouts, black corner regions, vignette, empty black borders, or letterboxing.",
+  "route": "raw_prompt"
+}

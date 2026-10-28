@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:52:21.445Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a factory conveyor belt endlessly spitting out identical article pages and thumbnails into a huge overflowing landfill of content, a tiny reader standing on top of the pile with an umbrella, a platform manager cheerfully pressing a big green button for more. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully drawn pixel clusters, warm muted retro palette of teal, warm grey, navy, cream, and orange accents; a vivid green button as the focal accent. Funny satirical editorial news illustration mood. Scene: an industrial factory conveyor belt stretches from the left across the scene, endlessly ejecting identical cream article pages and repeated image thumbnail cards into a gigantic overflowing landfill of content. Show many repetitions of the same simple pictorial thumbnail to convey mass-produced content. Pages contain ONLY blank cream panels and simple pictorial shapes, absolutely no writing or glyph-like marks. The huge layered pile dominates the center and right, with cascading papers frozen in midair. A tiny overwhelmed reader stands on top of the mountain of content holding an open orange umbrella to shelter from the raining pages. At the left foreground, a cheerful platform manager in a retro suit grins while enthusiastically pressing an oversized bright green circular button on a factory console to produce even more. Strong visual storytelling, comically excessive scale, dense yet readable detail, clear silhouettes, sophisticated pixel dithering and retro game environmental art. No purple, no neon, no photorealism, no soft airbrush or blurry edges. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere, including papers, clothing, machinery and scenery. Full-bleed opaque background covering the ENTIRE image, warm cream and muted teal industrial background and ground; no transparency, no cutouts, no empty black corners, no black border or vignette. 背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "route": "raw_prompt"
+}

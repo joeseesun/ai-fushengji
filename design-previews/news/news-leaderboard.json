@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:42:27.265Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a new AI model leaderboard ceremony, a podium where a robot is crowned king while the previous champion robot is being carried away on a stretcher, an audience of developers frantically changing their profile pictures on phones, a tiny stressed client in the corner tapping a watch. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create one detailed 16-bit pixel art illustration, wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, no smoothing, warm muted retro palette of teal, warm grey, navy, cream and orange accents, funny satirical editorial news illustration mood, no purple neon. Scene: a new AI model leaderboard coronation ceremony conveyed entirely visually with absolutely no writing. At the center, a shiny new robot on the highest tier of an unmarked podium is being crowned king with a gold crown, triumphantly posing under warm stage lights. Beside the podium the previous champion robot, with a bent fallen crown and comically exhausted expression, is being carried away on a stretcher by two robot attendants; playful and non-graphic, no wounds. In the foreground an audience of developers in casual clothes frantically changes their profile pictures on phones: show tiny robot avatar portraits on screens and hands tapping them, only pictures and simple geometric shapes, no text or numbers. In a lower corner a tiny stressed human client impatiently taps a wristwatch, eyebrows raised, foot tapping; the watch has only hands and a blank dial, no numerals. Clear visual storytelling and expressive funny character poses, thoughtful depth, many charming small pixel details, balanced readable composition. Full-bleed opaque background, warm cream and muted teal stage and hall fill the entire canvas including every corner. Absolutely no transparency, no cutouts, no empty black corner regions, no border. Absolutely no text, letters, numbers, glyphs, logos, signatures or watermarks anywhere, including podium, backdrop, devices, clothes and watch.",
+  "route": "raw_prompt"
+}
