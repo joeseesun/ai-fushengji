@@ -1,0 +1,91 @@
+<style>
+.dir-b{box-sizing:border-box;container-type:inline-size;container-name:b-paper;width:100%;height:370px;overflow:hidden;background:#f5f0e5;color:#25241f;padding:17px 22px 13px;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;text-align:left;font-style:normal}
+.dir-b *{box-sizing:border-box}
+.dir-b .b-masthead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:9px;border-bottom:2px solid #25241f}
+.dir-b .b-name{font-family:"Songti SC",STSong,serif;font-weight:800;font-size:20px;letter-spacing:3px;white-space:nowrap;line-height:1}
+.dir-b .b-name span{font-family:inherit;color:#b8412d;letter-spacing:0}
+.dir-b .b-edition{text-align:right;font-size:9px;letter-spacing:1px;line-height:1.35;white-space:nowrap}
+.dir-b .b-edition strong{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1.6px}
+.dir-b .b-lead{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:18px;padding:11px 0 10px}
+.dir-b .b-kicker{margin:0 0 4px;font-size:9px;letter-spacing:1.2px;color:#756f63}
+.dir-b h2{font-family:"Songti SC",STSong,serif;font-size:32px;font-weight:900;line-height:1.14;letter-spacing:-1px;margin:0}
+.dir-b h2 span{color:#b8412d}
+.dir-b .b-ledger{border-left:1px solid #b5ad9d;padding-left:15px;align-self:stretch;font-size:10px}
+.dir-b .b-ledger p{margin:0 0 4px;color:#756f63;font-size:9px;letter-spacing:1.6px}
+.dir-b .b-cash{display:block;font-size:23px;font-weight:650;line-height:1.2;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.dir-b .b-debt,.dir-b .b-health{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-variant-numeric:tabular-nums}
+.dir-b .b-debt strong{font-weight:600;color:#b8412d}
+.dir-b .b-health strong{font-weight:600}
+.dir-b .b-market{display:flex;gap:16px;align-items:center;padding:7px 0;border-top:1px solid #25241f;border-bottom:1px solid #25241f;font-size:10px;white-space:nowrap}
+.dir-b .b-market-label{font-size:9px;letter-spacing:1.4px;font-weight:750;border-right:1px solid #b5ad9d;padding-right:15px}
+.dir-b .b-market b{margin-left:5px;font-variant-numeric:tabular-nums;font-size:12px}
+.dir-b .b-rise{color:#b8412d}
+.dir-b .b-fall{color:#4d6652}
+.dir-b .b-event{display:grid;grid-template-columns:31px minmax(0,1fr);column-gap:12px;padding-top:10px}
+.dir-b .b-event-number{font-family:"Songti SC",STSong,serif;color:#b8412d;font-size:28px;line-height:1;border-right:1px solid #c8beab;padding-right:9px;height:43px}
+.dir-b .b-event-category{font-size:9px;letter-spacing:1.4px;color:#756f63;margin:0 0 4px}
+.dir-b h3{font-family:"Songti SC",STSong,serif;font-size:18px;line-height:1.2;font-weight:800;letter-spacing:-.3px;margin:0}
+.dir-b .b-event-copy{font-size:10px;line-height:1.4;margin:4px 0 0;color:#746d61}
+.dir-b .b-choices{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+.dir-b button{appearance:none;border:1px solid #25241f;border-radius:0;min-width:0;min-height:31px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:inherit;font-size:11px;font-weight:600;line-height:1;color:#25241f;background:transparent;cursor:pointer}
+.dir-b button.b-pivot{background:#b8412d;color:#fff8ee;border-color:#b8412d}
+.dir-b button:focus-visible{outline:2px solid #25241f;outline-offset:2px}
+.dir-b button span{font-size:14px;font-weight:400}
+.dir-b .b-journal{display:flex;gap:11px;align-items:baseline;margin-top:10px;padding-top:7px;border-top:1px solid #b5ad9d;font-size:9px;line-height:1.2;color:#756f63;white-space:nowrap}
+.dir-b .b-journal b{font-weight:600;letter-spacing:1px;color:#25241f}
+.dir-b .b-journal time{font-variant-numeric:tabular-nums}
+@container b-paper (max-width:400px){
+ .dir-b .b-name{font-size:17px;letter-spacing:2px}
+ .dir-b .b-edition{font-size:8px;letter-spacing:.2px}
+ .dir-b .b-lead{grid-template-columns:minmax(0,1fr) 100px;gap:10px;padding:13px 0 12px}
+ .dir-b h2{font-size:25px;line-height:1.24;letter-spacing:-1.5px}
+ .dir-b .b-ledger{padding-left:10px}
+ .dir-b .b-cash{font-size:21px}
+ .dir-b .b-market{gap:10px;font-size:9px}
+ .dir-b .b-market-label{padding-right:9px;font-size:8px;letter-spacing:.5px}
+ .dir-b .b-market b{font-size:11px;margin-left:3px}
+ .dir-b .b-event{column-gap:9px;grid-template-columns:25px minmax(0,1fr)}
+ .dir-b .b-event-number{font-size:23px;padding-right:7px}
+ .dir-b h3{font-size:16px;line-height:1.3}
+ .dir-b .b-event-copy{font-size:9px}
+ .dir-b .b-choices{margin-top:9px}
+ .dir-b .b-journal{gap:7px;font-size:8px;margin-top:9px}
+ .dir-b .b-journal .b-journal-extra{display:none}
+}
+</style>
+<section class="dir-b" aria-label="AI 浮生记：赛博打工日报">
+  <header class="b-masthead">
+    <div class="b-name">浮生日报<span>·</span></div>
+    <div class="b-edition">AI 时代 · 个体生存实录<br><strong>DAY 07 / 40</strong></div>
+  </header>
+  <div class="b-lead">
+    <div>
+      <p class="b-kicker">今日头条 / 又一个普通的星期一</p>
+      <h2>模型又升级了。<br><span>你呢？</span></h2>
+    </div>
+    <aside class="b-ledger" aria-label="生存账本">
+      <p>手头现金</p>
+      <strong class="b-cash">¥3,680</strong>
+      <div class="b-debt"><span>待还负债</span><strong>¥7,200</strong></div>
+      <div class="b-health"><span>身体电量</span><strong>76 / 100</strong></div>
+    </aside>
+  </div>
+  <div class="b-market" aria-label="今日交易行情">
+    <span class="b-market-label">今日市况</span>
+    <span>算力券<b class="b-rise">↑ 24%</b></span>
+    <span>提示词<b class="b-fall">↓ 86%</b></span>
+  </div>
+  <article class="b-event">
+    <div class="b-event-number">07</div>
+    <div>
+      <p class="b-event-category">突发 / 免费才最贵</p>
+      <h3>大厂的免费赠品，<br>是你昨晚的商业计划。</h3>
+      <p class="b-event-copy">产品还没上线，同款能力已写进了更新公告。</p>
+      <div class="b-choices">
+        <button class="b-pivot" type="button">连夜转型<span aria-hidden="true">↗</span></button>
+        <button type="button">做点真需求<span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </article>
+  <footer class="b-journal"><b>昨夜记事</b><time>02:14</time><span>又续了一个 Pro。<span class="b-journal-extra">余额没有，信仰续费。</span></span></footer>
+</section>

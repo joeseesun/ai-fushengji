@@ -1,0 +1,22 @@
+{
+  "name": "ai-fushengji",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "package": "npm run build && node scripts/package.mjs",
+    "refresh:models": "node scripts/refresh-models.mjs"
+  },
+  "dependencies": {
+    "lucide": "^1.62.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "vite": "^8.3.5"
+  }
+}

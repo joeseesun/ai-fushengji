@@ -1,0 +1,14 @@
+{
+  "id": "A",
+  "label": "选 A：千禧年打工桌面",
+  "name": "千禧年打工桌面",
+  "notes": "",
+  "dials": {
+    "variance": 7,
+    "motion": 3,
+    "density": 7
+  },
+  "adjustments": "",
+  "source": "preview",
+  "receivedAt": "2026-10-28T03:07:50.666Z"
+}

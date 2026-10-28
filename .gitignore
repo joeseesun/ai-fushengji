@@ -1,0 +1,9 @@
+.qiaomu/launch-state.json
+node_modules/
+dist/
+test-results/
+playwright-report/
+.DS_Store
+evidence/
+.env*
+release/
