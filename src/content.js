@@ -410,3 +410,28 @@ export const RENT_DAYS = { 10: 1200, 20: 2000, 30: 3000 };
 export const RENT_LATE_RATE = 1.5;
 export const GOOD_OUTCOMES = ['jackpot', 'eureka', 'deep', 'spark', 'clean', 'investor', 'lead', 'viral', 'hit'];
 export const BAD_OUTCOMES = ['stiffed', 'spaghetti', 'rabbit', 'pinged', 'scope', 'trap', 'gacha', 'limited', 'hospital'];
+
+// VIPs replace answer-picking: each visits one station for two days, announced a day ahead on the map.
+// local = price factors at their station; global = price factors everywhere; aura = rule changes while present.
+export const VIPS = [
+  { id: 'jensen', name: '黄仁勋', title: '皮衣巡演', station: 'market', quote: '“买得越多，省得越多。”今天是真的省了。', local: { compute: .55, b300: .55, rtx: .6, minecard: .7 }, global: {}, aura: {}, item: 'leather', hint: '算力黑市的显卡类 −40%' },
+  { id: 'liang', name: '梁文峰', title: '凌晨发模型', station: 'opensource', quote: '没有发布会，只有一篇论文和一个下载链接。', local: { whale: 2.2 }, global: { compute: 1.35, b300: 1.35, rtx: 1.3, minecard: 1.25 }, aura: { work: 1.2 }, item: 'bowl', hint: '全城显卡涨价；接单（做 AI 应用）+20%' },
+  { id: 'musk', name: '马斯克', title: '明年发布会', station: 'launch', quote: '“明年一定交付。”台下掌声比去年还热烈。', local: { robot: 1.8, invite: 1.5 }, global: {}, aura: { rush: 1.3 }, item: 'rocket', hint: '发布会机器人券、邀请码暴涨；熬夜急单 +30%' },
+  { id: 'zuck', name: '扎克伯格', title: '开源烧烤', station: 'hackathon', quote: '权重免费，烤肠也免费，显存自理。', local: { prompt: .5, workflow: .6, skillbook: .6 }, global: {}, aura: { learn: 3 }, item: 'bbq', hint: '黑客松提示词、工作流、秘籍便宜；学习 +3' },
+  { id: 'sam', name: '奥特曼', title: '草莓之夜', station: 'course', quote: '“下一代模型会让你大吃一惊。”大家先吃了一惊。', local: { invite: 2, lesson: 1.4 }, global: {}, aura: { viral: 6 }, item: 'strawberry', hint: '知识付费群邀请码翻倍；写稿爆款 +6%' },
+  { id: 'dario', name: '达里奥', title: '安全小卖部', station: 'jobs', quote: '“请先阅读这份 80 页的安全说明。”', local: { claude: .6, tungsten: 2.2 }, global: {}, aura: { calm: 2 }, item: 'manual', hint: '接单群拼车位便宜、钨块暴涨；所有行动压力 −2' },
+  { id: 'whale', name: '大肥鱼', title: '世界巡演', station: 'stream', quote: '本鲸只吃白饭，但带货能力一流。', local: { whale: 2.5, avatar: 1.4 }, global: {}, aura: { rest: 5 }, item: 'plush', hint: '直播基地肥鱼毛绒、分身暴涨；休息多减 5 压力' },
+];
+// Picked up by being at a VIP's station while they are there. Used automatically by the matching action.
+export const ITEMS = {
+  leather: { name: '皮衣签名卡', action: 'build', charges: 2, desc: '下 2 次做产品：花费减半、技术债再 −3' },
+  bowl: { name: '白饭钢盆', action: 'work', charges: 2, desc: '下 2 次接单：每次 +¥300' },
+  rocket: { name: '火箭推进器', action: 'rush', charges: 2, desc: '下 2 次熬夜急单：收入 +50%' },
+  bbq: { name: '开源烤肠', action: 'learn', charges: 2, desc: '下 2 次学习：技能再 +5' },
+  strawberry: { name: '金色草莓', action: 'write', charges: 2, desc: '下 2 次写稿：爆款概率 +15%' },
+  manual: { name: '安全手册', action: 'maintain', charges: 1, desc: '下次还技术债：再 −20 技术债、−10 压力' },
+  plush: { name: '鲸鱼挂件', action: 'rest', charges: 2, desc: '下 2 次休息：健康再 +10' },
+};
+// Market depth: each unit you trade at one station on one day moves that day's price there.
+export const DEPTH_STEP = .025;
+export const DEPTH_FLOOR = .6;

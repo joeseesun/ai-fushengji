@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newGame, transition, getEvent, usedSpace, isValidSave, parseSave, salePrice, inventoryValue, actionInfo, dailyCost, dailyInterest, productIncome, endingFor, shareText, travelFare } from '../src/engine.js';
+import { buyCost, sellIncome, newGame, transition, getEvent, usedSpace, isValidSave, parseSave, salePrice, inventoryValue, actionInfo, dailyCost, dailyInterest, productIncome, endingFor, shareText, travelFare } from '../src/engine.js';
 import { GOODS, EVENTS, MILESTONES } from '../src/content.js';
 
 const ready = (seed = 42) => transition(newGame('coder', seed), { type: 'choose', index: 0 }).state;
@@ -24,10 +24,10 @@ test('optional encounters allow trading, travel, repayment and work', () => {
 test('a same-day round trip loses only the spread, conserving holdings and AP', () => {
   const s = ready(), amount = 3;
   const bought = act(s, { type: 'buy', id: 'prompt', qty: amount });
-  assert.equal(bought.cash, s.cash - s.prices.prompt * amount);
+  assert.equal(bought.cash, s.cash - buyCost(s, 'prompt', amount));
   assert.equal(usedSpace(bought), amount); assert.equal(bought.ap, 2);
   const sold = act(bought, { type: 'sell', id: 'prompt', qty: amount });
-  assert.equal(sold.cash, s.cash - (s.prices.prompt - salePrice(s, 'prompt')) * amount);
+  assert.equal(sold.cash, bought.cash + sellIncome(bought, 'prompt', amount)); assert.ok(sold.cash < s.cash);
   assert.deepEqual(sold.inventory.prompt, { qty: 0, cost: 0 });
   assert.equal(sold.tradeProfit, sold.cash - s.cash);
   assert.ok(isValidSave(sold));
@@ -46,9 +46,9 @@ test('partial sales preserve exact total book cost after liquidation', () => {
   s = act(s, { type: 'buy', id: 'prompt', qty: 7 });
   s.prices.prompt += 13;
   s = act(s, { type: 'buy', id: 'prompt', qty: 4 });
-  const totalCost = s.inventory.prompt.cost, sale = salePrice(s, 'prompt');
-  for (let i = 0; i < 11; i++) s = act(s, { type: 'sell', id: 'prompt', qty: 1 });
-  assert.equal(s.inventory.prompt.cost, 0); assert.equal(s.tradeProfit, sale * 11 - totalCost);
+  const totalCost = s.inventory.prompt.cost; let income = 0;
+  for (let i = 0; i < 11; i++) { income += sellIncome(s, 'prompt', 1); s = act(s, { type: 'sell', id: 'prompt', qty: 1 }); }
+  assert.equal(s.inventory.prompt.cost, 0); assert.equal(s.tradeProfit, income - totalCost);
 });
 test('exactly two actions per day and resting really restores health', () => {
   let s = ready(); const start = s;

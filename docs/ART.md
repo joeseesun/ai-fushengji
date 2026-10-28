@@ -13,7 +13,8 @@
 | 货品图标（由 4×2 与 4×1 图集切出） | `public/art/goods/*.webp` | 12 |
 | 外挂卡图标（4×3 图集切出） | `public/art/perks/*.webp` | 12 |
 | 房东 Boss、外挂三选一 | `public/art/scenes/rent-boss.webp` 等 | 2 |
+| 大佬道具图标（4×2 图集切出） | `public/art/items/*.webp` | 8 |
 | 北京地图 | `public/art/scenes/map.webp` | 1 |
 | 饭局社交与天使投资 | `public/art/scenes/act-social.webp` 等 | 2 |
 
-每张图的完整提示词保存在 `design-previews/{roles,scenes,news,actions,map,perks}/*.json`。原始 PNG 约 90MB，未提交；游戏内使用压缩后的 WebP（合计约 3MB，随离线缓存一起下载）。图中不含文字，人物为虚构形象。
+每张图的完整提示词保存在 `design-previews/{roles,scenes,news,actions,map,perks,vips}/*.json`。原始 PNG 约 90MB，未提交；游戏内使用压缩后的 WebP（合计约 3MB，随离线缓存一起下载）。图中不含文字，人物为虚构形象。

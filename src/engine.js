@@ -1,4 +1,4 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS, PERKS, DRAFT_DAYS, RENT_DAYS, RENT_LATE_RATE, GOOD_OUTCOMES, BAD_OUTCOMES } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS, PERKS, DRAFT_DAYS, RENT_DAYS, RENT_LATE_RATE, GOOD_OUTCOMES, BAD_OUTCOMES, VIPS, ITEMS, DEPTH_STEP, DEPTH_FLOOR } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 import { drawNews, getEdition, validNews } from './news.js';
@@ -6,7 +6,7 @@ import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
 import { careerOffer, careerDemand, careerAction } from './careers.js';
 import { RULESET, MAX_COMMANDS, cleanCommand, validProof } from './run-proof.js';
 
-export const VERSION = 8;
+export const VERSION = 9;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -59,7 +59,20 @@ export const modelFee = (s, model) => s.role === 'grad' ? Math.ceil(model.fee / 
 export const expandCost = s => 700 + (s.capacity - 18) * 40;
 export const sells = (s, id) => s.available.includes(id);
 export const hasPerk = (s, id) => !!s.perks?.includes(id);
-export const buyPrice = (s, id) => hasPerk(s, 'scalper') ? Math.max(2, Math.round(s.prices[id] * .95)) : s.prices[id];
+const baseBuy = (s, id) => hasPerk(s, 'scalper') ? Math.max(2, Math.round(s.prices[id] * .95)) : s.prices[id];
+const baseSale = (s, id) => Math.max(1, Math.min(baseBuy(s, id) - 1, Math.floor(s.prices[id] * (hasPerk(s, 'scale') ? .93 : .9))));
+const traded = (s, id, side) => s.flow?.[id]?.[side] ?? 0;
+// Price of the k-th unit traded today at this station: buying lifts the ask, selling sinks the bid.
+const unitBuy = (s, id, k) => Math.round(baseBuy(s, id) * (1 + DEPTH_STEP * k));
+const unitSale = (s, id, k) => Math.max(1, Math.floor(baseSale(s, id) * Math.max(DEPTH_FLOOR, 1 - DEPTH_STEP * k)));
+export const buyPrice = (s, id) => unitBuy(s, id, traded(s, id, 'b'));
+export const buyCost = (s, id, qty) => { let n = 0; for (let i = 0; i < qty; i++) n += unitBuy(s, id, traded(s, id, 'b') + i); return n; };
+export const sellIncome = (s, id, qty) => { let n = 0; for (let i = 0; i < qty; i++) n += unitSale(s, id, traded(s, id, 's') + i); return n; };
+export const depth = (s, id) => ({ bought: traded(s, id, 'b'), sold: traded(s, id, 's'), bidCut: Math.round(Math.min(1 - DEPTH_FLOOR, DEPTH_STEP * traded(s, id, 's')) * 100), askLift: Math.round(DEPTH_STEP * traded(s, id, 'b') * 100) });
+export const activeVips = s => (s.vips ?? []).filter(v => v.from <= s.day && s.day <= v.until).map(v => ({ ...VIPS.find(x => x.id === v.id), ...v }));
+export const upcomingVips = s => (s.vips ?? []).filter(v => v.from > s.day).map(v => ({ ...VIPS.find(x => x.id === v.id), ...v }));
+const aura = (s, key, fallback) => activeVips(s).reduce((n, v) => v.aura[key] === undefined ? n : key === 'work' || key === 'rush' ? n * v.aura[key] : n + v.aura[key], fallback);
+export const itemFor = (s, action) => Object.keys(s.items ?? {}).find(id => ITEMS[id].action === action && s.items[id] > 0) ?? null;
 export const nightlyWear = s => Math.max(0, 1 + (s.stress >= 70 ? 5 : s.stress >= 50 ? 2 : 0) - (hasPerk(s, 'chair') ? 1 : 0));
 export const rentDue = s => s.rent && !s.rent.paid ? s.rent.due : 0;
 const emptyStats = () => ({ best: null, worst: null, crits: 0, flops: 0, hospital: 0, viral: 0, rentPaid: 0, rentLate: 0, visits: {} });
@@ -85,7 +98,7 @@ export function priceHeat(s, id) {
 }
 export const usedSpace = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty, 0);
 // Selling is always below buying, even with both trade perks, so a same-day round trip never prints money.
-export const salePrice = (s, id) => Math.max(1, Math.min(buyPrice(s, id) - 1, Math.floor(s.prices[id] * (hasPerk(s, 'scale') ? .93 : .9))));
+export const salePrice = (s, id) => unitSale(s, id, traded(s, id, 's'));
 export const inventoryValue = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty * salePrice(s, g.id), 0);
 export const netWorth = s => s.cash + inventoryValue(s) - s.debt;
 export const productIncome = s => Math.max(0, Math.floor(s.products * Math.max(25, 140 + s.reputation * 1.6 - s.techDebt * 1.3) * (getNews(s)?.product ?? 1) * (s.role === 'opc' ? 1.4 : 1) * (hasPerk(s, 'cofounder') ? 1.2 : 1)));
@@ -128,10 +141,13 @@ function market(s) {
   s.newsLegacy = false;
   s.previousPrices = { ...s.prices };
   drawNews(s, random);
-  const news = getNews(s), place = getLocation(s);
+  s.flow = {};
+  scheduleVips(s);
+  const news = getNews(s), place = getLocation(s), present = activeVips(s);
+  const vipFactor = id => present.reduce((n, v) => n * (v.global[id] ?? 1) * (v.station === s.location ? v.local[id] ?? 1 : 1), 1);
   for (const g of GOODS) {
     const age = Math.max(.22, 1 - g.decay * (s.day - 1));
-    s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1)));
+    s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1) * vipFactor(g.id)));
     s.history[g.id] = [...(s.history[g.id] ?? []), s.prices[g.id]].slice(-8);
   }
   // Put at least two headline-affected goods on today's shelf, then rotate the rest.
@@ -162,6 +178,23 @@ function market(s) {
   s.draft = DRAFT_DAYS.includes(s.day) ? shuffle(s, PERKS.map(p => p.id).filter(id => !hasPerk(s, id))).slice(0, 3) : null;
   s.rent = RENT_DAYS[s.day] ? { due: RENT_DAYS[s.day], paid: false } : null;
   if (s.stats) s.stats.visits[s.location] = (s.stats.visits[s.location] ?? 0) + 1;
+  for (const v of s.vips) if (v.from <= s.day && s.day <= v.until && v.station === s.location && !v.claimed) {
+    const vip = VIPS.find(x => x.id === v.id), item = ITEMS[vip.item];
+    s.items[vip.item] = (s.items[vip.item] ?? 0) + item.charges; v.claimed = true;
+    log(s, `偶遇${vip.name}「${vip.title}」，拿到道具「${item.name}」：${item.desc}。`, 'vip');
+  }
+}
+
+// One VIP is announced for tomorrow each day and stays two days; the same person never overlaps themself.
+function scheduleVips(s) {
+  s.vips = (s.vips ?? []).filter(v => v.until >= s.day);
+  const add = from => {
+    const busy = s.vips.map(v => v.id), pool = VIPS.filter(v => !busy.includes(v.id));
+    const vip = pool[Math.floor(random(s) * pool.length)];
+    s.vips.push({ id: vip.id, station: vip.station, from, until: from + 1, claimed: false });
+  };
+  if (s.day === 1 && !s.vips.length) add(1);
+  if (s.day < DAYS && !s.vips.some(v => v.from === s.day + 1)) add(s.day + 1);
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -172,7 +205,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0, perks: [], draft: null, rent: null, stats: emptyStats(),
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0, perks: [], draft: null, rent: null, stats: emptyStats(), vips: [], items: {}, flow: {},
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -204,7 +237,7 @@ export function writeOutcomes(s) {
   const mult = (s.role === 'creator' ? 1.5 : 1) * (s.location === 'stream' ? 1.5 : 1);
   const base = WRITE_OUTCOMES.map(o => s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight);
   // Perks move odds into “meh” so the total stays 100.
-  const weights = WRITE_OUTCOMES.map((o, i) => base[i] - (hasPerk(s, 'gacha') && ['gacha', 'limited'].includes(o.id) ? Math.floor(base[i] / 2) : 0) + (hasPerk(s, 'koi') && o.id === 'viral' ? 6 : 0));
+  const weights = WRITE_OUTCOMES.map((o, i) => base[i] - (hasPerk(s, 'gacha') && ['gacha', 'limited'].includes(o.id) ? Math.floor(base[i] / 2) : 0) + (hasPerk(s, 'koi') && o.id === 'viral' ? 6 : 0) + (o.id === 'viral' ? aura(s, 'viral', 0) + (itemFor(s, 'write') ? 15 : 0) : 0));
   const meh = WRITE_OUTCOMES.findIndex(o => o.id === 'meh');
   weights[meh] += 100 - weights.reduce((n, w) => n + w, 0);
   return WRITE_OUTCOMES.map((o, i) => ({ ...o, weight: weights[i], effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) + (o.cash > 0 ? modelBonus(s)?.work ?? 0 : 0) } : {}), ...o.effects } }));
@@ -221,12 +254,12 @@ export function actionInfo(s, action) {
   const bonus = modelBonus(s), role = s.role;
   const offer = careerOffer(s), demand = careerDemand(s);
   const wage = Math.round((offer.base + s.skill * offer.skill + s.reputation * offer.rep + (s.location === 'jobs' ? 160 : 0)) * offer.mult * offer.rate * (demand?.active ? demand.rate : 1));
-  const job = Math.round(wage * (hasPerk(s, 'keyboard') ? 1.15 : 1)) + (bonus?.work ?? 0);
+  const job = Math.round(wage * (hasPerk(s, 'keyboard') ? 1.15 : 1) * aura(s, 'work', 1)) + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
-    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
-    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (hasPerk(s, 'monitor') ? 3 : 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
-    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0) + (hasPerk(s, 'pillow') ? 4 : 0), stress: -22 - (hasPerk(s, 'pillow') ? 8 : 0) }, after: '没有产出的一格行动，也算在认真生活。' },
+    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65 * aura(s, 'rush', 1)), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
+    learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (hasPerk(s, 'monitor') ? 3 : 0) + aura(s, 'learn', 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
+    rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0) + (hasPerk(s, 'pillow') ? 4 : 0), stress: -22 - (hasPerk(s, 'pillow') ? 8 : 0) - aura(s, 'rest', 0) }, after: '没有产出的一格行动，也算在认真生活。' },
     build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0) - (hasPerk(s, 'cofounder') ? 3 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
     write: { name: '写稿发帖', desc: '抽卡式创作：可能 10 万+，也可能住院。', icon: 'PenLine', effects: { health: -3, stress: 5 }, outcomes: writeOutcomes(s), after: '' },
     maintain: { name: '还一点技术债', desc: '修旧坑，也保护每天的产品收入。', icon: 'Wrench', effects: { cash: -90, techDebt: -18, stress: -5, skill: 2 }, after: '删掉一层包装。你终于又能看懂自己的系统了。' },
@@ -246,6 +279,18 @@ export function actionInfo(s, action) {
   if (['work', 'rush', 'write', 'learn', 'build'].includes(action) && bonus) info.assist = action === 'learn' ? `搭子学习 +${bonus.learn}` : action === 'build' ? `搭子技术债 ${bonus.build}` : action === 'write' ? `有稿费时搭子 +¥${bonus.work}` : `含搭子 +¥${action === 'rush' ? Math.floor(job * 1.65) - Math.floor(wage * 1.65) : bonus.work}`;
   if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
   if (hasPerk(s, 'headphones') && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.max(0, info.effects.stress - 2) };
+  if (aura(s, 'calm', 0) && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.max(0, info.effects.stress - aura(s, 'calm', 0)) };
+  const item = itemFor(s, action);
+  if (item) {
+    const e = { ...info.effects };
+    if (item === 'leather') { e.cash = Math.round(e.cash / 2); e.techDebt = Math.max(0, (e.techDebt ?? 0) - 3); }
+    if (item === 'bowl') e.cash += 300;
+    if (item === 'rocket') e.cash = Math.round(e.cash * 1.5);
+    if (item === 'bbq') e.skill += 5;
+    if (item === 'manual') { e.techDebt -= 20; e.stress -= 10; }
+    if (item === 'plush') e.health += 10;
+    info.effects = e; info.item = item;
+  }
   if (ACTION_ROLLS[action]) {
     const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
     // Launch parties and hackathons are where the angels drink.
@@ -337,14 +382,16 @@ export function transition(original, command) {
       if (!sells(s, g.id)) return fail(`这一站今天不收${g.short}，换个地方再交易。`);
       const holding = s.inventory[g.id];
       if (command.type === 'buy') {
-        const cost = buyPrice(s, g.id) * command.qty;
+        const cost = buyCost(s, g.id, command.qty);
         if (usedSpace(s) + command.qty > s.capacity) return fail('仓库放不下了，先卖出或扩容。');
         if (cost > s.cash) return fail('现金不足，少买一点。');
         s.cash -= cost; holding.qty += command.qty; holding.cost += cost;
+        s.flow[g.id] = { b: traded(s, g.id, 'b') + command.qty, s: traded(s, g.id, 's') };
         message = `买入 ${command.qty} ${g.unit}${g.name}，花费 ¥${cost.toLocaleString('zh-CN')}。${pick(BUY_LINES, s.day + command.qty)}`;
       } else {
         if (holding.qty < command.qty) return fail('持仓不够，不能卖出不存在的东西。');
-        const income = salePrice(s, g.id) * command.qty;
+        const income = sellIncome(s, g.id, command.qty);
+        s.flow[g.id] = { b: traded(s, g.id, 'b'), s: traded(s, g.id, 's') + command.qty };
         const cost = command.qty === holding.qty ? holding.cost : Math.round(holding.cost * command.qty / holding.qty);
         s.cash += income; holding.qty -= command.qty; holding.cost -= cost; s.tradeProfit += income - cost;
         s.totalEarned += Math.max(0, income - cost);
@@ -360,6 +407,7 @@ export function transition(original, command) {
       if (!info) return fail('这个行动不存在。');
       if (info.reason) return fail(info.reason);
       applyEffects(s, info.effects); s.ap--;
+      if (info.item) { s.items[info.item]--; if (!s.items[info.item]) delete s.items[info.item]; }
       if (info.outcomes) {
         let roll = random(s) * info.outcomes.reduce((n, o) => n + o.weight, 0);
         const o = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
@@ -583,6 +631,9 @@ export function isValidSave(s) {
   if (!Array.isArray(s.perks) || s.perks.length > DRAFT_DAYS.length || new Set(s.perks).size !== s.perks.length || !s.perks.every(id => PERKS.some(p => p.id === id))) return false;
   if (s.draft !== null && !(Array.isArray(s.draft) && s.draft.length >= 1 && s.draft.length <= 3 && new Set(s.draft).size === s.draft.length && s.draft.every(id => PERKS.some(p => p.id === id) && !s.perks.includes(id)))) return false;
   if (s.rent !== null && !(s.rent && integer(s.rent.due, 1, 1e6) && typeof s.rent.paid === 'boolean')) return false;
+  if (!Array.isArray(s.vips) || s.vips.length > 3 || !s.vips.every(v => v && VIPS.some(x => x.id === v.id && x.station === v.station) && integer(v.from, 1, DAYS) && v.until === v.from + 1 && typeof v.claimed === 'boolean')) return false;
+  if (!s.items || typeof s.items !== 'object' || Array.isArray(s.items) || !Object.entries(s.items).every(([id, n]) => ITEMS[id] && integer(n, 1, 20))) return false;
+  if (!s.flow || typeof s.flow !== 'object' || Array.isArray(s.flow) || !Object.entries(s.flow).every(([id, f]) => GOODS.some(g => g.id === id) && f && integer(f.b, 0, 1000) && integer(f.s, 0, 1000))) return false;
   const st = s.stats, trade = t => t === null || (t && GOODS.some(g => g.id === t.id) && integer(t.profit, -1e9));
   if (!st || !trade(st.best) || !trade(st.worst) || !['crits', 'flops', 'hospital', 'viral', 'rentPaid', 'rentLate'].every(k => integer(st[k], 0, 1000)) || !st.visits || typeof st.visits !== 'object' || !Object.entries(st.visits).every(([loc, n]) => LOCATIONS.some(l => l.id === loc) && integer(n, 0, DAYS))) return false;
   if (s.arrival !== null && !(s.arrival && ARRIVALS.some(a => a.id === s.arrival.id && (a.amounts ? a.amounts.includes(s.arrival.amount) : s.arrival.amount === 0)))) return false;
@@ -660,7 +711,11 @@ export function parseSave(text) {
     if (s?.version === 6) { s.proof = null; s.failure = null; s.version = 7; }
     if (s?.version === 7) {
       // v8 adds perks, rent days and the year-end report. Old runs keep playing; the old ruleset cannot be replayed on the leaderboard.
-      s.perks = []; s.draft = null; s.rent = null; s.stats = emptyStats(); s.proof = null; s.version = VERSION;
+      s.perks = []; s.draft = null; s.rent = null; s.stats = emptyStats(); s.proof = null; s.version = 8;
+    }
+    if (s?.version === 8) {
+      // v9 adds VIP visits, items and market depth. Today's quotes stay; the first VIP is announced tomorrow.
+      s.vips = []; s.items = {}; s.flow = {}; s.proof = null; s.version = VERSION;
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
