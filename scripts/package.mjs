@@ -1,0 +1,10 @@
+import { mkdir, readFile, rm } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const root = new URL('../', import.meta.url);
+const pkg = JSON.parse(await readFile(new URL('package.json', root)));
+await mkdir(new URL('release/', root), { recursive: true });
+const output = new URL(`release/ai-fushengji-${pkg.version}-web.zip`, root);
+await rm(output, { force: true });
+execFileSync('zip', ['-qr', fileURLToPath(output), '.'], { cwd: new URL('dist/', root), stdio: 'inherit' });
+console.log(fileURLToPath(output));

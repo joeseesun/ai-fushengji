@@ -1,0 +1,70 @@
+<style>
+  .dir-a, .dir-a * { box-sizing: border-box; }
+  .dir-a { width:100%; height:370px; padding:12px; overflow:hidden; background:#008080; color:#161616; font-family:Tahoma,"Microsoft YaHei",sans-serif; font-size:11px; line-height:1.35; }
+  .dir-a .a-window { height:100%; padding:3px; background:#c0c0c0; border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:1px 1px 0 #000; display:flex; flex-direction:column; }
+  .dir-a .a-title { height:25px; flex-shrink:0; display:flex; align-items:center; gap:6px; padding:3px 4px; color:#fff; background:#000080; font-weight:bold; }
+  .dir-a .a-title svg { width:16px; height:16px; flex-shrink:0; image-rendering:pixelated; }
+  .dir-a .a-appname { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.2px; }
+  .dir-a .a-controls { display:flex; gap:3px; }
+  .dir-a .a-control { display:grid; place-items:center; width:17px; height:17px; color:#000; font:700 11px/1 Tahoma,sans-serif; background:#c0c0c0; border:2px solid; border-color:#fff #444 #444 #fff; }
+  .dir-a .a-menu { display:flex; gap:16px; padding:5px 8px 4px; height:25px; font-size:10px; }
+  .dir-a .a-menu u { text-underline-offset:2px; }
+  .dir-a .a-inner { padding:2px 7px 6px; display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; }
+  .dir-a .a-metrics { display:grid; grid-template-columns:1fr 1fr .72fr; gap:5px; }
+  .dir-a .a-metric { border:1px solid; border-color:#808080 #fff #fff #808080; padding:4px 7px; display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .dir-a .a-label { font-size:9px; color:#454545; }
+  .dir-a .a-value { font-family:"Courier New",monospace; font-size:19px; font-weight:bold; white-space:nowrap; line-height:1.1; }
+  .dir-a .a-debt { color:#800000; }
+  .dir-a .a-location { display:flex; justify-content:space-between; gap:5px; align-items:center; padding:1px 1px 0; font-size:11px; font-weight:bold; white-space:nowrap; }
+  .dir-a .a-day { font-family:"Courier New",monospace; font-size:11px; color:#333; }
+  .dir-a .a-market { background:#fff; border:2px solid; border-color:#808080 #fff #fff #808080; }
+  .dir-a .a-row { display:grid; grid-template-columns:minmax(0,1fr) 86px 65px; align-items:center; min-height:25px; padding:0 8px; border-bottom:1px dotted #d0d0d0; }
+  .dir-a .a-row:last-child { border-bottom:0; }
+  .dir-a .a-heading { min-height:21px; padding:0; background:#c0c0c0; border:0; font-size:9px; color:#333; }
+  .dir-a .a-heading span { height:21px; display:flex; align-items:center; padding-left:8px; border:1px solid; border-color:#fff #808080 #808080 #fff; }
+  .dir-a .a-heading span:nth-child(n+2) { justify-content:flex-end; padding:0 8px 0 0; }
+  .dir-a .a-row > span:nth-child(n+2) { text-align:right; font-family:"Courier New",monospace; font-size:12px; }
+  .dir-a .a-selected { background:#000080; color:#fff; }
+  .dir-a .a-down { color:#a00000; }
+  .dir-a .a-up { color:#087335; }
+  .dir-a .a-selected .a-down { color:#fff; }
+  .dir-a .a-alert { display:flex; gap:9px; align-items:center; min-height:43px; padding:6px 8px; background:#ffffdf; border:1px solid #808060; }
+  .dir-a .a-alert-icon { flex-shrink:0; width:23px; height:23px; display:grid; place-items:center; background:#ffff00; border:1px solid #222; font:bold 18px/1 "Courier New",monospace; }
+  .dir-a .a-alert strong { display:block; margin-bottom:2px; font-size:9px; font-weight:normal; color:#64633c; }
+  .dir-a .a-alert p { margin:0; font-size:10px; line-height:1.45; }
+  .dir-a .a-actions { display:flex; gap:7px; align-items:center; margin-top:auto; }
+  .dir-a .a-hint { flex:1; min-width:0; font-size:9px; color:#555; }
+  .dir-a button { color:#111; background:#c0c0c0; border:2px solid; border-color:#fff #404040 #404040 #fff; border-radius:0; box-shadow:1px 1px 0 #000; font:11px Tahoma,"Microsoft YaHei",sans-serif; padding:5px 11px; min-width:65px; white-space:nowrap; }
+  .dir-a .a-primary { outline:1px solid #000; outline-offset:1px; }
+  .dir-a .a-status { height:18px; flex-shrink:0; display:flex; gap:3px; color:#333; font-size:9px; }
+  .dir-a .a-status span { border:1px solid; border-color:#808080 #fff #fff #808080; padding:1px 5px; }
+  .dir-a .a-status span:first-child { flex:1; }
+  @media(max-width:420px) { .dir-a { padding:8px; } .dir-a .a-inner { padding:2px 4px 6px; gap:6px; } .dir-a .a-value { font-size:17px; } .dir-a .a-metric { padding:4px 5px; } .dir-a .a-row { grid-template-columns:minmax(0,1fr) 66px 53px; } .dir-a .a-location { font-size:10px; } .dir-a .a-day { font-size:10px; } .dir-a .a-hint { max-width:90px; font-size:9px; } .dir-a button { min-width:60px; padding:5px 8px; } .dir-a .a-alert { padding:5px 6px; gap:7px; } }
+</style>
+<section class="dir-a" aria-label="AI 浮生记：Windows 98 怀旧风格游戏预览">
+  <div class="a-window">
+    <div class="a-title">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#fff" d="M1 1h13v10H1z"/><path fill="#777" d="M2 2h11v8H2zM6 11h3v2H6zM4 13h7v2H4z"/><path fill="#00ffff" d="M3 3h9v6H3z"/><path fill="#000080" d="M4 4h2v2H4zM9 4h2v2H9zM6 7h3v1H6z"/><path fill="#000" d="M14 2h1v10H9v1H6v-1H2v-1h12zM4 15h8v1H4z"/></svg>
+      <span class="a-appname">AI 浮生记.exe</span>
+      <div class="a-controls" aria-hidden="true"><span class="a-control">_</span><span class="a-control">□</span><span class="a-control">×</span></div>
+    </div>
+    <div class="a-menu"><span>游戏(<u>G</u>)</span><span>账本(<u>B</u>)</span><span>关于(<u>A</u>)</span></div>
+    <div class="a-inner">
+      <div class="a-metrics">
+        <div class="a-metric"><span class="a-label">现金 / CASH</span><span class="a-value">¥3,680</span></div>
+        <div class="a-metric"><span class="a-label">债务 / DEBT</span><span class="a-value a-debt">¥7,200</span></div>
+        <div class="a-metric"><span class="a-label">健康 / HP</span><span class="a-value">76<span style="font-size:10px;font-weight:normal"> /100</span></span></div>
+      </div>
+      <div class="a-location"><span>⌖ 中关村·算力黑市</span><span class="a-day">第 07 / 40 天</span></div>
+      <div class="a-market" role="table" aria-label="今日市场行情">
+        <div class="a-row a-heading" role="row"><span>交易品</span><span>现价</span><span>涨跌</span></div>
+        <div class="a-row a-selected" role="row"><span>祖传提示词</span><span>¥18</span><span class="a-down">-86%</span></div>
+        <div class="a-row" role="row"><span>算力券</span><span>¥260</span><span class="a-up">+24%</span></div>
+        <div class="a-row" role="row"><span>干净语料</span><span>¥920</span><span class="a-up">+8%</span></div>
+      </div>
+      <div class="a-alert"><span class="a-alert-icon">!</span><div><strong>系统消息 / 今日暴击</strong><p>大厂发布会：你的创业项目，成了免费赠品。</p></div></div>
+      <div class="a-actions"><span class="a-hint">模型在进化，房东在催款。</span><button type="button" class="a-primary">接外包</button><button type="button">换站 →</button></div>
+    </div>
+    <div class="a-status"><span>就绪。离财务自由还差一个风口。</span><span>离线生存</span></div>
+  </div>
+</section>

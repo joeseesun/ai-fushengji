@@ -1,0 +1,282 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AI 浮生记 · 四个设计方向</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f3f1;color:#20211f;font:14px/1.6 system-ui,-apple-system,"PingFang SC",sans-serif}header{border-bottom:1px solid #d7d8d3;background:#fafaf8;padding:20px max(20px,calc((100vw - 1240px)/2));display:flex;justify-content:space-between;gap:20px;align-items:center}header h1{font-size:19px;margin:0}header p{font-size:12px;color:#686a64;margin:4px 0 0}.shortcuts{font-size:12px;color:#686a64;white-space:nowrap}main{max-width:1280px;margin:auto;padding:22px 20px 50px}.dials{display:grid;grid-template-columns:repeat(3,1fr);gap:25px;margin-bottom:22px}.dials label{font-size:12px;color:#55574f}.dials b{font-size:13px;color:#20211f;display:flex;justify-content:space-between;margin-bottom:8px}.dials input{width:100%;accent-color:#323b32}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.direction{background:white;border:1px solid #d6d7d0;border-radius:8px;overflow:hidden}.direction-label{padding:12px 16px;display:flex;justify-content:space-between;gap:10px;font-size:13px}.direction-label span{font-size:11px;color:#647060}.stage{height:370px;overflow:hidden}.choice{padding:12px 16px}.qmdp-pick-button{width:100%;background:#283329;color:white;border:0;padding:12px;border-radius:5px;font:600 13px system-ui;cursor:pointer}.qmdp-pick-button:hover{background:#414f42}button:focus-visible{outline:2px solid #727e68;outline-offset:3px}.selected{outline:2px solid #65735d;outline-offset:2px}.explanations{margin:24px 0 0;display:grid;grid-template-columns:repeat(2,1fr);gap:10px 30px;font-size:12px;color:#61645b}.explanations p{margin:0}.explanations b{color:#272e24}.explanations small{grid-column:1/-1;font-size:12px;margin-top:9px}dialog{max-width:450px;width:calc(100% - 32px);border:1px solid #d6d7d0;border-radius:10px;padding:25px;color:#20211f}dialog::backdrop{background:#0008}dialog h2{font-size:20px;margin:0 0 10px}dialog p{color:#62655c;font-size:13px}textarea{width:100%;height:88px;margin:10px 0 16px;border:1px solid #b8bdb0;border-radius:5px;padding:10px;font:14px system-ui;resize:vertical}.dialog-actions{display:flex;gap:10px}.dialog-actions button{flex:1;padding:12px;border:0;border-radius:5px;font:600 13px system-ui;cursor:pointer}.dialog-actions button:last-child{background:#283329;color:#fff}#response{font-size:12px;margin:14px 0 0;color:#5a624f}.error{color:#af251b!important}@media(max-width:760px){header{align-items:start}.shortcuts{display:none}.grid{grid-template-columns:1fr}.dials{gap:12px}.dials label{font-size:10px}.dials b{font-size:12px}.explanations{grid-template-columns:1fr}main{padding:18px 12px}.direction-label{padding:12px}.choice{padding:12px}header{padding:18px}.dials input{min-height:28px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><header><div><h1>AI 浮生记 · 选一个时代的表情</h1><p>四个设计方向样机，选定后实现完整游戏。</p></div><span class="shortcuts">键盘 1 — 4 选择 · Esc 返回</span></header><main><div class="dials" data-qmdp-dials><label><b>视觉冒险度<output id="varianceOut" data-qmdp-output="variance">7</output></b><input id="variance" data-qmdp-dial="variance" type="range" min="1" max="10" value="7" aria-label="视觉冒险度">熟悉 ← → 大胆</label><label><b>动效强度<output id="motionOut" data-qmdp-output="motion">3</output></b><input id="motion" data-qmdp-dial="motion" type="range" min="1" max="10" value="3" aria-label="动效强度">安静 ← → 活泼</label><label><b>信息密度<output id="densityOut" data-qmdp-output="density">7</output></b><input id="density" data-qmdp-dial="density" type="range" min="1" max="10" value="7" aria-label="信息密度">舒展 ← → 紧凑</label></div><div class="grid"><article class="direction" data-direction="A"><div class="direction-label"><strong>A · 千禧年打工桌面</strong><span>推荐</span></div><div class="stage" inert><style>
+  .dir-a, .dir-a * { box-sizing: border-box; }
+  .dir-a { width:100%; height:370px; padding:12px; overflow:hidden; background:#008080; color:#161616; font-family:Tahoma,"Microsoft YaHei",sans-serif; font-size:11px; line-height:1.35; }
+  .dir-a .a-window { height:100%; padding:3px; background:#c0c0c0; border:2px solid; border-color:#fff #404040 #404040 #fff; box-shadow:1px 1px 0 #000; display:flex; flex-direction:column; }
+  .dir-a .a-title { height:25px; flex-shrink:0; display:flex; align-items:center; gap:6px; padding:3px 4px; color:#fff; background:#000080; font-weight:bold; }
+  .dir-a .a-title svg { width:16px; height:16px; flex-shrink:0; image-rendering:pixelated; }
+  .dir-a .a-appname { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.2px; }
+  .dir-a .a-controls { display:flex; gap:3px; }
+  .dir-a .a-control { display:grid; place-items:center; width:17px; height:17px; color:#000; font:700 11px/1 Tahoma,sans-serif; background:#c0c0c0; border:2px solid; border-color:#fff #444 #444 #fff; }
+  .dir-a .a-menu { display:flex; gap:16px; padding:5px 8px 4px; height:25px; font-size:10px; }
+  .dir-a .a-menu u { text-underline-offset:2px; }
+  .dir-a .a-inner { padding:2px 7px 6px; display:flex; flex-direction:column; gap:7px; flex:1; min-height:0; }
+  .dir-a .a-metrics { display:grid; grid-template-columns:1fr 1fr .72fr; gap:5px; }
+  .dir-a .a-metric { border:1px solid; border-color:#808080 #fff #fff #808080; padding:4px 7px; display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .dir-a .a-label { font-size:9px; color:#454545; }
+  .dir-a .a-value { font-family:"Courier New",monospace; font-size:19px; font-weight:bold; white-space:nowrap; line-height:1.1; }
+  .dir-a .a-debt { color:#800000; }
+  .dir-a .a-location { display:flex; justify-content:space-between; gap:5px; align-items:center; padding:1px 1px 0; font-size:11px; font-weight:bold; white-space:nowrap; }
+  .dir-a .a-day { font-family:"Courier New",monospace; font-size:11px; color:#333; }
+  .dir-a .a-market { background:#fff; border:2px solid; border-color:#808080 #fff #fff #808080; }
+  .dir-a .a-row { display:grid; grid-template-columns:minmax(0,1fr) 86px 65px; align-items:center; min-height:25px; padding:0 8px; border-bottom:1px dotted #d0d0d0; }
+  .dir-a .a-row:last-child { border-bottom:0; }
+  .dir-a .a-heading { min-height:21px; padding:0; background:#c0c0c0; border:0; font-size:9px; color:#333; }
+  .dir-a .a-heading span { height:21px; display:flex; align-items:center; padding-left:8px; border:1px solid; border-color:#fff #808080 #808080 #fff; }
+  .dir-a .a-heading span:nth-child(n+2) { justify-content:flex-end; padding:0 8px 0 0; }
+  .dir-a .a-row > span:nth-child(n+2) { text-align:right; font-family:"Courier New",monospace; font-size:12px; }
+  .dir-a .a-selected { background:#000080; color:#fff; }
+  .dir-a .a-down { color:#a00000; }
+  .dir-a .a-up { color:#087335; }
+  .dir-a .a-selected .a-down { color:#fff; }
+  .dir-a .a-alert { display:flex; gap:9px; align-items:center; min-height:43px; padding:6px 8px; background:#ffffdf; border:1px solid #808060; }
+  .dir-a .a-alert-icon { flex-shrink:0; width:23px; height:23px; display:grid; place-items:center; background:#ffff00; border:1px solid #222; font:bold 18px/1 "Courier New",monospace; }
+  .dir-a .a-alert strong { display:block; margin-bottom:2px; font-size:9px; font-weight:normal; color:#64633c; }
+  .dir-a .a-alert p { margin:0; font-size:10px; line-height:1.45; }
+  .dir-a .a-actions { display:flex; gap:7px; align-items:center; margin-top:auto; }
+  .dir-a .a-hint { flex:1; min-width:0; font-size:9px; color:#555; }
+  .dir-a button { color:#111; background:#c0c0c0; border:2px solid; border-color:#fff #404040 #404040 #fff; border-radius:0; box-shadow:1px 1px 0 #000; font:11px Tahoma,"Microsoft YaHei",sans-serif; padding:5px 11px; min-width:65px; white-space:nowrap; }
+  .dir-a .a-primary { outline:1px solid #000; outline-offset:1px; }
+  .dir-a .a-status { height:18px; flex-shrink:0; display:flex; gap:3px; color:#333; font-size:9px; }
+  .dir-a .a-status span { border:1px solid; border-color:#808080 #fff #fff #808080; padding:1px 5px; }
+  .dir-a .a-status span:first-child { flex:1; }
+  @media(max-width:420px) { .dir-a { padding:8px; } .dir-a .a-inner { padding:2px 4px 6px; gap:6px; } .dir-a .a-value { font-size:17px; } .dir-a .a-metric { padding:4px 5px; } .dir-a .a-row { grid-template-columns:minmax(0,1fr) 66px 53px; } .dir-a .a-location { font-size:10px; } .dir-a .a-day { font-size:10px; } .dir-a .a-hint { max-width:90px; font-size:9px; } .dir-a button { min-width:60px; padding:5px 8px; } .dir-a .a-alert { padding:5px 6px; gap:7px; } }
+</style>
+<section class="dir-a" aria-label="AI 浮生记：Windows 98 怀旧风格游戏预览">
+  <div class="a-window">
+    <div class="a-title">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#fff" d="M1 1h13v10H1z"/><path fill="#777" d="M2 2h11v8H2zM6 11h3v2H6zM4 13h7v2H4z"/><path fill="#00ffff" d="M3 3h9v6H3z"/><path fill="#000080" d="M4 4h2v2H4zM9 4h2v2H9zM6 7h3v1H6z"/><path fill="#000" d="M14 2h1v10H9v1H6v-1H2v-1h12zM4 15h8v1H4z"/></svg>
+      <span class="a-appname">AI 浮生记.exe</span>
+      <div class="a-controls" aria-hidden="true"><span class="a-control">_</span><span class="a-control">□</span><span class="a-control">×</span></div>
+    </div>
+    <div class="a-menu"><span>游戏(<u>G</u>)</span><span>账本(<u>B</u>)</span><span>关于(<u>A</u>)</span></div>
+    <div class="a-inner">
+      <div class="a-metrics">
+        <div class="a-metric"><span class="a-label">现金 / CASH</span><span class="a-value">¥3,680</span></div>
+        <div class="a-metric"><span class="a-label">债务 / DEBT</span><span class="a-value a-debt">¥7,200</span></div>
+        <div class="a-metric"><span class="a-label">健康 / HP</span><span class="a-value">76<span style="font-size:10px;font-weight:normal"> /100</span></span></div>
+      </div>
+      <div class="a-location"><span>⌖ 中关村·算力黑市</span><span class="a-day">第 07 / 40 天</span></div>
+      <div class="a-market" role="table" aria-label="今日市场行情">
+        <div class="a-row a-heading" role="row"><span>交易品</span><span>现价</span><span>涨跌</span></div>
+        <div class="a-row a-selected" role="row"><span>祖传提示词</span><span>¥18</span><span class="a-down">-86%</span></div>
+        <div class="a-row" role="row"><span>算力券</span><span>¥260</span><span class="a-up">+24%</span></div>
+        <div class="a-row" role="row"><span>干净语料</span><span>¥920</span><span class="a-up">+8%</span></div>
+      </div>
+      <div class="a-alert"><span class="a-alert-icon">!</span><div><strong>系统消息 / 今日暴击</strong><p>大厂发布会：你的创业项目，成了免费赠品。</p></div></div>
+      <div class="a-actions"><span class="a-hint">模型在进化，房东在催款。</span><button type="button" class="a-primary">接外包</button><button type="button">换站 →</button></div>
+    </div>
+    <div class="a-status"><span>就绪。离财务自由还差一个风口。</span><span>离线生存</span></div>
+  </div>
+</section>
+</div><div class="choice"><button class="qmdp-pick-button" data-qmdp-managed="page" data-id="A" data-name="千禧年打工桌面">选择 A · 千禧年打工桌面</button></div></article><article class="direction" data-direction="B"><div class="direction-label"><strong>B · 赛博打工日报</strong><span>方向样机</span></div><div class="stage" inert><style>
+.dir-b{box-sizing:border-box;container-type:inline-size;container-name:b-paper;width:100%;height:370px;overflow:hidden;background:#f5f0e5;color:#25241f;padding:17px 22px 13px;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;text-align:left;font-style:normal}
+.dir-b *{box-sizing:border-box}
+.dir-b .b-masthead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:9px;border-bottom:2px solid #25241f}
+.dir-b .b-name{font-family:"Songti SC",STSong,serif;font-weight:800;font-size:20px;letter-spacing:3px;white-space:nowrap;line-height:1}
+.dir-b .b-name span{font-family:inherit;color:#b8412d;letter-spacing:0}
+.dir-b .b-edition{text-align:right;font-size:9px;letter-spacing:1px;line-height:1.35;white-space:nowrap}
+.dir-b .b-edition strong{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1.6px}
+.dir-b .b-lead{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:18px;padding:11px 0 10px}
+.dir-b .b-kicker{margin:0 0 4px;font-size:9px;letter-spacing:1.2px;color:#756f63}
+.dir-b h2{font-family:"Songti SC",STSong,serif;font-size:32px;font-weight:900;line-height:1.14;letter-spacing:-1px;margin:0}
+.dir-b h2 span{color:#b8412d}
+.dir-b .b-ledger{border-left:1px solid #b5ad9d;padding-left:15px;align-self:stretch;font-size:10px}
+.dir-b .b-ledger p{margin:0 0 4px;color:#756f63;font-size:9px;letter-spacing:1.6px}
+.dir-b .b-cash{display:block;font-size:23px;font-weight:650;line-height:1.2;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.dir-b .b-debt,.dir-b .b-health{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-variant-numeric:tabular-nums}
+.dir-b .b-debt strong{font-weight:600;color:#b8412d}
+.dir-b .b-health strong{font-weight:600}
+.dir-b .b-market{display:flex;gap:16px;align-items:center;padding:7px 0;border-top:1px solid #25241f;border-bottom:1px solid #25241f;font-size:10px;white-space:nowrap}
+.dir-b .b-market-label{font-size:9px;letter-spacing:1.4px;font-weight:750;border-right:1px solid #b5ad9d;padding-right:15px}
+.dir-b .b-market b{margin-left:5px;font-variant-numeric:tabular-nums;font-size:12px}
+.dir-b .b-rise{color:#b8412d}
+.dir-b .b-fall{color:#4d6652}
+.dir-b .b-event{display:grid;grid-template-columns:31px minmax(0,1fr);column-gap:12px;padding-top:10px}
+.dir-b .b-event-number{font-family:"Songti SC",STSong,serif;color:#b8412d;font-size:28px;line-height:1;border-right:1px solid #c8beab;padding-right:9px;height:43px}
+.dir-b .b-event-category{font-size:9px;letter-spacing:1.4px;color:#756f63;margin:0 0 4px}
+.dir-b h3{font-family:"Songti SC",STSong,serif;font-size:18px;line-height:1.2;font-weight:800;letter-spacing:-.3px;margin:0}
+.dir-b .b-event-copy{font-size:10px;line-height:1.4;margin:4px 0 0;color:#746d61}
+.dir-b .b-choices{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+.dir-b button{appearance:none;border:1px solid #25241f;border-radius:0;min-width:0;min-height:31px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:inherit;font-size:11px;font-weight:600;line-height:1;color:#25241f;background:transparent;cursor:pointer}
+.dir-b button.b-pivot{background:#b8412d;color:#fff8ee;border-color:#b8412d}
+.dir-b button:focus-visible{outline:2px solid #25241f;outline-offset:2px}
+.dir-b button span{font-size:14px;font-weight:400}
+.dir-b .b-journal{display:flex;gap:11px;align-items:baseline;margin-top:10px;padding-top:7px;border-top:1px solid #b5ad9d;font-size:9px;line-height:1.2;color:#756f63;white-space:nowrap}
+.dir-b .b-journal b{font-weight:600;letter-spacing:1px;color:#25241f}
+.dir-b .b-journal time{font-variant-numeric:tabular-nums}
+@container b-paper (max-width:400px){
+ .dir-b .b-name{font-size:17px;letter-spacing:2px}
+ .dir-b .b-edition{font-size:8px;letter-spacing:.2px}
+ .dir-b .b-lead{grid-template-columns:minmax(0,1fr) 100px;gap:10px;padding:13px 0 12px}
+ .dir-b h2{font-size:25px;line-height:1.24;letter-spacing:-1.5px}
+ .dir-b .b-ledger{padding-left:10px}
+ .dir-b .b-cash{font-size:21px}
+ .dir-b .b-market{gap:10px;font-size:9px}
+ .dir-b .b-market-label{padding-right:9px;font-size:8px;letter-spacing:.5px}
+ .dir-b .b-market b{font-size:11px;margin-left:3px}
+ .dir-b .b-event{column-gap:9px;grid-template-columns:25px minmax(0,1fr)}
+ .dir-b .b-event-number{font-size:23px;padding-right:7px}
+ .dir-b h3{font-size:16px;line-height:1.3}
+ .dir-b .b-event-copy{font-size:9px}
+ .dir-b .b-choices{margin-top:9px}
+ .dir-b .b-journal{gap:7px;font-size:8px;margin-top:9px}
+ .dir-b .b-journal .b-journal-extra{display:none}
+}
+</style>
+<section class="dir-b" aria-label="AI 浮生记：赛博打工日报">
+  <header class="b-masthead">
+    <div class="b-name">浮生日报<span>·</span></div>
+    <div class="b-edition">AI 时代 · 个体生存实录<br><strong>DAY 07 / 40</strong></div>
+  </header>
+  <div class="b-lead">
+    <div>
+      <p class="b-kicker">今日头条 / 又一个普通的星期一</p>
+      <h2>模型又升级了。<br><span>你呢？</span></h2>
+    </div>
+    <aside class="b-ledger" aria-label="生存账本">
+      <p>手头现金</p>
+      <strong class="b-cash">¥3,680</strong>
+      <div class="b-debt"><span>待还负债</span><strong>¥7,200</strong></div>
+      <div class="b-health"><span>身体电量</span><strong>76 / 100</strong></div>
+    </aside>
+  </div>
+  <div class="b-market" aria-label="今日交易行情">
+    <span class="b-market-label">今日市况</span>
+    <span>算力券<b class="b-rise">↑ 24%</b></span>
+    <span>提示词<b class="b-fall">↓ 86%</b></span>
+  </div>
+  <article class="b-event">
+    <div class="b-event-number">07</div>
+    <div>
+      <p class="b-event-category">突发 / 免费才最贵</p>
+      <h3>大厂的免费赠品，<br>是你昨晚的商业计划。</h3>
+      <p class="b-event-copy">产品还没上线，同款能力已写进了更新公告。</p>
+      <div class="b-choices">
+        <button class="b-pivot" type="button">连夜转型<span aria-hidden="true">↗</span></button>
+        <button type="button">做点真需求<span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </article>
+  <footer class="b-journal"><b>昨夜记事</b><time>02:14</time><span>又续了一个 Pro。<span class="b-journal-extra">余额没有，信仰续费。</span></span></footer>
+</section>
+</div><div class="choice"><button class="qmdp-pick-button" data-qmdp-managed="page" data-id="B" data-name="赛博打工日报">选择 B · 赛博打工日报</button></div></article><article class="direction" data-direction="C"><div class="direction-label"><strong>C · 人类进程终端</strong><span>方向样机</span></div><div class="stage" inert><style>
+  .dir-c{--c-bg:#161712;--c-ink:#eee9dc;--c-amber:#e7c677;--c-muted:#a4a697;--c-line:#3b3e32;box-sizing:border-box;width:100%;height:370px;overflow:hidden;background:var(--c-bg);color:var(--c-ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;container-type:inline-size;text-align:left;font-size:12px;line-height:1.45}
+  .dir-c *{box-sizing:border-box}
+  .dir-c button,.dir-c h2,.dir-c p,.dir-c pre,.dir-c dl,.dir-c dd{margin:0}
+  .dir-c .c-mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+  .dir-c .c-top{height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px;border-bottom:1px solid var(--c-line);font-size:10px;letter-spacing:.06em}
+  .dir-c .c-brand{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--c-amber)}
+  .dir-c .c-path{color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-workspace{display:grid;grid-template-columns:112px minmax(0,1fr);height:310px}
+  .dir-c .c-rail{padding:16px 13px;border-right:1px solid var(--c-line);min-width:0}
+  .dir-c .c-day{font-size:10px;color:var(--c-muted);letter-spacing:.07em;white-space:nowrap}
+  .dir-c .c-day strong{display:block;margin:1px 0 15px;color:var(--c-amber);font-size:25px;font-weight:500;letter-spacing:-.06em}
+  .dir-c .c-day strong span{font-size:12px;color:var(--c-muted);letter-spacing:0}
+  .dir-c .c-resources{display:grid;gap:12px}
+  .dir-c .c-resources dt{font-size:10px;color:var(--c-muted);margin-bottom:2px}
+  .dir-c .c-resources dd{font-family:"SFMono-Regular",Consolas,monospace;font-size:16px;letter-spacing:-.04em}
+  .dir-c .c-resources .c-cash{color:var(--c-amber)}
+  .dir-c .c-health{font-size:13px!important}
+  .dir-c .c-health span{font-size:9px;color:var(--c-muted);letter-spacing:-.1em;margin-left:4px}
+  .dir-c .c-inventory{padding-top:16px;margin-top:14px;border-top:1px solid var(--c-line);font-size:9px;line-height:1.75;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-inventory b{font-weight:400;color:var(--c-ink)}
+  .dir-c .c-main{min-width:0;padding:14px 17px 10px}
+  .dir-c .c-heading{font-size:21px;line-height:1.2;letter-spacing:-.04em;font-weight:650;white-space:nowrap}
+  .dir-c .c-heading code{color:var(--c-amber);font-size:22px;font-weight:500;letter-spacing:-.07em}
+  .dir-c .c-event{margin-top:11px;padding-top:10px;border-top:1px solid var(--c-line)}
+  .dir-c .c-event-label{display:flex;justify-content:space-between;gap:10px;color:var(--c-muted);font-size:9px;line-height:1;letter-spacing:.03em;margin-bottom:7px}
+  .dir-c .c-story{font-size:12px;line-height:1.65;color:var(--c-ink)}
+  .dir-c .c-story strong{font-weight:600;color:var(--c-amber)}
+  .dir-c .c-process{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;margin-bottom:8px}
+  .dir-c .c-tree{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:9px;line-height:1.35;color:var(--c-muted);white-space:pre}
+  .dir-c .c-tree em{color:var(--c-amber);font-style:normal}
+  .dir-c .c-bill{text-align:right;flex-shrink:0;font-size:9px;color:var(--c-muted);line-height:1.5}
+  .dir-c .c-bill strong{display:block;color:var(--c-amber);font-size:21px;font-weight:400;letter-spacing:-.07em}
+  .dir-c .c-commands{display:grid;gap:4px}
+  .dir-c .c-command{width:100%;min-height:28px;border:1px solid var(--c-line);background:transparent;color:var(--c-ink);display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;text-align:left;font:inherit;font-size:11px;line-height:1.4;cursor:pointer;border-radius:0}
+  .dir-c .c-command b{color:var(--c-muted);font-family:"SFMono-Regular",Consolas,monospace;font-size:10px;font-weight:400;margin-right:7px}
+  .dir-c .c-command small{font-size:9px;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-command.c-primary{background:var(--c-amber);border-color:var(--c-amber);color:var(--c-bg)}
+  .dir-c .c-command.c-primary b,.dir-c .c-command.c-primary small{color:#343225}
+  .dir-c .c-command:hover{border-color:var(--c-amber)}
+  .dir-c .c-command:focus-visible{outline:2px solid var(--c-ink);outline-offset:2px}
+  .dir-c .c-bottom{height:26px;padding:0 15px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--c-line);font-size:9px;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-bottom strong{color:var(--c-amber);font-weight:400}
+  .dir-c .c-prompt{color:var(--c-amber);letter-spacing:.04em}
+  @container (max-width:420px){
+    .dir-c .c-top{padding:0 10px;font-size:8px;gap:6px}
+    .dir-c .c-brand{font-size:11px}
+    .dir-c .c-workspace{grid-template-columns:78px minmax(0,1fr)}
+    .dir-c .c-rail{padding:14px 8px}
+    .dir-c .c-day strong{font-size:23px}
+    .dir-c .c-resources dd{font-size:13px}
+    .dir-c .c-resources{gap:13px}
+    .dir-c .c-health span{display:block;margin:2px 0 0}
+    .dir-c .c-inventory{font-size:8px;line-height:1.9;padding-top:13px;margin-top:12px}
+    .dir-c .c-main{padding:14px 10px 8px}
+    .dir-c .c-heading{font-size:17px}
+    .dir-c .c-heading code{font-size:18px}
+    .dir-c .c-event{margin-top:10px;padding-top:9px}
+    .dir-c .c-event-label{font-size:8px}
+    .dir-c .c-event-label .c-event-file{display:none}
+    .dir-c .c-story{font-size:11px;line-height:1.6}
+    .dir-c .c-process{gap:4px;margin-top:7px;margin-bottom:7px}
+    .dir-c .c-tree{font-size:8px;line-height:1.4}
+    .dir-c .c-bill{font-size:8px}
+    .dir-c .c-bill strong{font-size:17px}
+    .dir-c .c-command{padding:5px 6px;min-height:30px;font-size:10px;gap:3px}
+    .dir-c .c-command b{font-size:9px;margin-right:4px}
+    .dir-c .c-command small{font-size:8px}
+    .dir-c .c-bottom{padding:0 10px;font-size:8px}
+    .dir-c .c-market-extra{display:none}
+  }
+</style>
+<section class="dir-c" aria-label="AI 浮生记：终端生存方向样机">
+  <header class="c-top">
+    <span class="c-brand">AI 浮生记</span>
+    <span class="c-path c-mono">~/survival/day-07 <span aria-hidden="true">— □ ×</span></span>
+  </header>
+  <div class="c-workspace">
+    <aside class="c-rail" aria-label="生存资源">
+      <div class="c-day c-mono">DAY<strong>07<span> /40</span></strong></div>
+      <dl class="c-resources">
+        <div><dt>现金 / CASH</dt><dd class="c-cash">¥3,680</dd></div>
+        <div><dt>负债 / DEBT</dt><dd>¥7,200</dd></div>
+        <div><dt>健康 / HP</dt><dd class="c-health">76<span aria-hidden="true">▰▰▰▰▰▰▱▱</span></dd></div>
+      </dl>
+      <div class="c-inventory c-mono">~/背包<br><b>├ 旧电脑 ×1<br>└ 提示词 ×3</b></div>
+    </aside>
+    <main class="c-main">
+      <h2 class="c-heading"><code class="c-mono">HUMAN.exe</code> 尚未退出</h2>
+      <div class="c-event">
+        <div class="c-event-label c-mono"><span>[WARN] 智能体套娃</span><span class="c-event-file">event_007.log</span></div>
+        <p class="c-story">Agent 拉了 12 个 Agent 开会。<br>会议结论：<strong>再拉一个 Agent。</strong></p>
+        <div class="c-process">
+          <pre class="c-tree" aria-label="你管理一个主 Agent，主 Agent 管理 12 个开会的 Agent，并等待再添加一个">you
+└─ agent_manager
+   ├─ agents[01…12]
+   └─ <em>agent_13?</em> ▂</pre>
+          <div class="c-bill c-mono">TOKEN 账单<strong>−¥480</strong></div>
+        </div>
+      </div>
+      <div class="c-commands" aria-label="本日行动">
+        <button type="button" class="c-command c-primary"><span><b>[1]</b>拔电源，自己干</span><small>健康 −8</small></button>
+        <button type="button" class="c-command"><span><b>[2]</b>批准第 13 个</span><small>现金 −480</small></button>
+        <button type="button" class="c-command"><span><b>[3]</b>包装成课程卖</span><small>口碑 −12</small></button>
+      </div>
+    </main>
+  </div>
+  <footer class="c-bottom c-mono"><span>market: 提示词 <strong>↓32%</strong><span class="c-market-extra"> · 二手显卡 ↑18%</span></span><span class="c-prompt">等待人类决策 ▋</span></footer>
+</section>
+</div><div class="choice"><button class="qmdp-pick-button" data-qmdp-managed="page" data-id="C" data-name="人类进程终端">选择 C · 人类进程终端</button></div></article><article class="direction" data-direction="D"><div class="direction-label"><strong>D · 出租屋物语</strong><span>方向样机</span></div><div class="stage" inert><style>
+.dir-d,.dir-d *{box-sizing:border-box}.dir-d{height:370px;overflow:hidden;background:#eddcc4;color:#352b28;padding:18px 20px;font-family:system-ui,-apple-system,"PingFang SC",sans-serif;position:relative}.dir-d .d-top{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700}.dir-d h2{margin:0;font-size:21px;letter-spacing:-1px}.dir-d .d-room{height:146px;position:relative;border-bottom:3px solid #352b28;margin:8px 0 12px;background:#f8ebd5}.dir-d .d-window{position:absolute;left:24px;top:13px;width:70px;height:70px;background:#b9c7be;border:3px solid #352b28;box-shadow:4px 4px #c9ba9f}.dir-d .d-window:before{content:'';position:absolute;width:3px;height:100%;background:#352b28;left:50%}.dir-d .d-window:after{content:'';position:absolute;height:3px;width:100%;background:#352b28;top:50%}.dir-d .d-desk{position:absolute;bottom:20px;left:26%;width:48%;height:9px;background:#a36d46;border:2px solid #352b28;box-shadow:0 19px 0 -3px #a36d46}.dir-d .d-screen{position:absolute;bottom:29px;left:35%;width:78px;height:51px;background:#37443c;border:5px solid #acaf97;outline:2px solid #352b28;display:grid;place-items:center;color:#f1d99b;font:700 15px monospace}.dir-d .d-screen:after{content:'';position:absolute;width:8px;height:8px;bottom:-13px;background:#352b28}.dir-d .d-mug{position:absolute;bottom:29px;left:65%;width:16px;height:21px;background:#ce6549;border:2px solid #352b28}.dir-d .d-plant{position:absolute;bottom:0;right:8%;width:24px;height:34px;background:#bd8260;border:2px solid #352b28}.dir-d .d-plant:before{content:'✳';position:absolute;color:#48604d;bottom:20px;left:-13px;font-size:45px}.dir-d .d-note{position:absolute;right:10%;top:12px;transform:rotate(6deg);padding:8px 10px;background:#e7bd75;border:1px solid #a67849;font-size:9px;line-height:1.6}.dir-d .d-bubble{position:absolute;left:43%;top:9px;background:#fff8ec;padding:6px 10px;border:2px solid #352b28;border-radius:12px;font-size:10px}.dir-d .d-stats{display:flex;gap:15px;font-size:10px;justify-content:space-between;padding:0 1px 10px;border-bottom:1px dashed #a48f77}.dir-d .d-stats b{display:block;font-size:15px;margin-top:3px;font-variant-numeric:tabular-nums}.dir-d .d-story{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;margin:11px 0}.dir-d .d-avatar{width:36px;height:36px;border:2px solid #352b28;border-radius:50%;background:#b4b3a1;display:grid;place-items:center;font:700 12px monospace}.dir-d .d-story strong{font-size:12px}.dir-d .d-story p{font-size:10px;margin:3px 0 0;line-height:1.5}.dir-d .d-choices{display:flex;gap:8px}.dir-d .d-choices span{border:2px solid #352b28;background:#fff6e6;padding:8px 12px;font-size:10px;font-weight:700;box-shadow:2px 2px #352b28;flex:1;text-align:center}.dir-d .d-choices span:first-child{background:#c86c4c;color:#fff}.dir-d .d-foot{font-size:9px;margin-top:9px;color:#655347}@media(max-width:420px){.dir-d{padding:16px 14px}.dir-d .d-note{right:4%;font-size:8px}.dir-d .d-bubble{left:37%}.dir-d .d-window{left:14px;width:55px}.dir-d .d-stats{gap:7px}.dir-d h2{font-size:19px}}
+</style>
+<section class="dir-d" aria-label="出租屋物语游戏方向样机"><div class="d-top"><h2>AI 浮生记</h2><span>第 7 天 / 40 天</span></div><div class="d-room" aria-hidden="true"><div class="d-window"></div><div class="d-note">房租到期<br>AGI 未到期</div><div class="d-desk"></div><div class="d-screen">(^_^) /</div><div class="d-mug"></div><div class="d-plant"></div><div class="d-bubble">今晚还睡吗？</div></div><div class="d-stats"><span>口袋里<b>¥3,680</b></span><span>还欠着<b>¥7,200</b></span><span>还撑得住<b>76 / 100</b></span></div><div class="d-story"><span class="d-avatar">妈</span><div><strong>妈妈发来一条语音</strong><p>“你那个一人公司，怎么还是一个人吃泡面？”</p></div></div><div class="d-choices"><span>关电脑，吃顿好的</span><span>再跑一个任务就睡</span></div><div class="d-foot">出租屋 · 连一盆植物都比你会光合作用。</div></section>
+</div><div class="choice"><button class="qmdp-pick-button" data-qmdp-managed="page" data-id="D" data-name="出租屋物语">选择 D · 出租屋物语</button></div></article></div><div class="explanations"><p><b>A · 千禧年打工桌面</b> — Win98 窗口、密集行情，最接近原作的荒诞日常。</p><p><b>B · 赛博打工日报</b> — 暖纸与朱红，把每一天的暴击写成一张小报。</p><p><b>C · 人类进程终端</b> — 黑琥珀终端，让自己成为系统里最后的人类进程。</p><p><b>D · 出租屋物语</b> — 手绘小屋与对话选择，先让你在乎这个普通人。</p><small>推荐 A：保留《北京浮生记》的电脑小游戏记忆，和 AI 时代的荒诞形成反差。也可以在确认时提出混搭建议。</small></div></main><dialog id="confirm"><h2 id="confirmTitle">确认设计方向</h2><p id="meta"></p><label for="adjustments">想调整的地方（可选）</label><textarea id="adjustments" placeholder="比如：要 A 的窗口，配 B 的文字气质"></textarea><div class="dialog-actions"><button id="cancel">取消</button><button id="submit">确认并回传</button></div><p id="response" role="status" aria-live="polite"></p></dialog><script>
+let pending=null;const dialog=document.querySelector('dialog');const dialValues=()=>Object.fromEntries(['variance','motion','density'].map(k=>[k,+document.getElementById(k).value]));document.querySelectorAll('.dials input').forEach(el=>el.addEventListener('input',()=>document.getElementById(el.id+'Out').textContent=el.value));
+function choose(button){pending={id:button.dataset.id,name:button.dataset.name,label:'选 '+button.dataset.id+'：'+button.dataset.name};const d=dialValues();document.getElementById('meta').textContent=pending.label+' · 视觉冒险度 '+d.variance+' / 动效强度 '+d.motion+' / 信息密度 '+d.density;document.getElementById('response').textContent='';dialog.showModal();}
+document.querySelectorAll('.qmdp-pick-button').forEach(b=>b.addEventListener('click',()=>choose(b)));document.getElementById('cancel').onclick=()=>dialog.close();document.addEventListener('keydown',e=>{if(dialog.open||/INPUT|TEXTAREA/.test(e.target.tagName))return;const i='1234'.indexOf(e.key);if(i>=0)choose(document.querySelectorAll('.qmdp-pick-button')[i]);});
+document.getElementById('submit').onclick=async()=>{const button=document.getElementById('submit');button.disabled=true;const payload={...pending,dials:dialValues(),adjustments:document.getElementById('adjustments').value.trim()};const status=document.getElementById('response');try{const res=await fetch('/api/select',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await res.json();if(!res.ok||!result.ok)throw Error('回传未成功');document.querySelectorAll('.direction').forEach(el=>el.classList.toggle('selected',el.dataset.direction===payload.id));status.className='';status.textContent='已选择 '+payload.id+'，已回传。';button.textContent='已回传';}catch(error){status.className='error';status.textContent='回传失败，请重试或在对话中发送“'+payload.label+'”。';button.disabled=false;}};
+</script></body></html>

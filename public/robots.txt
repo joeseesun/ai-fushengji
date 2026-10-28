@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://fusheng.qiaomu.ai/sitemap.xml

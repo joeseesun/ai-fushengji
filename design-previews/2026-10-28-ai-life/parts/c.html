@@ -1,0 +1,109 @@
+<style>
+  .dir-c{--c-bg:#161712;--c-ink:#eee9dc;--c-amber:#e7c677;--c-muted:#a4a697;--c-line:#3b3e32;box-sizing:border-box;width:100%;height:370px;overflow:hidden;background:var(--c-bg);color:var(--c-ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;container-type:inline-size;text-align:left;font-size:12px;line-height:1.45}
+  .dir-c *{box-sizing:border-box}
+  .dir-c button,.dir-c h2,.dir-c p,.dir-c pre,.dir-c dl,.dir-c dd{margin:0}
+  .dir-c .c-mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+  .dir-c .c-top{height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px;border-bottom:1px solid var(--c-line);font-size:10px;letter-spacing:.06em}
+  .dir-c .c-brand{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--c-amber)}
+  .dir-c .c-path{color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-workspace{display:grid;grid-template-columns:112px minmax(0,1fr);height:310px}
+  .dir-c .c-rail{padding:16px 13px;border-right:1px solid var(--c-line);min-width:0}
+  .dir-c .c-day{font-size:10px;color:var(--c-muted);letter-spacing:.07em;white-space:nowrap}
+  .dir-c .c-day strong{display:block;margin:1px 0 15px;color:var(--c-amber);font-size:25px;font-weight:500;letter-spacing:-.06em}
+  .dir-c .c-day strong span{font-size:12px;color:var(--c-muted);letter-spacing:0}
+  .dir-c .c-resources{display:grid;gap:12px}
+  .dir-c .c-resources dt{font-size:10px;color:var(--c-muted);margin-bottom:2px}
+  .dir-c .c-resources dd{font-family:"SFMono-Regular",Consolas,monospace;font-size:16px;letter-spacing:-.04em}
+  .dir-c .c-resources .c-cash{color:var(--c-amber)}
+  .dir-c .c-health{font-size:13px!important}
+  .dir-c .c-health span{font-size:9px;color:var(--c-muted);letter-spacing:-.1em;margin-left:4px}
+  .dir-c .c-inventory{padding-top:16px;margin-top:14px;border-top:1px solid var(--c-line);font-size:9px;line-height:1.75;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-inventory b{font-weight:400;color:var(--c-ink)}
+  .dir-c .c-main{min-width:0;padding:14px 17px 10px}
+  .dir-c .c-heading{font-size:21px;line-height:1.2;letter-spacing:-.04em;font-weight:650;white-space:nowrap}
+  .dir-c .c-heading code{color:var(--c-amber);font-size:22px;font-weight:500;letter-spacing:-.07em}
+  .dir-c .c-event{margin-top:11px;padding-top:10px;border-top:1px solid var(--c-line)}
+  .dir-c .c-event-label{display:flex;justify-content:space-between;gap:10px;color:var(--c-muted);font-size:9px;line-height:1;letter-spacing:.03em;margin-bottom:7px}
+  .dir-c .c-story{font-size:12px;line-height:1.65;color:var(--c-ink)}
+  .dir-c .c-story strong{font-weight:600;color:var(--c-amber)}
+  .dir-c .c-process{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;margin-bottom:8px}
+  .dir-c .c-tree{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:9px;line-height:1.35;color:var(--c-muted);white-space:pre}
+  .dir-c .c-tree em{color:var(--c-amber);font-style:normal}
+  .dir-c .c-bill{text-align:right;flex-shrink:0;font-size:9px;color:var(--c-muted);line-height:1.5}
+  .dir-c .c-bill strong{display:block;color:var(--c-amber);font-size:21px;font-weight:400;letter-spacing:-.07em}
+  .dir-c .c-commands{display:grid;gap:4px}
+  .dir-c .c-command{width:100%;min-height:28px;border:1px solid var(--c-line);background:transparent;color:var(--c-ink);display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;text-align:left;font:inherit;font-size:11px;line-height:1.4;cursor:pointer;border-radius:0}
+  .dir-c .c-command b{color:var(--c-muted);font-family:"SFMono-Regular",Consolas,monospace;font-size:10px;font-weight:400;margin-right:7px}
+  .dir-c .c-command small{font-size:9px;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-command.c-primary{background:var(--c-amber);border-color:var(--c-amber);color:var(--c-bg)}
+  .dir-c .c-command.c-primary b,.dir-c .c-command.c-primary small{color:#343225}
+  .dir-c .c-command:hover{border-color:var(--c-amber)}
+  .dir-c .c-command:focus-visible{outline:2px solid var(--c-ink);outline-offset:2px}
+  .dir-c .c-bottom{height:26px;padding:0 15px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--c-line);font-size:9px;color:var(--c-muted);white-space:nowrap}
+  .dir-c .c-bottom strong{color:var(--c-amber);font-weight:400}
+  .dir-c .c-prompt{color:var(--c-amber);letter-spacing:.04em}
+  @container (max-width:420px){
+    .dir-c .c-top{padding:0 10px;font-size:8px;gap:6px}
+    .dir-c .c-brand{font-size:11px}
+    .dir-c .c-workspace{grid-template-columns:78px minmax(0,1fr)}
+    .dir-c .c-rail{padding:14px 8px}
+    .dir-c .c-day strong{font-size:23px}
+    .dir-c .c-resources dd{font-size:13px}
+    .dir-c .c-resources{gap:13px}
+    .dir-c .c-health span{display:block;margin:2px 0 0}
+    .dir-c .c-inventory{font-size:8px;line-height:1.9;padding-top:13px;margin-top:12px}
+    .dir-c .c-main{padding:14px 10px 8px}
+    .dir-c .c-heading{font-size:17px}
+    .dir-c .c-heading code{font-size:18px}
+    .dir-c .c-event{margin-top:10px;padding-top:9px}
+    .dir-c .c-event-label{font-size:8px}
+    .dir-c .c-event-label .c-event-file{display:none}
+    .dir-c .c-story{font-size:11px;line-height:1.6}
+    .dir-c .c-process{gap:4px;margin-top:7px;margin-bottom:7px}
+    .dir-c .c-tree{font-size:8px;line-height:1.4}
+    .dir-c .c-bill{font-size:8px}
+    .dir-c .c-bill strong{font-size:17px}
+    .dir-c .c-command{padding:5px 6px;min-height:30px;font-size:10px;gap:3px}
+    .dir-c .c-command b{font-size:9px;margin-right:4px}
+    .dir-c .c-command small{font-size:8px}
+    .dir-c .c-bottom{padding:0 10px;font-size:8px}
+    .dir-c .c-market-extra{display:none}
+  }
+</style>
+<section class="dir-c" aria-label="AI 浮生记：终端生存方向样机">
+  <header class="c-top">
+    <span class="c-brand">AI 浮生记</span>
+    <span class="c-path c-mono">~/survival/day-07 <span aria-hidden="true">— □ ×</span></span>
+  </header>
+  <div class="c-workspace">
+    <aside class="c-rail" aria-label="生存资源">
+      <div class="c-day c-mono">DAY<strong>07<span> /40</span></strong></div>
+      <dl class="c-resources">
+        <div><dt>现金 / CASH</dt><dd class="c-cash">¥3,680</dd></div>
+        <div><dt>负债 / DEBT</dt><dd>¥7,200</dd></div>
+        <div><dt>健康 / HP</dt><dd class="c-health">76<span aria-hidden="true">▰▰▰▰▰▰▱▱</span></dd></div>
+      </dl>
+      <div class="c-inventory c-mono">~/背包<br><b>├ 旧电脑 ×1<br>└ 提示词 ×3</b></div>
+    </aside>
+    <main class="c-main">
+      <h2 class="c-heading"><code class="c-mono">HUMAN.exe</code> 尚未退出</h2>
+      <div class="c-event">
+        <div class="c-event-label c-mono"><span>[WARN] 智能体套娃</span><span class="c-event-file">event_007.log</span></div>
+        <p class="c-story">Agent 拉了 12 个 Agent 开会。<br>会议结论：<strong>再拉一个 Agent。</strong></p>
+        <div class="c-process">
+          <pre class="c-tree" aria-label="你管理一个主 Agent，主 Agent 管理 12 个开会的 Agent，并等待再添加一个">you
+└─ agent_manager
+   ├─ agents[01…12]
+   └─ <em>agent_13?</em> ▂</pre>
+          <div class="c-bill c-mono">TOKEN 账单<strong>−¥480</strong></div>
+        </div>
+      </div>
+      <div class="c-commands" aria-label="本日行动">
+        <button type="button" class="c-command c-primary"><span><b>[1]</b>拔电源，自己干</span><small>健康 −8</small></button>
+        <button type="button" class="c-command"><span><b>[2]</b>批准第 13 个</span><small>现金 −480</small></button>
+        <button type="button" class="c-command"><span><b>[3]</b>包装成课程卖</span><small>口碑 −12</small></button>
+      </div>
+    </main>
+  </div>
+  <footer class="c-bottom c-mono"><span>market: 提示词 <strong>↓32%</strong><span class="c-market-extra"> · 二手显卡 ↑18%</span></span><span class="c-prompt">等待人类决策 ▋</span></footer>
+</section>
