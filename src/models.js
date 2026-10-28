@@ -39,7 +39,7 @@ export const MODELS = [...roster.map(([id, family, region, profile, art, fee, wo
   return { ...raw, family, region, profile, art, fee, work, learn, build, joke, source: `https://openrouter.ai/${id}` };
 }), ...extras].sort((a, b) => b.fee - a.fee);
 export const modelTier = m => m.fee >= 400 ? '旗舰' : m.fee >= 150 ? '主力' : m.fee >= 80 ? '实惠' : '白菜价';
-export const modelBlurb = m => [`接单 +¥${m.work}`, m.learn ? `学习 +${m.learn}` : '', m.build ? `研发技术债 ${m.build}` : ''].filter(Boolean).join(' · ');
+export const modelBlurb = m => [`工作 / 有稿费时 +¥${m.work}`, m.learn ? `学习 +${m.learn}` : '', m.build ? `研发技术债 ${m.build}` : ''].filter(Boolean).join(' · ');
 export const getModel = s => MODELS.find(m => m.id === s.model && s.modelUntil >= s.day) ?? null;
 export const featuredModel = s => MODELS[(s.seed % MODELS.length + s.day * 7) % MODELS.length];
 export const modelBonus = s => getModel(s);

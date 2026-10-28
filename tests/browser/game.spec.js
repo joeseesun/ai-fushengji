@@ -15,6 +15,7 @@ const choose = async page => {
   await page.locator(`[data-ui="choose"][data-index="${index}"]`).click();
 };
 const reveal = async (page, selector, frame = '.event-pages') => {
+  if (frame === '.event-pages') await showPane(page, 'event');
   for (let i = 0; i < 12; i++) {
     if (await page.locator(selector).isVisible()) return;
     const next = page.locator(`${frame} [data-page-turn="1"]`);
@@ -35,6 +36,8 @@ const endDay = async page => {
   await expect(start).toBeVisible(); await expect(start).toBeInViewport({ ratio: 1 }); await start.click();
 };
 const doAction = async (page, id) => {
+  await showPane(page, 'actions');
+  await reveal(page, `[data-ui="action"][data-id="${id}"]`, '.action-pages');
   await page.locator(`[data-ui="action"][data-id="${id}"]`).click();
   const button = page.locator('#act-continue');
   await button.click(); if (await button.isVisible()) await button.click();
@@ -161,24 +164,24 @@ test('single screen: every event choice reachable by buttons, without scrolling 
   }
 });
 
-test('guidance advances from event to actions to next day, retaining agency', async ({ page }) => {
+test('guidance starts with actions while encounters remain optional', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 }); await start(page);
-  await expect(page.locator('#next-step')).toContainText('挑一个回应');
+  await expect(page.locator('#next-step')).toContainText('遭遇可选');
   await choose(page);
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
-  await expect(page.locator('#next-step')).toContainText('还能干 2 件事');
-  await expect(page.locator('button.cta:visible')).toHaveCount(1);
+  await expect(page.locator('#next-step')).toContainText('今天选 2 件事');
+  await expect(page.locator('[data-ui="action"][data-id="work"]')).toBeEnabled();
   await doAction(page, 'work');
-  await expect(page.locator('#next-step')).toContainText('还能干 1 件事');
+  await expect(page.locator('#next-step')).toContainText('今天选 1 件事');
   await doAction(page, 'rest');
-  await expect(page.locator('#next-step')).toContainText('结束今天');
+  await expect(page.locator('#next-step')).toContainText('可以收工');
   await expect(page.locator('.end-day-button')).toHaveClass(/cta/);
   await showPane(page,'market');
   await expect(page.locator('[data-ui="buy"][data-id="prompt"]')).toBeEnabled();
   await endDay(page);
   await expect(page.locator('[data-testid="day"]')).toHaveText('02');
-  await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','event');
-  await expect(page.locator('#next-step')).toContainText('挑一个回应');
+  await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
+  await expect(page.locator('#next-step')).toContainText('遭遇可选');
 });
 
 test('identity picker starts the chosen role; writing shows a gacha card', async ({ page }) => {
@@ -201,4 +204,92 @@ test('identity picker starts the chosen role; writing shows a gacha card', async
   await page.screenshot({ path: 'evidence/gacha-desktop.png' });
   await page.locator('#act-continue').click(); await expect(page.locator('#modal')).not.toBeVisible();
   await expect(page.locator('.stat[data-stat="health"] .float-num')).toBeVisible();
+});
+
+// Check the actual content box, not just the page root: overflow hidden can mask clipping.
+const readPages = async (page, frameSelector) => {
+  const seen = new Set();
+  const frame = page.locator(frameSelector);
+  const count = await frame.locator(':scope > .page-content > *').count();
+  for (let i = 0; i < 45; i++) {
+    const measured = await frame.evaluate(frame => {
+      const box = frame.querySelector(':scope > .page-content'), r = box.getBoundingClientRect();
+      const seen = [], clipped = [];
+      [...box.children].forEach((child, index) => {
+        if (child.hidden) return;
+        seen.push(index); const c = child.getBoundingClientRect();
+        if (c.bottom > r.bottom + 1 || c.right > r.right + 1 || c.top < r.top - 1 || c.left < r.left - 1) clipped.push(child.textContent.slice(0, 70));
+      });
+      return { seen, clipped };
+    });
+    expect(measured.clipped, `${frameSelector} ${JSON.stringify(page.viewportSize())}`).toEqual([]);
+    measured.seen.forEach(n => seen.add(n));
+    const next = frame.locator(':scope > .page-controls [data-page-turn="1"]');
+    if (!await next.isVisible() || !await next.isEnabled()) break;
+    await next.click();
+  }
+  expect(seen.size, `${frameSelector}: every block reachable`).toBe(count);
+};
+
+test('news survives refresh, explains prices, and all small-screen copy is reachable', async ({ page }) => {
+  const { NEWS_EDITIONS } = await import('../../src/news.js');
+  for (const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    const s = newGame('coder',42); s.event=null; s.rumor=null;
+    const edition = NEWS_EDITIONS.find(e => e.id === 'tokens-claw');
+    s.news=edition.topic; s.newsEdition=edition.id; s.newsSeen=[edition.id];
+    await start(page,s);
+    await expect(page.locator('.news-ticker')).toContainText(edition.title);
+    await page.locator('[data-ui="news"]:visible').first().click();
+    await expect(page.locator('.news-headline')).toHaveText(edition.title);
+    await readPages(page,'#modal .page-frame');
+    await expect(page.locator('#modal .news-market-line').filter({hasText:'H200'})).toContainText('×1.7');
+    expect(await page.locator('#modal .source-link').getAttribute('href')).toContain('bilibili.com');
+    await page.screenshot({path:`evidence/news-${width}.png`});
+    await page.keyboard.press('Escape');
+    const before=await snapshot(page); await page.reload(); await page.locator('[data-ui="resume"]').click();
+    expect(await snapshot(page)).toEqual(before);
+    await expect(page.locator('.news-ticker')).toContainText(edition.title);
+  }
+});
+
+test('Claw and Token loan choices stay readable; installment persists after reload', async ({ page }) => {
+  for (const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    for(const id of ['claw-mini','token-loan','claw-token-bill','claw-budget-win','claw-credit-after']) {
+      const s=newGame('coder',42);s.day=25;s.event=id;s.seen.push(id);
+      await start(page,s); await readPages(page,'.event-pages');
+    }
+  }
+  await page.setViewportSize({width:390,height:844});
+  const s=newGame('coder',42);s.day=25;s.event='claw-mini';s.seen.push('claw-mini');
+  await start(page,s);await reveal(page,'[data-ui="choose"][data-index="0"]');
+  await page.locator('[data-ui="choose"][data-index="0"]').click();
+  const after=await snapshot(page);expect(after.debt).toBe(s.debt+4800);expect(after.cash).toBe(s.cash);
+  expect(after.followups).toContainEqual({id:'claw-token-bill',day:28});
+  await page.reload();await page.locator('[data-ui="resume"]').click();expect(await snapshot(page)).toEqual(after);
+});
+
+test('map cancel keeps destination; map, models and achievements use buttons without scroll', async ({ page }) => {
+  for(const [width,height] of [[1365,768],[390,844],[320,568],[683,384]]) {
+    await page.setViewportSize({width,height});
+    const s=newGame('coder',42);s.event=null;s.ap=0;await start(page,s);
+    await page.locator('[data-ui="map"]').click();await page.locator('.map-pin[data-id="home"]').click();
+    await page.getByRole('button',{name:'再想想',exact:true}).click();
+    await expect(page.locator('.map-button b')).toContainText('大厂发布会');
+    await page.locator('[data-ui="end-day"]').click();expect((await snapshot(page)).location).toBe('launch');
+    await page.keyboard.press('Escape');
+    // Return to an event-free fixture to inspect every panel independently.
+    await start(page,s);
+    for(const panel of ['map','models','achievements']) {
+      await page.locator(`[data-ui="${panel}"]`).first().click();
+      await page.locator('dialog[open]').waitFor();
+      await page.evaluate(()=>Promise.all([...document.querySelectorAll('dialog img')].map(i=>i.decode().catch(()=>{}))));
+      await readPages(page,'#modal .page-frame');
+      const scrolling=await page.locator('#modal .modal-content').evaluate(el=>({x:el.scrollWidth>el.clientWidth+1,y:el.scrollHeight>el.clientHeight+1}));
+      expect(scrolling,`${panel} ${width}x${height}`).toEqual({x:false,y:false});
+      if(panel==='map') await expect(page.locator('[data-ui="map-go"]')).toBeInViewport({ratio:1});
+      await page.keyboard.press('Escape');
+    }
+  }
 });

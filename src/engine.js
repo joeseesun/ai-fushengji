@@ -1,8 +1,11 @@
 import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
+import { drawNews, getEdition, validNews } from './news.js';
+import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
+import { careerOffer, careerDemand, careerAction } from './careers.js';
 
-export const VERSION = 4;
+export const VERSION = 6;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -27,7 +30,16 @@ function shuffle(s, list) {
   return result;
 }
 export const getLocation = s => LOCATIONS.find(l => l.id === s.location);
-export const getNews = s => NEWS.find(n => n.id === s.news);
+export const getNews = s => {
+  const topic = NEWS.find(n => n.id === s.news), edition = getEdition(s.newsEdition);
+  const copy = edition?.topic === s.news ? edition : {};
+  const factors = { ...topic.factors, ...(s.newsLegacy ? {} : { ...EXTRA_MARKET_FACTORS[topic.id], ...copy.market }) };
+  const detail = Object.entries(factors).map(([id, factor]) => `${GOODS.find(g => g.id === id).short} ×${factor}`).join(' · ');
+  return { ...topic, ...copy, id: topic.id, factors, detail: `${detail || '市场平静，留意各站价差。'}${topic.product ? ` · 产品当日收入 ×${topic.product}` : ''}` };
+};
+export const nextStop = s => LOCATIONS[(LOCATIONS.findIndex(l => l.id === s.location) + 1) % LOCATIONS.length].id;
+export const travelFare = (s, location) => location === nextStop(s) || location === s.location ? 0 : 120;
+export const gameResult = s => s.health <= 0 || s.stress >= 100 || s.debt > 50000 ? '提前出局' : s.day === DAYS && s.status === 'ended' ? (s.debt === 0 ? '通关成功' : '未通关') : '挑战中';
 export const getEvent = s => {
   const e = allEvents.find(e => e.id === s.event);
   if (!e) return null;
@@ -79,20 +91,22 @@ function log(s, text, kind = 'normal') {
 }
 
 function market(s) {
+  s.newsLegacy = false;
   s.previousPrices = { ...s.prices };
-  const forced = s.day === 8 ? 'free' : s.day === 16 ? 'data' : s.day === 24 ? 'enterprise' : s.day === 32 ? 'human' : null;
-  s.news = forced ?? NEWS[Math.floor(random(s) * NEWS.length)].id;
+  drawNews(s, random);
   const news = getNews(s), place = getLocation(s);
   for (const g of GOODS) {
     const age = Math.max(.22, 1 - g.decay * (s.day - 1));
     s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1)));
     s.history[g.id] = [...(s.history[g.id] ?? []), s.prices[g.id]].slice(-8);
   }
-  const picked = s.day === 1 ? OPENING_GOODS : shuffle(s, GOODS.map(g => g.id)).slice(0, GOODS_PER_DAY);
+  // Put at least two headline-affected goods on today's shelf, then rotate the rest.
+  const featured = shuffle(s, Object.keys(news.factors)).slice(0, 2);
+  const picked = s.day === 1 ? OPENING_GOODS : [...featured, ...shuffle(s, GOODS.map(g => g.id).filter(id => !featured.includes(id)))].slice(0, GOODS_PER_DAY);
   s.available = GOODS.map(g => g.id).filter(id => picked.includes(id));
   s.rumor = null;
   const rumors = RUMORS.filter(r => s.available.includes(r.good));
-  if (s.day > 1 && random(s) < .4) {
+  if (s.day > 1 && rumors.length && random(s) < .4) {
     const r = rumors[Math.floor(random(s) * rumors.length)];
     s.prices[r.good] = Math.max(8, Math.round(s.prices[r.good] * r.factor));
     s.history[r.good][s.history[r.good].length - 1] = s.prices[r.good];
@@ -109,7 +123,8 @@ function market(s) {
   }
   // What the player saw here, for the map. Only the station visited today is updated.
   s.intel = { ...(s.intel ?? {}), [s.location]: { day: s.day, cheap: s.available.filter(id => ['crash', 'cheap'].includes(priceHeat(s, id).id)), dear: s.available.filter(id => ['hot', 'high'].includes(priceHeat(s, id).id)) } };
-  s.quest = s.day > 1 ? { id: QUESTS[Math.floor(random(s) * QUESTS.length)].id, base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash, reputation: s.reputation } } : null;
+  const quests = QUESTS.filter(q => q.track === 'skill' ? s.skill + q.need <= 100 : q.track === 'reputation' ? s.reputation + q.need <= 100 : q.track === 'repaid' ? s.debt >= q.need : true);
+  s.quest = s.day > 1 ? { id: quests[Math.floor(random(s) * quests.length)].id, base: { tradeProfit: s.tradeProfit, debt: s.debt, skill: s.skill, cash: s.cash, reputation: s.reputation } } : null;
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -120,7 +135,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -149,7 +164,7 @@ function applyEffects(s, effects) {
 // Odds and payouts shown to the player are the ones rolled.
 export function writeOutcomes(s) {
   const mult = (s.role === 'creator' ? 1.5 : 1) * (s.location === 'stream' ? 1.5 : 1);
-  return WRITE_OUTCOMES.map(o => ({ ...o, weight: s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight, effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) } : {}), ...o.effects } }));
+  return WRITE_OUTCOMES.map(o => ({ ...o, weight: s.role === 'creator' ? (o.id === 'viral' ? 16 : o.id === 'meh' ? 22 : o.weight) : o.weight, effects: { ...(o.cash ? { cash: Math.round(o.cash * mult) + (o.cash > 0 ? modelBonus(s)?.work ?? 0 : 0) } : {}), ...o.effects } }));
 }
 
 export const combinedEffects = (base, extra) => {
@@ -160,7 +175,9 @@ export const combinedEffects = (base, extra) => {
 
 export function actionInfo(s, action) {
   const bonus = modelBonus(s), role = s.role;
-  const job = Math.round((220 + s.skill * 4 + s.reputation * 2 + (s.location === 'jobs' ? 160 : 0)) * (role === 'coder' ? 1.2 : 1)) + (bonus?.work ?? 0);
+  const offer = careerOffer(s), demand = careerDemand(s);
+  const wage = Math.round((offer.base + s.skill * offer.skill + s.reputation * offer.rep + (s.location === 'jobs' ? 160 : 0)) * offer.mult * offer.rate * (demand?.active ? demand.rate : 1));
+  const job = wage + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
     rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
@@ -173,12 +190,26 @@ export function actionInfo(s, action) {
   };
   const info = infos[action];
   if (!info) return null;
+  const activity = careerAction(s, action);
+  info.name = activity.name;
+  info.process = activity.process;
+  info.flavors = ACTION_FLAVOR[action].map(line => `「${activity.name}」：${line}`);
+  if (action === 'work') {
+    info.desc = `${offer.label}专属委托 · ${demand?.active ? '新闻加价 30% · ' : ''}${bonus ? `搭子另加 ¥${bonus.work}` : '今日报价已含职业与地点加成'}`;
+    info.flavors[0] = activity.story;
+    info.flavors[1] = `${activity.story} 甲方终于把“收到”变成了转账。`;
+  }
+  if (['work', 'rush', 'write', 'learn', 'build'].includes(action) && bonus) info.assist = action === 'learn' ? `搭子学习 +${bonus.learn}` : action === 'build' ? `搭子技术债 ${bonus.build}` : action === 'write' ? `有稿费时搭子 +¥${bonus.work}` : `含搭子 +¥${action === 'rush' ? Math.floor(job * 1.65) - Math.floor(wage * 1.65) : bonus.work}`;
   if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
   if (ACTION_ROLLS[action]) {
     const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
     // Launch parties and hackathons are where the angels drink.
     if (action === 'social' && ['launch', 'hackathon'].includes(s.location)) rolls[0].weight = 14;
     info.outcomes = [{ id: 'normal', rank: '', weight: 100 - rolls.reduce((n, r) => n + r.weight, 0), effects: {}, text: '' }, ...rolls];
+    if (action === 'work') for (const outcome of info.outcomes) {
+      if (outcome.id === 'jackpot') outcome.text = offer.jackpot;
+      if (outcome.id === 'stiffed') outcome.text = offer.stiffed;
+    }
   }
   return { ...info, reason: info.reason || (s.cash + (info.effects.cash ?? 0) < 0 ? '现金不足' : s.ap < 1 ? '今天的行动已用完' : '') };
 }
@@ -212,10 +243,15 @@ export function transition(original, command) {
   const fail = error => ({ state: original, error, message: '' });
   if (!command || typeof command.type !== 'string') return fail('这个动作不存在。');
   if (original.status !== 'playing') return fail('本局已经结算，开始新一局再试。');
-  if (original.event && command.type !== 'choose') return fail('先回应眼前这件事，再继续今天。');
   const s = copy(original);
   let message = '';
   switch (command.type) {
+    case 'ignore-event': {
+      const event = getEvent(s);
+      if (!event) return fail('今天没有待处理的遭遇。');
+      message = `略过「${event.title}」，没有替你选择，不消耗行动。`;
+      s.event = null; log(s, message, 'skip'); break;
+    }
     case 'model': {
       const model = MODELS.find(m => m.id === command.id);
       if (!model) return fail('这个模型不在当前目录中。');
@@ -279,7 +315,7 @@ export function transition(original, command) {
         let roll = random(s) * info.outcomes.reduce((n, o) => n + o.weight, 0);
         const o = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
         applyEffects(s, o.effects);
-        const pool = ACTION_FLAVOR[command.id] ?? [''], flavor = o.id === 'normal' ? Math.floor(random(s) * pool.length) : 0;
+        const pool = info.flavors ?? [''], flavor = o.id === 'normal' ? Math.floor(random(s) * pool.length) : 0;
         s.lastAction = { id: command.id, outcome: o.id, flavor };
         if (command.id === 'write') s.lastWrite = o.id;
         if (command.id === 'work' || command.id === 'rush') s.jobsDone++;
@@ -332,6 +368,10 @@ export function transition(original, command) {
       if (finishing && s.day !== DAYS) return fail('第 40 天才可最终结算。');
       if (!finishing && s.day >= DAYS) return fail('今天是最后一天，请清理账目后结算。');
       if (!finishing && !LOCATIONS.some(l => l.id === command.location)) return fail('目的地不存在。');
+      const fare = finishing ? 0 : travelFare(s, command.location);
+      if (s.cash < fare) return fail(`打车需要 ¥${fare}，现金不足。可免费去下一站或留在原地。`);
+      if (s.event) { log(s, `收工略过「${getEvent(s).title}」：未获得选项收益，也未触发选项后续。`, 'skip'); s.event = null; }
+      if (fare) { s.cash -= fare; log(s, `打车去${LOCATIONS.find(l => l.id === command.location).name}，车费 ¥${fare}。`, 'travel'); }
       const quest = questProgress(s);
       if (quest?.done) {
         applyEffects(s, quest.reward); s.questsDone++;
@@ -345,7 +385,7 @@ export function transition(original, command) {
       s.debt += interest + shortage; s.totalInterest += interest; s.totalEarned += revenue;
       const wear = 1 + (s.stress >= 70 ? 5 : s.stress >= 50 ? 2 : 0);
       s.health = Math.max(0, s.health - wear);
-      s.receipts.unshift({ day: s.day, revenue, cost, interest, shortage });
+      s.receipts.unshift({ day: s.day, revenue, cost, interest, shortage, fare });
       s.receipts = s.receipts.slice(0, DAYS);
       log(s, `日结：产品 +¥${revenue}，生活与工具 −¥${cost}，利息 +¥${interest}${shortage ? `，缺口 ¥${shortage} 转欠款` : ''}。`, 'bill');
       checkFailure(s);
@@ -390,6 +430,8 @@ export function isValidSave(s) {
   if (!s || typeof s !== 'object' || s.version !== VERSION) return false;
   if (!integer(s.day, 1, DAYS) || !integer(s.rng, 1, 0xffffffff) || !integer(s.seed, 1, 0xffffffff)) return false;
   if (!ROLES.some(r => r.id === s.role) || !LOCATIONS.some(l => l.id === s.location) || !NEWS.some(n => n.id === s.news)) return false;
+  if (!validNews(s)) return false;
+  if (s.newsLegacy !== undefined && typeof s.newsLegacy !== 'boolean') return false;
   for (const k of ['cash', 'debt', 'totalEarned', 'totalInterest', 'jobsDone', 'daysRested', 'borrowed']) if (!integer(s[k])) return false;
   if (!integer(s.tradeProfit, -1e9) || !integer(s.lastBorrowDay, -10, DAYS)) return false;
   for (const k of ['health', 'stress', 'skill', 'reputation', 'techDebt']) if (!integer(s[k], 0, 100)) return false;
@@ -458,7 +500,18 @@ export function parseSave(text) {
       for (const g of GOODS) if (!s.inventory[g.id]) {
         s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
       }
-      s.available = [...OPENING_GOODS]; s.intel = {}; s.quest = null; s.questsDone = 0; s.version = VERSION;
+      s.available = [...OPENING_GOODS]; s.intel = {}; s.quest = null; s.questsDone = 0; s.version = 4;
+    }
+    if (s?.version === 4) {
+      // Keep today's original headline, quotes and RNG. Only future days draw new copy.
+      s.newsEdition = `${s.news}-original`; s.newsSeen = [s.newsEdition]; s.version = 5;
+    }
+    if (s?.version === 5 && s.inventory && s.prices && s.previousPrices && s.history) {
+      // New shelves join tomorrow. Preserve all existing holdings, quotes, day and RNG.
+      for (const g of EXTRA_GOODS) if (!s.inventory[g.id]) {
+        s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base; s.history[g.id] = [g.base];
+      }
+      s.newsLegacy = true; s.version = VERSION;
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
@@ -473,5 +526,5 @@ export function parseSave(text) {
 
 export function shareText(s) {
   const end = s.ending ?? endingFor(s);
-  return `《AI 浮生记》｜${end.title}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${end.subtitle}\n你能在 AI 时代，保住多少钱和多少自己？`;
+  return `《AI 浮生记》｜${gameResult(s)} · ${end.title}\n活到了第 ${s.day} / 40 天，净资产 ¥${netWorth(s).toLocaleString('zh-CN')}。\n健康 ${s.health} · 压力 ${s.stress} · 小产品 ${s.products} 个\n${end.subtitle}\n你能在 AI 时代，保住多少钱和多少自己？`;
 }

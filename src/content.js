@@ -1,6 +1,8 @@
+import { EXTRA_GOODS, EXTRA_STATION_FACTORS } from './goods-extra.js';
 import { MEME_EVENTS } from './memes.js';
 // Fictional, original satire. All monetary values are game-balancing parameters.
 export const GOODS = [
+  ...EXTRA_GOODS,
   { id: 'prompt', name: '祖传提示词', short: '提示词', base: 90, decay: .014, desc: '“你是一位有二十年经验的资深专家，深呼吸，一步一步想。”后面还有八千字。', unit: '套' },
   { id: 'compute', name: 'H200 机时券', short: 'H200', base: 260, decay: 0, desc: '算力很热，钱包很凉。黄牛说这叫“硬通货”。', unit: '张' },
   { id: 'rtx', name: '5090 租机券', short: '5090', base: 145, decay: .005, desc: '白天跑 4bit 满血版，晚上回归它真正的使命：打游戏。', unit: '张' },
@@ -27,7 +29,7 @@ export const LOCATIONS = [
   { id: 'stream', name: '直播基地', full: '亦庄 · 网红直播基地', line: '每个工位都在说“家人们”，每盏补光灯都在说“刚刚”。', specialty: '写稿收入 +50%；分身模板抢手', factors: { avatar: 1.6, lesson: 1.3, invite: 1.2 , whale: 1.6, robot: 1.3 }, icon: 'Video' },
   { id: 'hackathon', name: 'AI 黑客松', full: '798 · AI 黑客松', line: '48 小时，三箱披萨，一个永远在台上崩溃的 demo。', specialty: '学习多涨 2 技能；可能拿奖金；邀请码便宜', factors: { invite: .7, claude: 1.2, compute: .85 , deck: 1.4, minecard: 1.2, robot: .75 }, icon: 'Trophy' },
   { id: 'home', name: '出租屋', full: '回龙观 · 出租屋', line: '你的总部、工位、食堂，以及宇宙尽头。', specialty: '休息多回 6 健康，生活费少 ¥40', factors: { prompt: .9, compute: 1.12 , whale: .9, minecard: .85 }, icon: 'House' },
-];
+].map(l => ({ ...l, factors: { ...l.factors, ...EXTRA_STATION_FACTORS[l.id] } }));
 
 // Each identity changes how the numbers move, not just the opening stats.
 export const ROLES = [
@@ -68,6 +70,15 @@ export const NEWS = [
 
 // Black-market rumors: rare, large single-goods swings at the current station. Fiction, not price data.
 export const RUMORS = [
+  { id: 'claw-all-hands', good: 'tokens', factor: 2.4, art: 'news-agents', title: '龙虾董事会要求所有子 Agent 全员到场，本站 Token 急救包被扫空。' },
+  { id: 'mini-fomo', good: 'mini', factor: 2.2, art: 'news-hype', title: '群友晒出第一笔养虾收入，Mac mini 套装当场涨价；没人问扣了多少 Token。' },
+  { id: 'mini-exit', good: 'mini', factor: .35, art: 'news-gpu-down', title: '养虾群改名退坑群，“九成新、仅开机三天”套装集中甩卖。' },
+  { id: 'b300-ticket', good: 'b300', factor: 2.1, art: 'news-gpu-up', title: 'B300 排队票的排队票开始预售，本站黄牛连夜涨价。' },
+  { id: 'md-copy', good: 'skillbook', factor: .3, art: 'news-free', title: '祖传 SKILL.md 被发现只有一行“你是资深专家”，秘籍摊位打骨折。' },
+  { id: 'mcp-audit', good: 'mcp', factor: .4, art: 'news-privacy', title: '安全组拔掉所有万能转接头，MCP 库存暂时只能当赛博钥匙扣。' },
+  { id: 'bench-expired', good: 'benchmark', factor: .2, art: 'news-leaderboard', title: '榜单一天改了三次，榜一截图典藏版成了昨日黄花。' },
+  { id: 'memory-forget', good: 'memory', factor: .45, art: 'news-slop', title: '长期记忆发布忘记迁移旧记忆，外置记忆商家开始解释什么叫活在当下。' },
+  { id: 'tungsten-hoard', good: 'tungsten', factor: 3.2, art: 'news-boss', title: 'AI 小卖部钨块被买成了网红伴手礼，人类为电子店长的离谱买单。' },
   { id: 'ban-h200', good: 'compute', factor: 3, art: 'news-gpu-up', title: '传闻又一批卡要被限售，黄牛连夜扫光 H200 机时券。' },
   { id: 'domestic-gpu', good: 'compute', factor: .35, art: 'news-gpu-down', title: '某国产卡宣布“遥遥领先”，H200 机时券被恐慌抛售。' },
   { id: 'more-you-buy', good: 'rtx', factor: 2.6, art: 'news-gpu-up', title: '皮衣刀客：“买得越多，省得越多。”5090 租机券被抢疯。' },
@@ -320,7 +331,7 @@ export const MILESTONES = {
   ]),
 };
 
-export const INTRO_EVENT = event('intro', '第 1 天 · 新手须知', '40 天，还清欠款，活着收工', '每天三步：① 先处理一件突发的事（就是现在这件）；② 再干两件事：接单、写稿、学习、休息都行；③ 选个地方过夜，第二天到来。买卖货品和还钱随时可做，不占次数。', [
+export const INTRO_EVENT = event('intro', '第 1 天 · 新手须知', '40 天，还清欠款，活着收工', '40 天结束时还清全部欠款，健康大于 0、压力低于 100，就算通关。每天选两件事做，交易和还款不限次数。遭遇可回应、可略过，不挡工作；收工默认免费去下一站，也能花钱打车。健康归零、压力到 100 或欠款超过五万，提前出局。', [
   option('懂了，开始第一天', {}, '第一课：现金不等于净资产，热闹不等于生意。'),
 ]);
 

@@ -21,11 +21,23 @@ export const SOURCES = {
   bbq: { name: 'Know Your Meme：Sweet Baby Ray’s 烤肉酱', url: 'https://knowyourmeme.com/memes/mark-zuckerberg-and-sweet-baby-rays-bbq-sauce' },
   vending: { name: 'Anthropic 原始报告：Project Vend', url: 'https://www.anthropic.com/research/project-vend-1' },
   skills: { name: 'Anthropic：AI 辅助与编程技能形成研究', url: 'https://www.anthropic.com/research/AI-assistance-coding-skills' },
+  claw: { name: 'B 站：Mac mini 养 Claw 的社区讨论', url: 'https://www.bilibili.com/video/BV1C49uBPEi4/' },
+  tokens: { name: 'B 站：按 Token 收费的龙虾员工', url: 'https://www.bilibili.com/video/BV12vPmzBEGy/' },
   original: { name: '本作原创演绎：模型习性与 AI 打工生活', url: null },
 };
 const o = (label, effects, result, extra = {}) => ({ label, effects, result, ...extra });
 const m = (id, art, caption, title, text, options, source = 'original', extra = {}) => ({ id, tag: '赛博发癫现场', title, text, options, meme: { art, caption, source }, ...extra });
 export const MEME_EVENTS = [
+  m('claw-mini', 'worker', '虾还没接单\nMac mini 已分期', '养 Claw 上头了，京东分期买 Mac mini', '群友的 Claw 凌晨还在写代码，你觉得自己输在了硬件。京东购物车里的 Mac mini 已经被你命名为“第一位数字员工的宿舍”。本关分期：欠款 +¥4,800，按全游戏日息 1.8% 计息。虚构数值，非京东实际方案。', [
+    o('分期抱回 Mac mini，先让虾住上', { debt: 4800, skill: 6, stress: 5 }, '开机动画很丝滑，扣款也很丝滑。你给虾起名“回本”，它回复：正在思考中。几天后再看它的 Token 账单。', { followUp: 'claw-token-bill', delay: 3 }),
+    o('花 ¥180，用旧电脑限额试养', { cash: -180, skill: 4, techDebt: -3 }, '你给它设了预算和休眠。群友说不够激进，你说这是目前唯一不会半夜催你充值的员工。', { followUp: 'claw-budget-win', delay: 3 }),
+    o('退出购物车，先给自己点份热饭', { health: 4, stress: -6 }, 'Claw 没有住上新宿舍，你住回了自己的生活。购物平台提示：你有一件尚未付款的生产资料。'),
+  ], 'claw'),
+  m('token-loan', 'server', '先享智能\n后享还款', 'Token 贷：你的生产力，值得负债', '群里弹出一条虚构广告：“别让余额限制你的智能上限。”到账 ¥1,200，欠款却增加 ¥1,800，其中 ¥600 美其名曰算力服务费。全部并入现有债务，按游戏日息 1.8% 计息。贷款经理说虾能替你赚钱，虾正在替贷款经理总结这句话。', [
+    o('借 ¥1,200，接受 ¥1,800 欠款', { cash: 1200, debt: 1800, stress: 5 }, '到账提示和欠款提示同时响起。你获得了一笔现金，也获得了一项比 Agent 更稳定的自动任务：计息。', { followUp: 'claw-credit-after', delay: 2 }),
+    o('拆穿广告，接一单预算优化', { cash: 160, skill: 3, reputation: 2, stress: 3 }, '你把“无限智能”改成了“每次任务有上限”。第一位客户就是广告群里最沉默的那个人。'),
+    o('关掉广告，不给算力上杠杆', { stress: -5 }, '群里的增长曲线没有你，你的债务曲线也没有它。'),
+  ], 'tokens'),
   m('router-launch', 'server', '新模型调用起飞\n余额自由落体', 'OpenRouter：{model} 冲进调用榜', '游戏快讯：{model} 上线，群友连夜把所有路由指向它。调用量暴涨，你的 Agent 也跟着暴涨——主要是在互相说“收到”。机房已经开始加价。', [
     o('限制循环，分流简单任务', { skill: 5, techDebt: -5, stress: -3 }, '调用量降了，完成的工作反而多了。你成功把收到循环变成了收到尾款。'),
     o('趁热接一单模型迁移', { cash: 400, stress: 6, health: -2 }, '客户说要“一键切换”。你从晚上九点切到凌晨一点。'),
@@ -317,6 +329,19 @@ export const MEME_EVENTS = [
 ];
 
 export const FOLLOWUPS = [
+  m('claw-token-bill', 'server', 'Mac 在桌上\n账单在头上', '养虾第三天：它学会了请求充值', 'Mac mini 很安静，API 扣费提醒很热闹。你的 Claw 开了六场 Agent 会议，交付了八份“还需要进一步研究”。续养群推荐虚构 Token 贷：给虾充 ¥1,200，直接新增 ¥1,800 欠款，含 ¥600 服务费，之后还按游戏日息 1.8% 计息。钱直接充值，不进你的现金。', [
+    o('借 Token 贷续养，欠款 +¥1,800', { debt: 1800, skill: 5, techDebt: 6, stress: 8 }, '你说这是最后一次充值。虾把“最后一次”存成了可循环执行的任务。两天后看交付。', { followUp: 'claw-credit-after', delay: 2 }),
+    o('设预算上限，关掉 Agent 圆桌会', { skill: 4, techDebt: -8, stress: -4 }, '虾失去了董事会，得到了一个具体任务。第一次，它的输出比充值通知更有用。'),
+    o('转卖电脑回收 ¥3,200，及时止损', { cash: 3200, stress: -8, health: 2 }, '电脑转手了，原欠款还在，可以用这笔钱去还债。买家问为什么卖，你说：虾想换个有钱的家庭。'),
+  ], 'tokens'),
+  m('claw-budget-win', 'worker', '限额运行\n终于交付', '小虾第一次交付，没有申请下一轮融资', '旧电脑上的 Claw 整理完了客户表格，花费停在你设定的预算内。群里问你用了几个 Agent，你说一个；问用了多少 Skill，你说够用。群里安静了三秒。', [
+    o('验收交付，收 ¥360 尾款', { cash: 360, reputation: 3 }, '客户没有问你是不是 AI Native。他只问下周还能不能准时。'),
+    o('整理成自己的小工具', { skill: 5, techDebt: -5 }, '你没有成立数字帝国，只是少了一项每周都要重复的苦工。'),
+  ], 'claw'),
+  m('claw-credit-after', 'server', '虾说长期主义\n利息说天天见', 'Token 贷回访：虾的商业模式仍在思考', '两天过去，贷款经理问收益，Claw 回了一份“未来可期”。已有欠款照常每天计息，付款期限没有被长上下文延长。你决定给这个故事选一个结尾。', [
+    o('停止无上限调用，靠接单慢慢还', { skill: 4, techDebt: -7, stress: -5 }, '你终于关掉了“自动重试直到成功”。账还在，但它不再因为循环自我鼓励而变大。'),
+    o('写一篇真实的养虾账单复盘', { cash: 180, reputation: 4, stress: 2 }, '没有写三天回本。阅读量不算神话，评论区却第一次有人说“谢谢，省钱了”。'),
+  ], 'tokens'),
   m('fish-return', 'whale', '本鲸记下了\n这次真的记下了', '那条吃白饭的鱼回来了', '几天前那碗白饭没有白喂。大肥鱼叼着一份调试报告游回来：“老板，你那死循环我改了。别哭，钢盆里还能装饭。”', [
     o('验收通过，分它一半盒饭', { cash: 300, skill: 3, stress: -6 }, '你得到了 300 元小单尾款，鱼得到了碳水。双赢第一次如此具体。'),
     o('请它当联合创始鱼', { cash: 120, reputation: 5, techDebt: -6 }, '公司人数没变，但伙食预算变了。'),
@@ -327,7 +352,7 @@ export const FOLLOWUPS = [
   ], 'angry'),
 ];
 
-export const MEME_SCHEDULE = { 2: 'busy', 3: 'fish-rice', 4: 'rheostat', 5: 'nuclear-demo', 6: 'strawberry', 7: 'user-angry', 9: 'leather-jacket', 11: 'musk-next-year', 12: 'router-launch', 13: 'zuck-bbq', 14: 'b300-party', 15: 'dario-vending', 17: 'aa-number-one', 18: 'grok-chaos', 20: 'gemini-context', 22: 'qwen-zoo', 26: 'kimi-moon', 28: 'agents-meeting', 35: 'vibe-coding', 19: 'absolutely-right', 21: 'invite-code', 23: 'price-butcher', 30: 'nine-eleven', 37: 'agi-next-year' };
+export const MEME_SCHEDULE = { 2: 'busy', 3: 'fish-rice', 4: 'rheostat', 5: 'nuclear-demo', 6: 'strawberry', 7: 'user-angry', 9: 'leather-jacket', 11: 'musk-next-year', 12: 'router-launch', 13: 'zuck-bbq', 14: 'b300-party', 15: 'dario-vending', 17: 'aa-number-one', 18: 'grok-chaos', 20: 'gemini-context', 22: 'qwen-zoo', 25: 'claw-mini', 26: 'kimi-moon', 28: 'agents-meeting', 35: 'vibe-coding', 19: 'absolutely-right', 21: 'invite-code', 23: 'price-butcher', 30: 'nine-eleven', 37: 'agi-next-year' };
 export const MEME_CATALOG = [...MEME_EVENTS, ...FOLLOWUPS];
 export function rheostat(value) {
   if (value < 34) return { name: '梁子', effects: { stress: -6, reputation: -2 } };
