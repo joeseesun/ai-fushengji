@@ -5,6 +5,7 @@ test-results/
 playwright-report/
 .DS_Store
 evidence/
+data/
 .env*
 release/
 design-previews/roles/*.png

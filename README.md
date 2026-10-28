@@ -19,9 +19,10 @@
 - H200 / 5090 机时、B300 排队票、Mac mini 养虾套装、Token 急救包、祖传 SKILL.md、MCP 接头、榜一截图、Agent 外置记忆、钨块等交易，OpenRouter 调用热潮、AA 榜单换位、新模型发布会改变行情。报价和流量为游戏模拟。
 - 180 条原创小报头条与 180 句锐评，一局 40 天同题材间隔至少 3 天；养 Claw 分期买 Mac mini、Token 贷与限额试养走向不同后续。[研究与玩法建议](docs/NEWS-RESEARCH.md)。
 - 每种身份有 6 种轮换职业单，报酬按各自技能 / 口碑权重计算；热点职业报价 +30%，AI 搭子在行动里显示加成。第 40 天清算后债清、人还在即通关，三条出局线见游戏规则。
+- 出局首屏说明原因、前后数值和最后一步，危险操作先提示概率。全服榜支持昵称主动提交、服务器重算成绩；保留本机纪录。
 - 自动存档、JSON 导入导出、结局 PNG、离线续玩，以及 F2「老板来了」。适配手机。
 
-人物对白和商业情节为虚构讽刺。本作不调用真实模型接口，没有付费功能。进度仅在浏览器本地；公开网站使用 Umami 统计访问，不上传存档或玩家的游戏数据。
+人物对白和商业情节为虚构讽刺。本作不调用真实模型接口，没有付费功能。日常进度保存在本机；主动提交全服榜时才上传昵称和本局操作用于核算，公开展示昵称与成绩，不保存完整操作。公开网站使用 Umami 统计访问。
 
 ## 本地运行
 
@@ -30,13 +31,15 @@ Node.js 24+：
 ```sh
 npm ci
 npm run dev
+# 另开终端，启动可选的全服榜服务（默认 3491 端口）
+npm run server
 ```
 
 ```sh
 npm test             # 按需手动运行引擎检查，默认不跑整局模拟
 npm run test:e2e     # 按需手动运行完整浏览器检查
 npm run build       # dist/，含按内容哈希版本化的离线缓存
-npm run package     # release/ai-fushengji-0.6.0-web.zip
+npm run package     # release/ai-fushengji-0.7.0-web.zip
 ```
 
 本地浏览器测试默认使用 Chrome。CI 使用 Playwright Chromium；可用 `CI=1 npx playwright install chromium` 安装后运行。`TEST_URL` 可覆盖待测地址。
@@ -47,9 +50,9 @@ npm run package     # release/ai-fushengji-0.6.0-web.zip
 
 原生 JavaScript + Vite + Lucide。引擎为纯状态转换，RNG 随存档保存，刷新不能重抽报价或风险结果。低买高卖有 10% 价差；第 40 天仍可行动，最终清算只结一次账。非法输入不改变状态，导入校验不通过不覆盖当前局。
 
-v0.6.0 完成本地构建与桌面 / 320px 小屏关键操作抽查。按用户要求，职业、地图、可选遭遇与扩充交易所之后没有重跑整局、全套用例或多种子平衡模拟；早期新闻改动的 43 项引擎 / 10 组浏览器通过记录只属于提交 08de1ad，不冒充最终版本的全量结果。CI 默认只构建，完整检查需手动选择。实际难度与乐趣仍需玩家反馈。
+v0.7.0 完成本地构建、失败与榜单接口抽查，以及 1365px 桌面 / 390px 和 320px 小屏结算与提交操作检查。按用户要求未重跑整局、全套用例或多种子平衡模拟。CI 默认只构建，完整检查需手动选择。实际难度与乐趣仍需玩家反馈。
 
-部署为纯静态站点，见 [部署说明](docs/DEPLOYMENT.md)。保留 [设计记录](DESIGN.md) 和 [规则](docs/GAME-DESIGN.md)。
+游戏可独立静态部署；全服榜另有 Node.js + SQLite 服务，见 [部署说明](docs/DEPLOYMENT.md)。保留 [设计记录](DESIGN.md) 和 [规则](docs/GAME-DESIGN.md)。
 
 ## 来源与许可
 
@@ -63,7 +66,7 @@ v0.6.0 完成本地构建与桌面 / 320px 小屏关键操作抽查。按用户�
 
 It includes 107 everyday events, 5 milestones, 5 conditional follow-ups, 72 collectible meme cards, 180 news editions, and 22 model companions. Public AI figures appear in clearly fictional satirical scenes. All prices, model bonuses, leaderboards, and traffic changes are game mechanics rather than real-world claims. No model API or API key is required.
 
-Local saves, import/export, ending-card PNG export, mobile layouts, and offline play are supported. The public site uses Umami for page analytics; game saves stay on your device. Use Node.js 24+, `npm ci`, and `npm run dev`. Run `npm test` and `npm run test:e2e` to validate the game. Code and original content are MIT licensed; no original Beijing Fushengji assets are reused.
+Local saves, import/export, ending-card PNG export, mobile layouts, and offline play are supported. Optional leaderboard submission sends a nickname and command replay for server verification; scores are public, complete command records are not retained. The public site uses Umami for page analytics. Use Node.js 24+, `npm ci`, and `npm run dev`; `npm run server` starts the optional leaderboard. Full tests are opt-in. Code and original content are MIT licensed; no original Beijing Fushengji assets are reused.
 
 ## 单屏玩法
 
