@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:40:23.502Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a frantic crowd stampeding into a data center to grab GPU servers, server racks with heat waves, people carrying graphics cards like gold bars, a price board chart arrow shooting through the ceiling, a leather-jacket silhouette laughing on a balcony. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully drawn pixel clusters, warm muted retro palette of teal, warm grey, navy, cream, and orange accents. Funny satirical editorial news illustration mood. A frantic crowd is stampeding through the entrance of a data center to grab GPU servers. Show expressive, comically desperate people carrying recognizable graphics cards with cooling fans like precious gold bars, competing to haul server units. Dense server racks radiate visible orange heat-wave pixels. A large price board contains ONLY a graphic chart, no labels or writing: a steep orange arrow shoots up out of the board and literally breaks through the ceiling, with pixel debris. On an upper balcony, a laughing figure in a leather jacket appears as a dark navy silhouette, overlooking the chaos. Strong readable composition, rich environmental detail, playful economic satire, warm cream lighting and subtle paper-like pixel texture. Absolutely no text, no letters, no numbers, no logos, no watermarks anywhere, including clothing, cards, racks, and the chart. No purple, no neon. Entire rectangular canvas fully covered by opaque background and scene all the way to every edge and corner. No transparency, no cutouts, no black corner areas, no vignette, no empty border.",
+  "route": "raw_prompt"
+}

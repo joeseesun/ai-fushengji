@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:54:32.245Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical news-illustration mood, no purple neon. Scene: a frenzied auction hall where people in suits wave paddles and stacks of cash to bid on a single glowing VIP invitation envelope displayed in a glass case on a velvet pillow, a robot auctioneer with a gavel, scalpers whispering in the aisles. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, ideally 16:9. Crisp hard pixel edges, deliberate pixel clusters, no smoothing, warm muted retro palette of teal, warm grey, navy, cream, with orange accents. Funny satirical editorial news illustration mood. A frenzied auction hall packed with expressive people in suits waving blank bidding paddles and stacks of unmarked cash, competing for a single luminous exclusive VIP invitation envelope. The envelope is the central focal point, displayed inside a transparent glass showcase on a rich velvet pillow; show its exclusivity through an elegant golden seal and warm glow only, with NO writing or lettering on the envelope. A charismatic robot auctioneer behind a podium raises a gavel; scalpers whisper conspiratorially to each other in the aisles. Dynamic poses, humorous greed, lively expressive faces, layered readable composition, rich detailed architecture and audience rendered as beautiful retro pixel art. All paddles, banknotes, podium surfaces, invitation, walls, clothing, and every other object must be completely free of text, letters, numbers, logos, watermarks, or typographic marks. No purple neon. Absolutely opaque background: warm cream and teal environment and underlying paper/base color fill the entire rectangular canvas edge to edge, including every corner. No transparency, no cutouts, no black corner regions, no black border, no vignette. Full-bleed finished illustration.",
+  "route": "raw_prompt"
+}

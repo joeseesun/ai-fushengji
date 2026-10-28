@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:33:04.967Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a freelancer's tiny desk at 2am where a giant group chat window floods out of the monitor as a waterfall of chat bubbles and red notification badges, a client avatar shouting through a megaphone, coins trickling very slowly into a jar, the freelancer with headphones typing furiously, energy drink cans. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, intricate retro game environment art, no smoothing or blurry gradients. Warm muted retro palette of teal, warm grey, navy, cream, and small orange accents. Funny satirical mood, absolutely no purple neon. Scene: a freelancer's tiny cramped desk at 2am, communicated by a sleepy night atmosphere and exhausted posture without any clocks or time digits. A giant group chat window bursts out of the computer monitor, cascading down as a huge surreal waterfall of overlapping empty chat bubbles and bright red notification badges. Every chat bubble is completely blank and every notification badge is a solid red shape without numbers or marks. A large demanding client avatar emerges from the chat window shouting through a megaphone, with purely graphical sound rays. The freelancer wears headphones and types furiously on an unmarked keyboard, with exaggerated tired eyes and frantic posture. Energy drink cans with plain undecorated surfaces clutter the desk. At the other side, a very thin slow trickle of just two or three plain unmarked coins drops into a nearly empty clear glass jar, humorously contrasted with the overwhelming waterfall of client messages. Carefully composed readable visual story, rich small environmental details, cozy desk lamp lighting, cramped apartment interior filling the background. Absolutely no text, no letters, no numbers, no words, no logos, no watermarks, no typographic symbols anywhere, including screen, keys, cans, coins, clothing, badges, and background. Opaque full-bleed background covering the entire canvas edge to edge with warm grey and muted teal room colors; all four corners contain visible colored environment, no transparency, no cutouts, no black corner regions, no black borders or vignette.",
+  "route": "raw_prompt"
+}

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:25:50.799Z",
+  "prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions (about 3.5 heads tall), dynamic 3/4 pose facing the viewer, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, small accents of red). Character: a young Chinese AI self-media influencer, baseball cap, oversized hoodie, holding a smartphone on a gimbal stick in one hand and pointing at it with the other, mouth wide open in an exaggerated SHOCKED clickbait-thumbnail face, a small ring light clipped to the phone, sticky notes stuck on the hoodie. Fully transparent background, nothing behind the character, no floor, no shadow plate, no text, no frame. Centered with margin around the figure.",
+  "aspect_ratio": "3:4",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1014,
+    "height": 1551
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions about 3.5 heads tall, dynamic 3/4 pose facing the viewer. Crisp hard pixel edges, deliberate square pixel clusters, authentic retro game sprite craftsmanship, no antialiasing or smooth gradients. Warm muted retro palette: teal, warm grey, navy, cream, and small accents of red. Character: a young adult Chinese AI self-media influencer wearing a baseball cap and oversized hoodie, holding a smartphone mounted on a gimbal stick in one hand and pointing at the phone with the other hand. Mouth wide open with an exaggerated SHOCKED clickbait-thumbnail expression, wide eyes and lifted eyebrows. A small ring light clipped to the smartphone, and several blank sticky notes stuck on the hoodie. Expressive readable silhouette and well-defined hands, visible full body including footwear. Fully transparent background with true alpha transparency; nothing behind the character, no scenery, no floor, no shadow plate, no text or lettering anywhere, no frame. Centered composition with comfortable transparent margin around the entire figure and every accessory.",
+  "route": "raw_prompt"
+}

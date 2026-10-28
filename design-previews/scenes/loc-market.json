@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:31:02.171Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a crowded underground GPU black market in an old Beijing electronics mall, narrow aisles stacked with graphics card boxes and server blades, shady vendors in leather jackets whispering prices, hand-held fans, a queue of programmers clutching wallets, one server rack humming with heat haze. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, intentional pixel clusters, classic finely detailed retro game background art. Warm muted retro palette of teal, warm grey, navy, cream, with restrained orange accents. Funny satirical mood, absolutely no purple neon. Scene: a crowded underground GPU black market inside an old Beijing electronics mall. Narrow aisles densely stacked with unbranded graphics card boxes and server blades, worn cream tile flooring, aged teal metal shutters, exposed pipes and warm fluorescent lighting. Shady vendors in leather jackets lean close and whisper prices, one gestures secretively at an exposed graphics card. People hold small hand-held fans against the stifling heat. A queue of weary programmers in casual clothes clutch their wallets with comically anxious expressions. One prominent working server rack with orange indicator lights hums and radiates heat, depicted using pixelated shimmering heat haze. Rich environmental storytelling, readable layered composition, expressive tiny pixel characters, humorous underground trading atmosphere. Boxes may show simple abstract hardware silhouettes only. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere, including packaging, clothes, signs, screens and equipment. No signage with writing. The background must be fully opaque and the scene and base colors must fill the entire rectangular image edge to edge. No transparency, no cutouts, no empty corners, no black corner regions, no vignette, no external border.",
+  "route": "raw_prompt"
+}

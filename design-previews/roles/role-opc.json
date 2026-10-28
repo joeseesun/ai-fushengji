@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:26:41.887Z",
+  "prompt": "Detailed 16-bit pixel art character sprite, single character, full body, slightly chibi proportions (about 3.5 heads tall), proud 3/4 pose facing the viewer, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, small accents of red). Character: a Chinese one-person-company founder: a sharp navy blazer on top but striped pajama pants and fuzzy slippers below, five different lanyard badges around the neck at once, holding an open laptop showing a tiny revenue chart in one arm and a big coffee cup in the other hand, slightly crazed confident grin, messy bun. Fully transparent background, nothing behind the character, no floor, no shadow plate, no text, no frame. Centered with margin around the figure.",
+  "aspect_ratio": "3:4",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1024,
+    "height": 1536
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art character sprite: a single Chinese one-person-company founder, full body, slightly chibi proportions approximately 3.5 heads tall. Proud three-quarter pose turned slightly while facing and looking toward the viewer. Sharp navy blazer on top, striped pajama pants and fuzzy slippers below. Exactly five visually distinct lanyard badges hang around the neck at once, distinguishable by color and shape, no lettering. Holds an open laptop cradled in one arm with a tiny readable-as-shapes revenue chart on its screen, and a big coffee cup in the other hand. Slightly crazed confident grin, expressive face, messy bun hairstyle. Crisp hard pixel edges, deliberate pixel clusters, authentic polished 16-bit game sprite craftsmanship, no smoothing or blurry edges. Warm muted retro palette of teal, warm grey, navy, and cream with small red accents. The entire single figure, hair, slippers and both props must be fully visible, centered with generous transparent margin all around. Fully transparent alpha background; nothing behind the character, no scenery, no floor, no ground, no cast shadow or shadow plate, no text, no typography, no frame. All details should form one coherent charming character sprite.",
+  "route": "raw_prompt"
+}

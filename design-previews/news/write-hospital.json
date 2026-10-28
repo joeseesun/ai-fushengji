@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:58:36.280Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), darkly funny but gentle mood, no purple neon. Scene: a hospital ward bed at night where an exhausted writer with an IV drip is still typing on a laptop balanced on the bed tray, a nurse with hands on hips confiscating the phone, a get-well balloon, instant coffee cans hidden under the pillow, city lights through the window. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, meticulously arranged square pixels, no antialiasing or painterly blur. Warm muted retro palette of teal, warm grey, navy, cream, and small orange accents, absolutely no purple neon. Darkly funny but gentle mood. A hospital ward at night: an exhausted adult writer with tousled hair and sleepy eyes is propped in a hospital bed, attached to an IV drip, stubbornly typing on an open laptop balanced on a bed tray. A nurse stands next to the bed with a stern but caring expression and hands at the hips, holding a confiscated smartphone in one hand at the hip so the hands-on-hips posture remains clear. A plain cheerful get-well balloon floats by the bed, with no writing or symbols. Several plain unlabeled instant coffee cans are partly hidden under the pillow, clearly visible to the viewer. City lights shine through the window. Warm bedside lamp light contrasts with muted cool night outside. Rich environmental details, charming character poses, strong readable composition. Absolutely no text, no letters, no numbers, no logos anywhere, including laptop screen, phone, cans, balloon, clothing, IV equipment, walls and cityscape: screens only show abstract blank color blocks, no glyphs. Fully opaque background, edge-to-edge illustrated environment and solid colors filling the entire rectangular image. No transparent areas, no cutouts, no black corner areas, no vignette, no framing border.",
+  "route": "raw_prompt"
+}

@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:53:32.217Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), warm heartfelt funny mood, no purple neon. Scene: a small shop counter where a long queue of customers happily wait to talk to one real human support person wearing a headset, while next to it a shiny chatbot kiosk stands empty with a cobweb, customers holding money and thank-you notes. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create one detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp, hard pixel edges, meticulously placed pixels, no smooth vector lines, no blur, no antialiasing. Warm muted retro palette: teal, warm grey, navy, cream, small orange accents. Heartfelt, warm, gently funny mood, absolutely no purple neon. Scene: a cozy small neighborhood shop. At a modest counter, exactly one friendly real human customer support person wearing a headset listens attentively to a smiling customer. A long, clearly readable queue of varied cheerful customers eagerly waits to talk to this real human, extending across the scene with expressive faces and relaxed charming poses. Several customers hold generic banknotes depicted solely as plain colored rectangles with decorative non-symbolic pixel borders, with absolutely no writing or numbers; others hold heartfelt thank-you cards conveyed only through simple heart pictograms, with no written marks or text. Next to the busy human counter stands a shiny futuristic chatbot kiosk, conspicuously empty with nobody standing in front of it. The kiosk has a simple friendly robot-face pictogram on its screen with no interface words or symbols, and a visible delicate cobweb stretching from its corner to the nearby wall, emphasizing that it is unused. Strong visual storytelling and contrast between lively warmth around the human and the lonely polished kiosk. Carefully arranged queue and environment, charming interior props and gentle warm daylight, rich pixel textures. Absolutely no text, no letters, no numbers, no logos, no signatures, no watermark anywhere, including money, cards, screens, clothing and signs; omit shop signs altogether. FULLY OPAQUE EDGE-TO-EDGE BACKGROUND: cream and warm muted shop interior fills every part of the canvas including all corners. No transparency, no cutouts, no empty alpha regions, no black corner areas, no vignette, no black border.",
+  "route": "raw_prompt"
+}

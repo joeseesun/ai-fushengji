@@ -29,6 +29,8 @@ const showPane = async (page, id) => {
 const endDay = async page => {
   await page.locator('#destination').selectOption('jobs');
   await page.locator('[data-ui="end-day"]').click();
+  const go = page.locator('dialog.briefing [data-ui="close-modal"].cta');
+  await expect(go).toBeVisible(); await expect(go).toBeInViewport({ ratio: 1 }); await go.click();
 };
 const score = o => (o.effects.cash ?? 0) / 130 + (o.effects.health ?? 0) * 1.5 - (o.effects.stress ?? 0) * 1.5 + (o.effects.skill ?? 0) * .7 + (o.effects.reputation ?? 0) * .7 - (o.effects.techDebt ?? 0) * .5;
 
@@ -118,7 +120,7 @@ test('single screen: every event choice reachable by buttons, without scrolling 
   const sizes = [[1365,768], [1440,900], [1024,768], [390,844], [320,568], [844,390], [683,384]];
   for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
-    for (const id of ['rheostat', 'fish-rice', 'router-launch', 'gpu-oom']) {
+    for (const id of ['rheostat', 'fish-rice', 'router-launch', 'gpu-oom', 'budget', 'claude-ban']) {
       const s = newGame('coder', 42); s.day = 20; s.event = id; s.seen.push(id);
       await start(page, s);
       const seen = new Set();
@@ -153,18 +155,39 @@ test('single screen: every event choice reachable by buttons, without scrolling 
 
 test('guidance advances from event to actions to next day, retaining agency', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 }); await start(page);
-  await expect(page.locator('#next-step')).toContainText('选一个回应');
+  await expect(page.locator('#next-step')).toContainText('挑一个回应');
   await choose(page);
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','actions');
-  await expect(page.locator('#next-step')).toContainText('还剩 2 次行动');
+  await expect(page.locator('#next-step')).toContainText('还能干 2 件事');
+  await expect(page.locator('button.cta:visible')).toHaveCount(1);
   await page.locator('[data-ui="action"][data-id="work"]').click();
-  await expect(page.locator('#next-step')).toContainText('还剩 1 次行动');
+  await expect(page.locator('#next-step')).toContainText('还能干 1 件事');
   await page.locator('[data-ui="action"][data-id="rest"]').click();
   await expect(page.locator('#next-step')).toContainText('结束今天');
+  await expect(page.locator('.end-day-button')).toHaveClass(/cta/);
   await showPane(page,'market');
   await expect(page.locator('[data-ui="buy"][data-id="prompt"]')).toBeEnabled();
   await endDay(page);
   await expect(page.locator('[data-testid="day"]')).toHaveText('02');
   await expect(page.locator('.game-content')).toHaveAttribute('data-active-pane','event');
-  await expect(page.locator('#next-step')).toContainText('选一个回应');
+  await expect(page.locator('#next-step')).toContainText('挑一个回应');
+});
+
+test('identity picker starts the chosen role; writing shows a gacha card', async ({ page }) => {
+  for (const [width, height] of [[1365, 768], [390, 844], [320, 568]]) {
+    await page.setViewportSize({ width, height }); await page.goto('/'); await page.evaluate(() => localStorage.clear()); await page.reload();
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight && document.documentElement.scrollWidth <= innerWidth), `${width}x${height}`).toBe(true);
+    await page.locator('.role-tab[data-id="creator"]').click();
+    await expect(page.locator('.role-card h3')).toHaveText('AI 自媒体');
+    await expect(page.locator('.start-button')).toHaveClass(/cta/); await expect(page.locator('.start-button')).toBeInViewport({ ratio: 1 });
+    await page.screenshot({ path: `evidence/welcome-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.locator('.start-button').click();
+  expect((await snapshot(page)).role).toBe('creator');
+  await choose(page);
+  await expect(page.locator('[data-ui="action"][data-id="write"]')).toHaveClass(/cta/);
+  await page.locator('[data-ui="action"][data-id="write"]').click();
+  await expect(page.locator('.gacha-rank')).toBeVisible(); await expect(page.locator('#modal .cta')).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: 'evidence/gacha-desktop.png' });
 });

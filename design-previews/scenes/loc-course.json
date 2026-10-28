@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:34:03.824Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a get-rich-quick paid course seminar in a rented hotel ballroom, a charismatic lecturer on stage beside a whiteboard with a hand-drawn rocket chart, a gold trophy and a rented sports car parked inside the hall, rows of eager students raising phones to scan payment codes, assistants handing out workbooks. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Create a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, deliberate pixel clusters, authentic retro game background artistry, no smoothing or soft gradients. Warm muted retro palette of teal, warm grey, navy, cream, with orange accents. Funny satirical mood, absolutely no purple neon. Scene: a get-rich-quick paid course seminar in a rented hotel ballroom. A charismatic, flamboyantly confident lecturer stands on a modest stage beside a whiteboard showing ONLY a hand-drawn rocket with an absurdly steep upward chart made of unlabeled lines, no writing. A shiny oversized gold trophy is on a pedestal, and a showy orange sports car is incongruously parked inside the ballroom, with modest rental staging cues such as velvet ropes and wheeled event equipment but no written signage. Rows of eager adult students raise phones to scan abstract square payment-code-like geometric patterns; the patterns must contain absolutely no letters or numbers. Assistants walk among the rows handing out entirely unlettered workbooks. Show recognizable rented hotel ballroom details: warm ceiling lights, patterned carpet, cream curtains, banquet chairs, portable stage, folding display stands. Use expressive small pixel characters and richly composed comic environmental storytelling, clear foreground, middle ground and background, enough space to read the crowd, stage and car. ABSOLUTELY NO TEXT, NO LETTERS, NO NUMBERS, NO LOGOS, NO WATERMARKS anywhere, including whiteboard, books, phones, car, clothes and decor. Entire image must be fully opaque and edge-to-edge filled with illustrated background or warm base color. No transparent areas, no cutouts, no black corner regions, no vignette, no empty border.",
+  "route": "raw_prompt"
+}

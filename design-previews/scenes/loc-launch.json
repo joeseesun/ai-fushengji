@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-10-28T05:32:03.299Z",
+  "prompt": "Detailed 16-bit pixel art illustration, wide landscape, crisp hard pixel edges, warm muted retro palette (teal, warm grey, navy, cream, orange accents), funny satirical mood, no purple neon. Scene: a huge tech company product launch event hall, giant stage with dramatic spotlights and a presenter in a black turtleneck pointing at a huge blank screen, audience rows all filming with phones, front row bloggers holding red envelopes of attendance money, free coffee and lanyards table, confetti cannons. Absolutely no text, no letters, no numbers, no logos anywhere.\n画面要求：背景不透明，纸面或底色铺满整个画面，不要透明、镂空或黑色边角区域。",
+  "aspect_ratio": "16:9",
+  "reference_images": [],
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "flattened_transparency": false,
+  "revised_prompt": "Generate a detailed 16-bit pixel art illustration in a wide landscape composition, approximately 16:9. Crisp hard pixel edges, carefully composed hand-placed pixel clusters, warm muted retro palette of teal, warm grey, navy, cream, and orange accents, funny satirical mood. Scene: a huge tech company product launch event hall. A giant stage with dramatic spotlights and a charismatic presenter in a plain black turtleneck pointing at a huge completely blank cream screen. Many orderly audience rows are all filming with smartphones held up, their tiny screens containing only abstract color shapes without interface markings. In the foreground front row, visibly amused bloggers hold conspicuous plain red envelopes of attendance money, conveying a playful satire of paid event hype. Red envelopes must be unmarked. To one side, a well-visible hospitality table is laden with free coffee in plain cups and blank lanyard badges. Confetti cannons by the stage shower colorful pixel confetti over the crowd. Rich architectural detail, layered perspective, lively distinct small characters, strong readable silhouettes, warm theater lighting with restrained teal and orange accents. Absolutely NO text, NO letters, NO numbers, NO logos anywhere, including the giant screen, clothing, envelopes, coffee cups, badges, phones, and architecture. No purple neon. Fully opaque image: continuous background/base color and scene fill every edge and corner of the entire rectangular canvas. No transparency, no cutouts, no empty black corner areas, no black vignette, no borders or letterboxing.",
+  "route": "raw_prompt"
+}
