@@ -1,4 +1,4 @@
-import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT } from './content.js';
+import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
 
@@ -35,6 +35,20 @@ export const getEvent = s => {
   const name = featuredModel(s).name;
   return { ...e, title: e.title.replaceAll('{model}', name), text: e.text.replaceAll('{model}', name) };
 };
+export const getRumor = s => RUMORS.find(r => r.id === s.rumor) ?? null;
+// Typical quote for today, ignoring station and news, so players can tell cheap from expensive.
+export const referencePrice = (s, id) => {
+  const g = GOODS.find(g => g.id === id);
+  return Math.round(g.base * Math.max(.22, 1 - g.decay * (s.day - 1)) * 1.175);
+};
+export function priceHeat(s, id) {
+  const ratio = s.prices[id] / referencePrice(s, id);
+  if (ratio >= 2) return { id: 'hot', label: '暴涨', ratio };
+  if (ratio >= 1.3) return { id: 'high', label: '偏贵', ratio };
+  if (ratio <= .5) return { id: 'crash', label: '跳水', ratio };
+  if (ratio <= .75) return { id: 'cheap', label: '便宜', ratio };
+  return { id: 'fair', label: '平价', ratio };
+}
 export const usedSpace = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty, 0);
 export const salePrice = (s, id) => Math.max(1, Math.floor(s.prices[id] * .9));
 export const inventoryValue = s => GOODS.reduce((n, g) => n + s.inventory[g.id].qty * salePrice(s, g.id), 0);
@@ -58,6 +72,13 @@ function market(s) {
     s.prices[g.id] = Math.max(8, Math.round(g.base * age * (.65 + random(s) * 1.05) * (place.factors[g.id] ?? 1) * (news.factors[g.id] ?? 1)));
     s.history[g.id] = [...(s.history[g.id] ?? []), s.prices[g.id]].slice(-8);
   }
+  s.rumor = null;
+  if (s.day > 1 && random(s) < .4) {
+    const r = RUMORS[Math.floor(random(s) * RUMORS.length)];
+    s.prices[r.good] = Math.max(8, Math.round(s.prices[r.good] * r.factor));
+    s.history[r.good][s.history[r.good].length - 1] = s.prices[r.good];
+    s.rumor = r.id;
+  }
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -68,7 +89,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     health: 90, stress: role.stress, skill: role.skill, reputation: role.reputation,
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
-    prices: {}, previousPrices: {}, history: {}, news: 'normal',
+    prices: {}, previousPrices: {}, history: {}, news: 'normal', rumor: null,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -96,7 +117,7 @@ function applyEffects(s, effects) {
 
 export function actionInfo(s, action) {
   const bonus = modelBonus(s);
-  const job = 360 + s.skill * 6 + s.reputation * 3 + (s.location === 'jobs' ? 160 : 0) + (bonus?.work ?? 0);
+  const job = 220 + s.skill * 4 + s.reputation * 2 + (s.location === 'jobs' ? 160 : 0) + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
     rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65), health: -9, stress: 15, techDebt: 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
@@ -289,6 +310,7 @@ export function isValidSave(s) {
   if (!integer(s.tradeProfit, -1e9) || !integer(s.lastBorrowDay, -10, DAYS)) return false;
   for (const k of ['health', 'stress', 'skill', 'reputation', 'techDebt']) if (!integer(s[k], 0, 100)) return false;
   if (!integer(s.ap, 0, 2) || !integer(s.products, 0, 6) || !integer(s.progress, 0, 2) || ![18, 28, 38, 48, 58].includes(s.capacity)) return false;
+  if (s.rumor !== null && !RUMORS.some(r => r.id === s.rumor)) return false;
   if (!s.inventory || !s.prices || !s.previousPrices || !s.history) return false;
   for (const g of GOODS) {
     const item = s.inventory[g.id];
@@ -326,6 +348,11 @@ export function parseSave(text) {
         s.inventory[g.id] = { qty: 0, cost: 0 }; s.prices[g.id] = g.base;
         s.previousPrices[g.id] = g.base; s.history[g.id] = [g.base];
       }
+    }
+    if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
+      // Saves from before new events were added keep their order; new events join the end of the deck.
+      s.rumor ??= null;
+      s.eventDeck = [...s.eventDeck, ...EVENTS.map(e => e.id).filter(id => !s.eventDeck.includes(id))];
     }
     return isValidSave(s) ? s : null;
   } catch { return null; }

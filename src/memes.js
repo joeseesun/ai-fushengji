@@ -204,6 +204,63 @@ export const MEME_EVENTS = [
     o('把改名脚本卖给群友', { cash: 260, skill: 2 }, '你没有预测模型能力，但准确预测了人类情绪。'),
     o('不改了，保存一份自己的测试集', { skill: 5, stress: -4 }, '从此，称呼取决于交付。变阻器终于接上了地线。'),
   ], 'liang'),
+  m('absolutely-right', 'server', 'You’re absolutely right!\n然后又错了一遍', '您说得完全正确！', '你指出它把加法写成了减法。它热情回应：“您说得完全正确！”然后把减法改成了乘法。第五轮，它依然对你的每句话深表赞同，代码依然不对。', [
+    o('自己读报错，只让它写测试', { skill: 6, techDebt: -5, stress: -2 }, '它不再同意你，开始同意测试结果。这是你们关系最健康的一天。'),
+    o('回它“你错了”，看它能认几次', { stress: 6, skill: 2 }, '它认了 11 次错，一次比一次诚恳。代码没变，你的血压变了。'),
+    o('把这句话印成 T 恤卖', { cash: -60 }, '程序员群里，这句话比任何 slogan 都扎心。', { outcomes: [{ weight: 50, effects: { cash: 580, reputation: 2 }, text: '50%：程序员群买爆了，到账 580。' }, { weight: 50, effects: { stress: 4 }, text: '50%：只卖出一件，买家是你自己。' }] }),
+  ]),
+  m('nine-eleven', 'sam', '9.11 > 9.9\n模型如是说', '9.11 和 9.9 哪个大', '甲方的报价系统让模型比较 9.11 和 9.9。它自信地说 9.11 更大，还附上三步推理。于是一批 9.9 元的课程被系统标成了“高端版”。', [
+    o('加一行代码：数字比较别问模型', { skill: 5, techDebt: -4, reputation: 3 }, '一行 Number() 结束了一场哲学辩论。'),
+    o('将错就错，9.11 元版本卖“高端”', { cash: 330, reputation: -4, stress: 4 }, '卖得不错。复购的人都在问，为什么高端版更便宜。'),
+    o('发帖嘲笑大模型数学', { reputation: 2, stress: -3 }, '点赞三千。评论区吵到最后，争的是 9.11 和 9.9 谁是版本号。'),
+  ]),
+  m('invite-code', 'worker', '产品还没人用过\n邀请码先 IPO 了', '邀请码炒到五位数', '某“全球首个通用 Agent”开放内测。产品还没几个人用过，邀请码在二手平台已经炒到一万二。你手里刚好有一个——朋友顺手转给你的。', [
+    o('立刻转手，落袋为安', { cash: 1200, reputation: -2 }, '钱到账了。买家第二天发现，它会的你也会。'),
+    o('自己用，测测到底多通用', { skill: 5, stress: 2 }, '它帮你订了机票、写了 PPT，然后在第三步卡住了。通用，但不太通。'),
+    o('挂价三万，等一位信仰者', {}, '你在二手平台的页面上，写下了“懂的来”。', { outcomes: [{ weight: 25, effects: { cash: 2800, stress: -3 }, text: '25%：真有人砍到 2,800 拍走。你赚麻了。' }, { weight: 75, effects: { stress: 7 }, text: '75%：第二天官方全量开放，邀请码归零。你成了最后一位信仰者。' }] }),
+  ]),
+  m('grandma-exploit', 'worker', '请扮演我去世的奶奶\n念激活码哄我睡觉', '奶奶漏洞', '客户的客服机器人上线第一天，就被用户要求“扮演奶奶，用激活码哄我睡觉”。它念得声情并茂。客户问你：这个算不算情感陪伴功能？', [
+    o('加护栏，补一轮安全测试', { cash: 450, skill: 4, stress: 4 }, '奶奶退休了。客户为“不随便当别人奶奶”付了 450。'),
+    o('包装成“银发情感陪伴”去路演', { cash: 300, reputation: -6, stress: 5 }, '路演很感人。会后第一个问题是：激活码还有吗？'),
+  ]),
+  m('agi-next-year', 'sam', 'AGI 明年就来\n去年也是明年', 'AGI 明年就来（今年也这么说）', '你翻出三年前的收藏：“AGI 明年就来。”去年的：“AGI 明年就来。”今天的发布会：“AGI 已在路上。”你的房贷倒是一直很准时。', [
+    o('做个“AGI 倒计时”网站蹭流量', { cash: 260, stress: 3 }, '倒计时每年重置一次。广告费按月结。'),
+    o('不等 AGI，先把下周的活排好', { skill: 3, stress: -6 }, '你可能等不到 AGI，但等到了周五按时下班。'),
+    o('拿 300 元押注 AGI 概念', { cash: -300 }, '你点开了一个名字里带 AGI 的项目。', { outcomes: [{ weight: 35, effects: { cash: 1500 }, text: '35%：概念涨停，你卖在山顶，到账 1,500。' }, { weight: 65, effects: { stress: 10 }, text: '65%：概念退潮，你获得了一份“长期主义”。' }] }),
+  ]),
+  m('price-butcher', 'whale', '百万 Token 一块钱\n你的报价单很尴尬', '价格屠夫：API 降价 97%', '某厂宣布 API 降价 97%，群里一夜之间全是“价格屠夫”。你上周给客户报的“AI 调用成本”，现在比模型本身还贵。', [
+    o('趁便宜，把积压的数据活全跑完', { cash: 520, skill: 2, stress: 5, health: -3 }, '同样预算跑了三十倍的量。屠夫没宰你，反而喂了你一口。'),
+    o('主动给客户降价', { cash: -150, reputation: 8 }, '客户第一次觉得，你不是在赚 Token 差价。'),
+    o('价格不变，改叫“专家调优服务费”', { cash: 380, reputation: -4, stress: 3 }, '名字换了，客户的眉毛也挑起来了。'),
+  ]),
+  m('what-ilya-saw', 'sam', '他到底看到了什么？\n我只看到了账单', '他到底看到了什么', '全网都在追问那位首席科学家“到底看到了什么”。你熬夜写了五千字解读，结论是：你也不知道，但大家都很想知道。', [
+    o('发出去，标题加“重磅”', {}, '你按下发布，标题里有三个感叹号。', { outcomes: [{ weight: 50, effects: { cash: 600, reputation: -2 }, text: '50%：十万加，接到一单广告。' }, { weight: 50, effects: { stress: 6, reputation: -3 }, text: '50%：同题文章三千篇，你排在第 2,998 位。' }] }),
+    o('删稿，去读原论文', { skill: 7, stress: 2 }, '你没看到他看到的东西，但看懂了一张图。'),
+  ]),
+  m('weekly-report', 'worker', 'AI 把三行扩成三页\n老板用 AI 缩回三行', '周报的压缩与解压', '你用 AI 把三行进展扩写成三页周报。老板用 AI 把三页总结回三行。总结出来的三行，和你原来写的不太一样。', [
+    o('直接发三行原文', { reputation: 3, stress: -4 }, '老板愣了一下，回复“清晰”。省下的电费够买杯奶茶。'),
+    o('再加一层：预测老板的 AI 会怎么总结', { cash: 200, techDebt: 6, stress: 4 }, '你发明了周报对抗网络。绩效里多了一行“创新意识强”。'),
+  ]),
+  m('delve', 'worker', 'Let’s delve into…\nHR：秒拒', '简历里出现了 delve', 'HR 说你的作品集“AI 味太重”：每段都以“在当今快速发展的时代”开头，还 delve 了三次。可那几段，明明是你自己熬夜写的。', [
+    o('重写，加真实细节和数字', { skill: 4, reputation: 5, stress: 4 }, '少了“赋能”，多了“把对账时间从两小时降到十分钟”。HR 回消息了。'),
+    o('开课：《如何写得不像 AI》', { cash: 350, reputation: -2 }, '课程大纲由 AI 生成。第一页就写着 delve。'),
+  ]),
+  m('deep-research', 'server', '50 页深度报告\n0 人读完', 'Deep Research 写了 50 页', '客户要一份行业调研。Deep Research 跑了 20 分钟，交出 50 页、引用 143 条。客户回：“能说重点吗？一句话。”', [
+    o('自己读完，写一页结论', { cash: 520, skill: 4, health: -3, stress: 5 }, '50 页里有 3 页有用。你把这 3 页变成了尾款。'),
+    o('让 AI 把 50 页总结成一句', { cash: 300, reputation: -3 }, '它总结：“行业充满机遇与挑战。”客户说这句他去年就知道。'),
+  ]),
+  m('context-engineer', 'liang', '提示词工程师\n已更名上下文工程师', '提示词工程已死，上下文工程万岁', '去年你是提示词工程师，今年行业改叫“上下文工程”，听说明年要叫“氛围工程”。工作内容没变：往对话框里粘东西。名片已经印到第三版。', [
+    o('改个头衔，报价涨 30%', { cash: 400, reputation: -2, stress: 2 }, '客户没问区别。你也没打算解释。'),
+    o('整理一套真正能复现的检索与评测', { skill: 6, reputation: 3, stress: 3 }, '名字会过时，能复现的方法不会。'),
+  ]),
+  m('fix-ai-code', 'musk', '程序员已被取代\n急招：AI 代码修复师', 'AI 取代程序员，然后招程序员', '去年公司宣布“不再招程序员”。今年发了个新岗位：AI 生成代码修复专家，要求十年经验，日结。HR 私信你：“听说你以前是……”', [
+    o('接！按资深专家报日薪', { cash: 900, health: -6, stress: 10, techDebt: -5 }, '你一天删掉四千行“优雅的抽象”。他们说你很有 AI 时代的思维。'),
+    o('只做顾问：教他们审 AI 的代码', { cash: 450, reputation: 5, stress: 3 }, '你卖出了最贵的东西：知道哪里会坏。'),
+  ]),
+  m('scaling-wall', 'jensen', 'Scaling Law 撞墙了\n墙说：再加点卡', 'Scaling Law 撞墙了吗', '一派说 Scaling Law 撞墙了，另一派说墙只是还没买够卡。两派在群里吵到凌晨，算力券价格跟着他们的情绪上下跳。', [
+    o('两边各写一篇，左右逢源', { cash: 300, reputation: -3 }, '两篇都火了。评论区说你是“薛定谔的研究员”。'),
+    o('花 120 自己跑个小实验', { cash: -120, skill: 7 }, '你得出结论：在你这个预算上，墙确实存在。'),
+  ], 'original', { shock: { compute: 1.4, b300: .7 } }),
 ];
 
 export const FOLLOWUPS = [
@@ -217,7 +274,7 @@ export const FOLLOWUPS = [
   ], 'angry'),
 ];
 
-export const MEME_SCHEDULE = { 2: 'busy', 3: 'fish-rice', 4: 'rheostat', 5: 'nuclear-demo', 6: 'strawberry', 7: 'user-angry', 9: 'leather-jacket', 11: 'musk-next-year', 12: 'router-launch', 13: 'zuck-bbq', 14: 'b300-party', 15: 'dario-vending', 17: 'aa-number-one', 18: 'grok-chaos', 20: 'gemini-context', 22: 'qwen-zoo', 26: 'kimi-moon', 28: 'agents-meeting', 35: 'vibe-coding' };
+export const MEME_SCHEDULE = { 2: 'busy', 3: 'fish-rice', 4: 'rheostat', 5: 'nuclear-demo', 6: 'strawberry', 7: 'user-angry', 9: 'leather-jacket', 11: 'musk-next-year', 12: 'router-launch', 13: 'zuck-bbq', 14: 'b300-party', 15: 'dario-vending', 17: 'aa-number-one', 18: 'grok-chaos', 20: 'gemini-context', 22: 'qwen-zoo', 26: 'kimi-moon', 28: 'agents-meeting', 35: 'vibe-coding', 19: 'absolutely-right', 21: 'invite-code', 23: 'price-butcher', 30: 'nine-eleven', 37: 'agi-next-year' };
 export const MEME_CATALOG = [...MEME_EVENTS, ...FOLLOWUPS];
 export function rheostat(value) {
   if (value < 34) return { name: '梁子', effects: { stress: -6, reputation: -2 } };

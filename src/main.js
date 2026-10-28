@@ -2,7 +2,7 @@ import { createElement, Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, B
 import { GOODS, LOCATIONS, ROLES, EVENTS, MILESTONES } from './content.js';
 import { CAST, SOURCES, MEME_CATALOG, rheostat } from './memes.js';
 import { MODELS, PROFILES, MODEL_DATE, getModel, featuredModel } from './models.js';
-import { newGame, transition, parseSave, SAVE_KEY, getEvent, getLocation, getNews, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
+import { newGame, transition, parseSave, SAVE_KEY, getEvent, getLocation, getNews, getRumor, priceHeat, referencePrice, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
 import { version as APP_VERSION } from '../package.json';
 import './style.css';
 import './memes.css';
@@ -38,6 +38,7 @@ function dispatch(command) {
   if (command.type === 'choose') activePane = 'actions';
   persist(); render();
   if (command.type !== 'travel') notify(result.message);
+  else if (getRumor(state)) notify(`本站突发：${getRumor(state).title}`);
   else { clearTimeout(toastTimer); document.querySelector('#toast').className = ''; }
   if (command.type === 'travel') document.querySelector('#event-heading')?.focus({ preventScroll: true });
   else if (command.type === 'choose') document.querySelector('.action-tile.suggested')?.focus({ preventScroll: true });
@@ -80,9 +81,10 @@ function marketPanel() {
   const rows = GOODS.map(g => {
     const delta = state.previousPrices[g.id] ? Math.round((state.prices[g.id] / state.previousPrices[g.id] - 1) * 100) : 0;
     const item = state.inventory[g.id], canBuy = state.cash >= state.prices[g.id] && usedSpace(state) < state.capacity;
-    return `<div class="quote-row" role="row"><div role="cell"><button class="goods-info" data-ui="good-info" data-id="${g.id}">${g.name}</button><small class="${delta >= 0 ? 'positive' : 'negative'}">${state.day === 1 ? '首日报价' : `${delta >= 0 ? '+' : ''}${delta}%`}</small></div><div class="quote-prices" role="cell"><b>${money(state.prices[g.id])}</b><small>${money(salePrice(state, g.id))}</small></div><div class="quote-holding" role="cell"><b>${item.qty}</b><small>${item.qty ? `均${Math.round(item.cost / item.qty)}` : '空仓'}</small></div><div class="trade-buttons" role="cell"><button data-ui="buy" data-id="${g.id}" data-focus="buy-${g.id}" aria-label="买入${g.name}" ${locked || !canBuy ? 'disabled' : ''}>买</button><button data-ui="sell" data-id="${g.id}" data-focus="sell-${g.id}" aria-label="卖出${g.name}" ${locked || !item.qty ? 'disabled' : ''}>卖</button></div></div>`;
+    const heat = priceHeat(state, g.id), avg = item.qty ? Math.round(item.cost / item.qty) : 0, gain = salePrice(state, g.id) >= avg;
+    return `<div class="quote-row heat-${heat.id}" role="row"><div role="cell"><button class="goods-info" data-ui="good-info" data-id="${g.id}">${g.name}</button><small><span class="heat-tag" title="平常约 ${money(referencePrice(state, g.id))}">${heat.label}</span> <span class="delta ${delta >= 0 ? 'positive' : 'negative'}">${state.day === 1 ? '首日' : `${delta >= 0 ? '+' : ''}${delta}%`}</span></small></div><div class="quote-prices" role="cell"><b>${money(state.prices[g.id])}</b><small>${money(salePrice(state, g.id))}</small></div><div class="quote-holding" role="cell"><b>${item.qty}</b><small class="${item.qty ? (gain ? 'positive' : 'negative') : ''}" ${item.qty ? `title="持仓均价 ${avg}，现回收价${gain ? '高于' : '低于'}成本"` : ''}>${item.qty ? `${gain ? '▲' : '▼'}<span class="avg-label">均</span>${avg}` : '空仓'}</small></div><div class="trade-buttons" role="cell"><button data-ui="buy" data-id="${g.id}" data-focus="buy-${g.id}" aria-label="买入${g.name}" ${locked || !canBuy ? 'disabled' : ''}>买</button><button data-ui="sell" data-id="${g.id}" data-focus="sell-${g.id}" aria-label="卖出${g.name}" ${locked || !item.qty ? 'disabled' : ''}>卖</button></div></div>`;
   }).join('');
-  return `<section class="panel market-panel screen-pane" data-pane="market"><div class="panel-heading"><h2>${icon('ChartNoAxesCombined')} 交易所</h2><span>仓位 ${usedSpace(state)}/${state.capacity}</span></div><div class="quotes" role="table" aria-label="今日货品行情"><div class="quote-row quote-labels" role="row"><span role="columnheader">货品 / 涨跌</span><span role="columnheader">买价 / 卖价</span><span role="columnheader">持有</span><span role="columnheader">买卖</span></div>${pageFrame(rows, '货品', 'market-pages')}</div><p class="panel-note">${locked ? '先处理事件，交易不耗行动。' : '交易不耗行动 · 同日倒手亏 10% 差价'}</p></section>`;
+  return `<section class="panel market-panel screen-pane" data-pane="market"><div class="panel-heading"><h2>${icon('ChartNoAxesCombined')} 交易所</h2><span>仓位 ${usedSpace(state)}/${state.capacity}</span></div><div class="quotes" role="table" aria-label="今日货品行情"><div class="quote-row quote-labels" role="row"><span role="columnheader">货品 / 涨跌</span><span role="columnheader">买价 / 卖价</span><span role="columnheader">持有</span><span role="columnheader">买卖</span></div>${pageFrame(rows, '货品', 'market-pages')}</div><p class="panel-note">${locked ? '先处理事件，交易不耗行动。' : '跳水/便宜时买，换站等偏贵/暴涨再卖 · 不耗行动'}</p></section>`;
 }
 
 function eventPanel() {
@@ -146,8 +148,8 @@ function travelPanel() {
 
 function game() {
   const step = state.event ? 1 : state.ap ? 2 : 3;
-  const news = getNews(state);
-  return `<div class="game-content" data-active-pane="${activePane}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：读事件，选一个回应。' : step === 2 ? `现在：安排今天，还剩 ${state.ap} 次行动。` : state.day === 40 ? '现在：准备好后，点“结算这 40 天”。' : '现在：选下一站，点“结束今天”。'}<small>${step === 1 ? ' 先回应，再解锁其他操作。' : ' 买卖、还款不耗行动。'}</small></span></div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker" data-ui="news">${icon('ReceiptText')}<span><b>快讯</b> ${esc(news.title)}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['market', '交易所'], ['actions', `② 行动 ${state.ap}/2`]].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${marketPanel()}${actionPanel()}</div>${travelPanel()}</div>`;
+  const news = getNews(state), rumor = getRumor(state);
+  return `<div class="game-content" data-active-pane="${activePane}">${stats()}<div class="flow-guide"><div><b>目标：40 天内还清欠款，活着收工</b><span id="next-step" role="status">${step === 1 ? '现在：读事件，选一个回应。' : step === 2 ? `现在：安排今天，还剩 ${state.ap} 次行动。` : state.day === 40 ? '现在：准备好后，点“结算这 40 天”。' : '现在：选下一站，点“结束今天”。'}<small>${step === 1 ? ' 先回应，再解锁其他操作。' : ' 买卖、还款不耗行动。'}</small></span></div><ol class="day-steps" aria-label="每日流程"><li ${step === 1 ? 'aria-current="step"' : ''}>${step > 1 ? '✓' : '1'} 事件</li><li ${step === 2 ? 'aria-current="step"' : ''}>${step > 2 ? '✓' : '2'} 行动</li><li ${step === 3 ? 'aria-current="step"' : ''}>3 ${state.day === 40 ? '结算' : '过夜'}</li></ol></div><button class="news-ticker ${rumor ? 'breaking' : ''}" data-ui="news">${icon('ReceiptText')}<span>${rumor ? `<b>本站突发</b> ${esc(rumor.title)}` : `<b>快讯</b> ${esc(news.title)}`}</span>${icon('ChevronRight')}</button><nav class="pane-tabs" aria-label="游戏面板">${[['event', state.event ? '① 待办事件' : '✓ 今日遭遇'], ['market', '交易所'], ['actions', `② 行动 ${state.ap}/2`]].map(([id, label]) => `<button data-ui="show-pane" data-pane="${id}" aria-pressed="${activePane === id}">${label}</button>`).join('')}</nav><div class="play-grid">${eventPanel()}${marketPanel()}${actionPanel()}</div>${travelPanel()}</div>`;
 }
 
 function ending() {
@@ -272,8 +274,8 @@ document.addEventListener('click', e => {
     company: () => openModal('产品与个人档案', companyPanel()),
     stations: () => openModal('站点特点 · 选好再结束今天', pageFrame(LOCATIONS.map(l => `<button class="station-choice" data-ui="pick-station" data-id="${l.id}"><b>${icon(l.icon)} ${l.name}</b><span>${l.specialty}</span></button>`).join(''), '站点')),
     'pick-station': () => { nextStation = b.dataset.id; closeModal(); render(); },
-    news: () => openModal('今日快讯 · 游戏模拟行情', `<h3>${esc(getNews(state).title)}</h3><p>${esc(getNews(state).detail)}</p><p>ROUTER 小报：${esc(featuredModel(state).name)} · ${esc(getNews(state).traffic ?? '发布会永不打烊')}</p><p class="muted">游戏模拟，不是实时排行榜。行情已反映在报价中。</p>`),
-    'good-info': () => { const g = GOODS.find(g => g.id === b.dataset.id); openModal(g.name, `<p>${g.desc}</p><p>当前买入 ${money(state.prices[g.id])} / ${g.unit}，回收 ${money(salePrice(state, g.id))}。</p><p>持仓 ${state.inventory[g.id].qty}，成本 ${money(state.inventory[g.id].cost)}。买卖不消耗行动。</p>`); },
+    news: () => openModal('今日快讯 · 游戏模拟行情', `${getRumor(state) ? `<div class="market-shock">本站突发：${esc(getRumor(state).title)}<small>${esc(GOODS.find(g => g.id === getRumor(state).good).short)}报价 ×${getRumor(state).factor}，只在今天、只在这一站。</small></div>` : ''}<h3>${esc(getNews(state).title)}</h3><p>${esc(getNews(state).detail)}</p><p>ROUTER 小报：${esc(featuredModel(state).name)} · ${esc(getNews(state).traffic ?? '发布会永不打烊')}</p><p class="muted">游戏模拟，不是实时排行榜。行情已反映在报价中。</p>`),
+    'good-info': () => { const g = GOODS.find(g => g.id === b.dataset.id); openModal(g.name, `<p>${g.desc}</p><p>当前买入 ${money(state.prices[g.id])} / ${g.unit}，回收 ${money(salePrice(state, g.id))}。平常约 ${money(referencePrice(state, g.id))}，今天算<b>${priceHeat(state, g.id).label}</b>。</p><p>持仓 ${state.inventory[g.id].qty}，成本 ${money(state.inventory[g.id].cost)}。买卖不消耗行动。</p>`); },
     gallery, models: modelSquare, 'meme-detail': () => memeDetail(b.dataset.id),
     support: () => openModal('打赏支持', '<p>游戏永久免费。觉得好玩，可以请作者喝杯咖啡。</p><img class="community-qr" src="/community/support.png" alt="作者打赏二维码">'),
     follow: () => openModal('关注向阳乔木', '<p>微信公众号：向阳乔木推荐看</p><img class="community-qr" src="/community/follow.jpg" alt="向阳乔木推荐看公众号二维码"><p class="community-links"><a href="https://github.com/joeseesun/ai-fushengji" target="_blank" rel="noopener">游戏源码</a><a href="https://x.com/vista8" target="_blank" rel="noopener">X / Twitter</a></p>'),

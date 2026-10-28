@@ -75,3 +75,37 @@ test('market shock is already in quote history and never reapplied on reload', (
   const restored = parseSave(JSON.stringify(s)); assert.deepEqual(restored.prices, s.prices);
   assert.ok(!getEvent(s).title.includes('{model}'));
 });
+test('black-market rumors are rare, persisted in the quote and never rerolled on reload', async () => {
+  const { RUMORS } = await import('../src/content.js');
+  const { priceHeat, referencePrice } = await import('../src/engine.js');
+  let s = ready(11), rumorDays = 0;
+  for (let day = 1; day < 39 && s.status === 'playing'; day++) {
+    if (s.event) s = act(s, { type: 'choose', index: getEvent(s).options.findIndex(o => (o.effects.cash ?? 0) >= 0 && !o.stance) });
+    s = act(s, { type: 'travel', location: 'home' });
+    if (!s.rumor) continue;
+    rumorDays++;
+    const r = RUMORS.find(r => r.id === s.rumor);
+    assert.equal(s.history[r.good].at(-1), s.prices[r.good]);
+    assert.ok(Number.isSafeInteger(s.prices[r.good]) && s.prices[r.good] >= 8);
+    assert.deepEqual(parseSave(JSON.stringify(s)).prices, s.prices);
+    assert.ok(referencePrice(s, r.good) > 0 && priceHeat(s, r.good).label);
+  }
+  assert.ok(rumorDays > 3 && rumorDays < 30, `rumor days ${rumorDays}`);
+  const bad = structuredClone(s); bad.rumor = 'made-up';
+  assert.equal(isValidSave(bad), false);
+});
+test('price heat labels follow the ratio to the reference quote', async () => {
+  const { priceHeat, referencePrice } = await import('../src/engine.js');
+  const s = ready(5), ref = referencePrice(s, 'avatar');
+  for (const [ratio, id] of [[2.1, 'hot'], [1.4, 'high'], [1, 'fair'], [.7, 'cheap'], [.4, 'crash']]) {
+    s.prices.avatar = Math.round(ref * ratio); assert.equal(priceHeat(s, 'avatar').id, id);
+  }
+});
+test('saves from before the new meme events load with RNG intact and the new events appended', () => {
+  const s = ready(21); const fresh = new Set(['absolutely-right', 'invite-code', 'scaling-wall']);
+  s.eventDeck = s.eventDeck.filter(id => !fresh.has(id)); delete s.rumor;
+  const next = parseSave(JSON.stringify(s));
+  assert.ok(next); assert.equal(next.rng, s.rng); assert.equal(next.rumor, null);
+  assert.equal(next.eventDeck.length, EVENTS.length);
+  assert.deepEqual(next.eventDeck.slice(0, s.eventDeck.length), s.eventDeck);
+});

@@ -46,5 +46,20 @@
 | 梁圣返场：群昵称大迁移 | [B 站：梁圣，刚才谁叫我梁子的？](https://www.bilibili.com/video/BV1gzJU6zE8R/) |
 | 那条吃白饭的鱼回来了 | [B 站：梁圣／肥鱼世界巡演](https://www.bilibili.com/video/BV1zmpP6KEre/) |
 | 三个 Agent 回来找你了 | [B 站：完啦完啦！用户彻底怒了！](https://www.bilibili.com/video/BV1fthi6mEEz/) |
+| 您说得完全正确！ | 本作原创演绎：模型习性与 AI 打工生活 |
+| 9.11 和 9.9 哪个大 | 本作原创演绎：模型习性与 AI 打工生活 |
+| 邀请码炒到五位数 | 本作原创演绎：模型习性与 AI 打工生活 |
+| 奶奶漏洞 | 本作原创演绎：模型习性与 AI 打工生活 |
+| AGI 明年就来（今年也这么说） | 本作原创演绎：模型习性与 AI 打工生活 |
+| 价格屠夫：API 降价 97% | 本作原创演绎：模型习性与 AI 打工生活 |
+| 他到底看到了什么 | 本作原创演绎：模型习性与 AI 打工生活 |
+| 周报的压缩与解压 | 本作原创演绎：模型习性与 AI 打工生活 |
+| 简历里出现了 delve | 本作原创演绎：模型习性与 AI 打工生活 |
+| Deep Research 写了 50 页 | 本作原创演绎：模型习性与 AI 打工生活 |
+| 提示词工程已死，上下文工程万岁 | 本作原创演绎：模型习性与 AI 打工生活 |
+| AI 取代程序员，然后招程序员 | 本作原创演绎：模型习性与 AI 打工生活 |
+| Scaling Law 撞墙了吗 | 本作原创演绎：模型习性与 AI 打工生活 |
 
 补充发现：[大肥鱼表情包仓库](https://github.com/the-beating-light-of-the-nail/deepseek-chan-meme-pack/blob/main/README.zh-CN.md)、[大肥鱼文化报道](https://tech.ifeng.com/c/8xSXpkNB7YG)、[B站AI大肥鱼评论现象](https://finance.sina.com.cn/stock/t/2026-10-24/doc-iniwhxps4912249.shtml)。未核实完整再分发许可，因此仅作研究链接，未将这些站点的图片打包进游戏。
+
+2026-10-28 追加 13 个梗事件与 16 条“本站突发”行情传闻（见 src/content.js 的 RUMORS）。均为原创虚构文案，未附外部来源链接；人物与公司仅作泛指恶搞。

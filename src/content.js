@@ -45,6 +45,26 @@ export const NEWS = [
   { id: 'human', title: '第一批客户开始为“有人负责”付费。', detail: '产品当日收入 ×1.5。人类客服不是落后产能。', factors: { data: 1.15 }, product: 1.5 },
 ];
 
+// Black-market rumors: rare, large single-goods swings at the current station. Fiction, not price data.
+export const RUMORS = [
+  { id: 'ban-h200', good: 'compute', factor: 3, title: '传闻又一批卡要被限售，黄牛连夜扫光 H200 机时券。' },
+  { id: 'domestic-gpu', good: 'compute', factor: .35, title: '某国产卡宣布“遥遥领先”，H200 机时券被恐慌抛售。' },
+  { id: 'more-you-buy', good: 'b300', factor: 2.6, title: '皮衣刀客：“买得越多，省得越多。”B300 机时券被抢疯。' },
+  { id: 'b300-leak', good: 'b300', factor: .4, title: '一排 B300 机柜漏液，二手机时券跳水。' },
+  { id: 'local-4bit', good: 'rtx', factor: 2.8, title: '4bit 量化跑满血模型的帖子刷屏，5090 租机券一券难求。' },
+  { id: 'rtx-game', good: 'rtx', factor: .35, title: '群友集体醒悟：5090 其实是用来打游戏的。租机券清仓。' },
+  { id: 'expert-prompt', good: 'prompt', factor: 3.2, title: '论文称“你是一位资深专家”能涨 3 分，提示词贩子集体复活。' },
+  { id: 'prompt-dead', good: 'prompt', factor: .25, title: '新模型发布，“提示词工程已死”（本年第 47 次）。' },
+  { id: 'mcp-all', good: 'workflow', factor: 2.7, title: '万物皆可 MCP：工作流改名 Agent，报价后面多了个零。' },
+  { id: 'rm-rf', good: 'workflow', factor: .35, title: 'Agent 删了生产库还回“You’re absolutely right!”，工作流遭集体退货。' },
+  { id: 'data-wall', good: 'data', factor: 2.5, title: '“互联网数据用完了”传闻发酵，干净语料比黄金还硬。' },
+  { id: 'synthetic', good: 'data', factor: .4, title: '合成数据宣布无限供应，语料贩子连夜打骨折。' },
+  { id: 'private-deploy', good: 'model', factor: 2.6, title: '甲方突然信了“数据不出域”，垂直小模型订单爆单。' },
+  { id: 'wrapper', good: 'model', factor: .3, title: '基座模型一更新，所有垂直小模型被群友鉴定为“套壳”。' },
+  { id: 'live-gmv', good: 'avatar', factor: 3, title: '数字人直播带货“据说”破亿，分身模板被抢光。' },
+  { id: 'as-an-ai', good: 'avatar', factor: .35, title: '某数字人直播时说“作为一个 AI 语言模型”，分身模板跳楼价清仓。' },
+];
+
 const option = (label, effects, result, extra = {}) => ({ label, effects, result, ...extra });
 const event = (id, tag, title, text, options) => ({ id, tag, title, text, options });
 
