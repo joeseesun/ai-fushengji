@@ -9,7 +9,7 @@ VPS 使用独立目录 `/opt/qiaomu-apps/ai-fushengji/releases/<commit>/`，`cur
 - HTML 与 `sw.js` 使用 `Cache-Control: no-cache`。
 - Vite 哈希资产可长期缓存；非哈希插画、二维码不设 immutable。
 - `version.json` 记录完整 Git SHA 与构建内容摘要，发布后读取核对。
-- Service Worker 按内容摘要区分缓存。新 worker 等现有页面关闭后激活，避免中途换版本；存档仍在 localStorage。
+- Service Worker 按内容摘要区分缓存。完整预缓存后新 worker 立即接管；不自动刷新正在玩的页面。在线手动刷新优先取新 HTML，离线使用完整缓存。旧资产在所有已开页面确认当前入口前保留，避免旧页面断资源；存档仍在 localStorage。UI 补丁 0.11.1 沿用 0.11.0 经济规则与榜单后端，无需重启榜单服务。
 - DNS 为单独 A 记录；HTTPS 使用 Certbot webroot，HTTP 保留 ACME challenge 路径。
 - Umami 网站 ID：`e5ce8652-be2a-4be4-b92d-98602aef4f57`。仅对正式域名统计访问，不上传存档，不启用会话录像。
 

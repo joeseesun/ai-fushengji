@@ -549,3 +549,12 @@ dialog[open] { display:flex; flex-direction:column; }
 .project-offer h3 { margin:0 0 8px; font-size:16px; }
 .project-offer p,.project-request,.project-receipt { font-size:13px; line-height:1.7; }
 .project-offer button { width:100%; min-height:40px; margin-top:8px; }
+
+.play-guide { padding:12px; background:#fff5cc; border:1px solid #b8a961; }
+.play-guide h3 { font-size:16px; line-height:1.5; margin:0 0 6px; }
+.play-guide p { font-size:13px; line-height:1.7; margin:0 0 10px; }
+.play-guide button { width:100%; min-height:42px; padding:9px; white-space:normal; line-height:1.5; }
+.more-actions { width:100%; min-height:36px; font-size:13px; padding:8px; text-align:left; }
+
+@media(min-width:761px) { .play-grid.simple-play { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); } }
+.play-guide small { font-size:12px; line-height:1.6; }
