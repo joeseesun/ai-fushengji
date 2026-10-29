@@ -1,3 +1,5 @@
+import { projectOffers as makeProjectOffers, projectChoice as makeProjectChoice, projectExpiry, projectBrief, validProjectState } from './projects.js';
+export { projectExpiry, projectBrief } from './projects.js';
 import { GOODS, LOCATIONS, ROLES, NEWS, EVENTS, MILESTONES, INTRO_EVENT, RUMORS, ARRIVALS, WRITE_OUTCOMES, ACTION_ROLLS, ACTION_FLAVOR, OPENING_GOODS, GOODS_PER_DAY, QUESTS, PERKS, DRAFT_DAYS, RENT_DAYS, RENT_LATE_RATE, GOOD_OUTCOMES, BAD_OUTCOMES, VIPS, ITEMS, DEPTH_STEP, DEPTH_FLOOR } from './content.js';
 import { FOLLOWUPS, MEME_SCHEDULE, rheostat } from './memes.js';
 import { MODELS, PROFILES, getModel, modelBonus, featuredModel } from './models.js';
@@ -6,7 +8,7 @@ import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
 import { careerOffer, careerDemand, careerAction } from './careers.js';
 import { RULESET, MAX_COMMANDS, cleanCommand, validProof } from './run-proof.js';
 
-export const VERSION = 10;
+export const VERSION = 11;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -72,6 +74,23 @@ export const depth = (s, id) => ({ bought: traded(s, id, 'b'), sold: traded(s, i
 export const activeVips = s => (s.vips ?? []).filter(v => v.from <= s.day && s.day <= v.until).map(v => ({ ...VIPS.find(x => x.id === v.id), ...v }));
 export const upcomingVips = s => (s.vips ?? []).filter(v => v.from > s.day).map(v => ({ ...VIPS.find(x => x.id === v.id), ...v }));
 const aura = (s, key, fallback) => activeVips(s).reduce((n, v) => v.aura[key] === undefined ? n : key === 'work' || key === 'rush' ? n * v.aura[key] : n + v.aura[key], fallback);
+// Keep the existing role, perk and VIP reductions consistent across ordinary
+// actions and project work. Outcome penalties remain separate, as before.
+function effortEffects(s, effects) {
+  const e = { ...effects };
+  if (s.role === 'worker' && e.stress > 0) e.stress = Math.round(e.stress * .6);
+  if (hasPerk(s, 'headphones') && e.stress > 0) e.stress = Math.max(0, e.stress - 2);
+  if (aura(s, 'calm', 0) && e.stress > 0) e.stress = Math.max(0, e.stress - aura(s, 'calm', 0));
+  return e;
+}
+export function projectChoice(s, id) {
+  const info = makeProjectChoice(s, id);
+  if (info?.ap) {
+    info.effects = effortEffects(s, info.effects);
+    if (id === 'rush' && s.role === 'coder') info.effects.techDebt = Math.floor(info.effects.techDebt / 2);
+  }
+  return info;
+}
 export const itemFor = (s, action) => Object.keys(s.items ?? {}).find(id => ITEMS[id].action === action && s.items[id] > 0) ?? null;
 export const nightlyWear = s => Math.max(0, 1 + (s.stress >= 70 ? 5 : s.stress >= 50 ? 2 : 0) - (hasPerk(s, 'chair') ? 1 : 0));
 export const rentDue = s => s.rent && !s.rent.paid ? s.rent.due : 0;
@@ -209,6 +228,7 @@ export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
     techDebt: 0, products: 0, progress: 0, ap: 2, capacity: 18,
     inventory: Object.fromEntries(GOODS.map(g => [g.id, { qty: 0, cost: 0 }])),
     prices: {}, previousPrices: {}, history: {}, news: 'normal', newsEdition: null, newsSeen: [], rumor: null, arrival: null, lastWrite: null, lastAction: null, available: [], intel: {}, quest: null, questsDone: 0, perks: [], draft: null, rent: null, stats: emptyStats(), vips: [], items: {}, flow: {},
+    project: null, projectDay: 0, projectsDone: 0,
     event: 'intro', eventDeck: [], eventIndex: 0, journal: [], receipts: [],
     seen: ['intro'], followups: [], lastEvent: null, stance: 50,
     model: null, modelUntil: 0,
@@ -260,7 +280,7 @@ export function actionInfo(s, action) {
   const craft = s.skill >= 60 ? 4 : s.skill >= 40 ? 2 : 0;
   const job = Math.round(wage * (hasPerk(s, 'keyboard') ? 1.15 : 1) * aura(s, 'work', 1)) + (bonus?.work ?? 0);
   const infos = {
-    work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
+    work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: Math.round((job - (bonus?.work ?? 0)) * .7) + (bonus?.work ?? 0), health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
     rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65 * aura(s, 'rush', 1)), health: -9, stress: 15, techDebt: Math.max(0, (role === 'coder' ? 5 : 10) - craft), reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
     learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (hasPerk(s, 'monitor') ? 3 : 0) + aura(s, 'learn', 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
     rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0) + (hasPerk(s, 'pillow') ? 4 : 0), stress: -22 - (hasPerk(s, 'pillow') ? 8 : 0) - aura(s, 'rest', 0) }, after: '没有产出的一格行动，也算在认真生活。' },
@@ -272,18 +292,16 @@ export function actionInfo(s, action) {
   const info = infos[action];
   if (!info) return null;
   const activity = careerAction(s, action);
-  info.name = activity.name;
+  info.name = action === 'work' ? `零工 · ${activity.name}` : activity.name;
   info.process = activity.process;
   info.flavors = ACTION_FLAVOR[action].map(line => `「${activity.name}」：${line}`);
   if (action === 'work') {
-    info.desc = `${offer.label}专属委托 · ${offer.grade ? `手艺加价 ${offer.grade * 20}% · ` : ''}${offer.client ? `熟客加价 ${offer.client * 10}% · ` : ''} ${demand?.active ? '新闻加价 30% · ' : ''}${bonus ? `搭子另加 ¥${bonus.work}` : '今日报价已含职业与地点加成'}`;
+    info.desc = `零工即时结账（标准报价的 70%）；跨日项目在项目板挑单。${offer.label}委托 · ${offer.grade ? `手艺加价 ${offer.grade * 20}% · ` : ''}${offer.client ? `熟客加价 ${offer.client * 10}% · ` : ''} ${demand?.active ? '新闻加价 30% · ' : ''}${bonus ? `搭子另加 ¥${bonus.work}` : '今日报价已含职业与地点加成'}`;
     info.flavors[0] = activity.story;
     info.flavors[1] = `${activity.story} 甲方终于把“收到”变成了转账。`;
   }
   if (['work', 'rush', 'write', 'learn', 'build'].includes(action) && bonus) info.assist = action === 'learn' ? `搭子学习 +${bonus.learn}` : action === 'build' ? `搭子技术债 ${bonus.build}` : action === 'write' ? `有稿费时搭子 +¥${bonus.work}` : `含搭子 +¥${action === 'rush' ? Math.floor(job * 1.65) - Math.floor(wage * 1.65) : bonus.work}`;
-  if (role === 'worker' && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.round(info.effects.stress * .6) };
-  if (hasPerk(s, 'headphones') && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.max(0, info.effects.stress - 2) };
-  if (aura(s, 'calm', 0) && info.effects.stress > 0) info.effects = { ...info.effects, stress: Math.max(0, info.effects.stress - aura(s, 'calm', 0)) };
+  info.effects = effortEffects(s, info.effects);
   const item = itemFor(s, action);
   if (item) {
     const e = { ...info.effects };
@@ -310,6 +328,8 @@ export function actionInfo(s, action) {
   }
   return { ...info, reason: info.reason || (s.cash + (info.effects.cash ?? 0) < 0 ? '现金不足' : s.ap < 1 ? '今天的行动已用完' : '') };
 }
+
+export const projectOffers = s => makeProjectOffers(s, actionInfo({ ...s, items: {} }, 'work').effects.cash);
 
 export function endingFor(s) {
   const worth = netWorth(s);
@@ -446,6 +466,33 @@ export function transition(original, command) {
       message ||= info.after;
       log(s, `${info.name}：${effectText(info.effects)}。${message}`, 'action'); break;
     }
+    case 'project': {
+      if (['take-0', 'take-1'].includes(command.id)) {
+        const offer = projectOffers(s)[Number(command.id.at(-1))];
+        if (!offer) return fail(s.project ? '手上已有项目，交付或退出后再接。' : '今天没有可接的新项目。');
+        s.project = offer; s.projectDay = s.day;
+        message = `接下「${projectBrief(s)[0]}」：第 ${offer.due} 天收工前交付，项目款 ¥${offer.reward}，先做 ${offer.need} 格进度。明天客户会确认新增需求。签约不发钱、不耗行动。`;
+      } else {
+        const info = projectChoice(s, command.id);
+        if (!info) return fail('这个项目操作不存在。');
+        if (info.reason) return fail(info.reason);
+        applyEffects(s, info.effects); s.ap -= info.ap ?? 0;
+        let progress = info.progress ?? 0, outcome;
+        if (info.outcomes) {
+          let roll = random(s) * 100;
+          outcome = info.outcomes.find(o => (roll -= o.weight) < 0) ?? info.outcomes.at(-1);
+          applyEffects(s, outcome.effects); progress = outcome.progress;
+        }
+        Object.assign(s.project, info.patch);
+        s.project.progress = Math.min(s.project.need, s.project.progress + progress);
+        message = `${info.name}：${outcome?.text ?? info.desc}（${effectText(combinedEffects(info.effects, outcome?.effects ?? {})) || '已确认范围'}）`;
+        if (info.done) {
+          message = `「${projectBrief(s)[0]}」验收通过，项目款 ¥${s.project.reward} 到账。客户回复“收到”，这次后面跟着转账。（${effectText(info.effects)}）`;
+          s.totalEarned += s.project.reward; s.projectsDone++; s.jobsDone++; s.project = null;
+        } else if (info.cancel) s.project = null;
+      }
+      log(s, message, 'project'); break;
+    }
     case 'perk': {
       if (!s.draft) return fail('今天没有可以挑的外挂。');
       if (!s.draft.includes(command.id)) return fail('只能从这三张里挑一张。');
@@ -493,6 +540,11 @@ export function transition(original, command) {
       if (!finishing && !LOCATIONS.some(l => l.id === command.location)) return fail('目的地不存在。');
       const fare = finishing ? 0 : travelFare(s, command.location);
       if (s.cash < fare) return fail(`打车需要 ¥${fare}，现金不足。可免费去下一站或留在原地。`);
+      const missed = projectExpiry(s, finishing);
+      if (missed) {
+        log(s, `「${projectBrief(s)[0]}」${finishing ? '收工仍未交付' : '错过交付截止'}，项目款未到账，口碑 −6、压力 +10。甲方的“很简单”变成了你的未完成。`, 'project');
+        applyEffects(s, missed); s.project = null;
+      }
       if (s.event) { log(s, `收工略过「${getEvent(s).title}」：未获得选项收益，也未触发选项后续。`, 'skip'); s.event = null; }
       if (fare) { s.cash -= fare; log(s, `打车去${LOCATIONS.find(l => l.id === command.location).name}，车费 ¥${fare}。`, 'travel'); }
       if (s.draft) { log(s, '外挂没挑就收工了，这一轮的三张卡作废。', 'skip'); s.draft = null; }
@@ -530,6 +582,7 @@ export function transition(original, command) {
         message = s.ending.subtitle;
       } else {
         s.day++; s.location = command.location; s.ap = 2; market(s);
+        if (s.project?.change === 'waiting') { s.project.change = 'pending'; log(s, `客户追加需求：${projectBrief(s)[2]} 可以先处理，也可照常安排其他事。`, 'project'); }
         const sequel = s.followups.find(f => f.day <= s.day);
         s.event = MILESTONES[s.day]?.id ?? MEME_SCHEDULE[s.day] ?? sequel?.id;
         if (s.event === sequel?.id && sequel) s.followups = s.followups.filter(f => f !== sequel);
@@ -571,6 +624,7 @@ export function failureReason(s) {
 }
 
 export function commandLabel(s, command) {
+  if (command.type === 'project') return projectChoice(s, command.id)?.name ?? '接下跨日项目';
   if (command.type === 'action') return actionInfo(s, command.id)?.name ?? '今日安排';
   if (command.type === 'choose') return `${getEvent(s)?.title ?? '今日遭遇'} → ${getEvent(s)?.options[command.index]?.label ?? '作出选择'}`;
   if (command.type === 'travel') return `第 ${s.day} 天收工 → ${LOCATIONS.find(l => l.id === command.location)?.name ?? '下一站'}`;
@@ -580,10 +634,14 @@ export function commandLabel(s, command) {
 
 // Use visible odds/effects, never peek at the next RNG draw to warn a player.
 export function commandRisk(s, command) {
-  if (!['action', 'choose', 'travel', 'finish'].includes(command.type) || s.status !== 'playing') return null;
+  if (!['action', 'project', 'choose', 'travel', 'finish'].includes(command.type) || s.status !== 'playing') return null;
   let base = copy(s), outcomes = [{ weight: 1, effects: {} }];
   if (command.type === 'action') {
     const info = actionInfo(s, command.id);
+    if (!info || info.reason) return null;
+    applyEffects(base, info.effects); outcomes = info.outcomes ?? outcomes;
+  } else if (command.type === 'project') {
+    const info = projectChoice(s, command.id);
     if (!info || info.reason) return null;
     applyEffects(base, info.effects); outcomes = info.outcomes ?? outcomes;
   } else if (command.type === 'choose') {
@@ -597,6 +655,7 @@ export function commandRisk(s, command) {
     const fare = command.type === 'finish' ? 0 : travelFare(s, command.location);
     if (s.cash < fare) return null;
     base.cash -= fare;
+    const missed = projectExpiry(base, command.type === 'finish'); if (missed) applyEffects(base, missed);
     const quest = questProgress(base); if (quest?.done) applyEffects(base, quest.reward);
     base.debt += dailyInterest(base) + Math.max(0, dailyCost(base) - base.cash - productIncome(base));
     if (rentDue(base)) { base.debt += Math.round(rentDue(base) * RENT_LATE_RATE); base.stress = clamp(base.stress + 12, 0, 100); }
@@ -621,6 +680,7 @@ export function commandRisk(s, command) {
 // Only accept bounded, structurally valid saves. Text is escaped by the renderer too.
 export function isValidSave(s) {
   if (!s || typeof s !== 'object' || s.version !== VERSION) return false;
+  if (!validProjectState(s)) return false;
   if (!integer(s.day, 1, DAYS) || !integer(s.rng, 1, 0xffffffff) || !integer(s.seed, 1, 0xffffffff)) return false;
   if (!ROLES.some(r => r.id === s.role) || !LOCATIONS.some(l => l.id === s.location) || !NEWS.some(n => n.id === s.news)) return false;
   if (!validNews(s)) return false;
@@ -726,8 +786,9 @@ export function parseSave(text) {
     if (s?.version === 9) {
       // Preserve balances, RNG, today's prices and already announced visits.
       // Old command histories must never be replayed under the new economy.
-      s.proof = null; s.version = VERSION;
+      s.proof = null; s.version = 10;
     }
+    if (s?.version === 10) { s.project = null; s.projectDay = 0; s.projectsDone = 0; s.proof = null; s.version = VERSION; }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.
       s.rumor ??= null; s.arrival ??= null; s.lastWrite ??= null; s.lastAction ??= null;
