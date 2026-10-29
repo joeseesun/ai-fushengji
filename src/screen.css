@@ -533,3 +533,7 @@ dialog[open] { display:flex; flex-direction:column; }
   .quote-row>div:first-child { display:flex; align-items:center; justify-content:space-between; gap:4px; }
   .quote-row { min-height:36px; padding-block:2px; }
 }
+
+.save-slot { display:grid; gap:6px; padding:12px 0; border-bottom:1px solid #bbc2b1; }
+.save-slot small { color:#455757; }
+.save-slot .modal-actions { margin-top:2px; }
