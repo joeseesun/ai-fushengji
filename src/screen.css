@@ -537,3 +537,15 @@ dialog[open] { display:flex; flex-direction:column; }
 .save-slot { display:grid; gap:6px; padding:12px 0; border-bottom:1px solid #bbc2b1; }
 .save-slot small { color:#455757; }
 .save-slot .modal-actions { margin-top:2px; }
+
+.project-entry { display:flex; align-items:center; gap:10px; width:100%; padding:10px; text-align:left; background:#f5edcc; }
+.project-entry>span { flex:1; min-width:0; display:grid; gap:4px; }
+.project-entry b { font-size:14px; line-height:1.5; }
+.project-entry small { font-size:12px; line-height:1.5; }
+.project-entry.needs-attention { background:#ffdf99; }
+.project-option { display:grid; gap:6px; width:100%; padding:12px; text-align:left; white-space:normal; }
+.project-option span,.project-option small { font-size:13px; line-height:1.6; }
+.project-offer { padding:10px 0; border-bottom:1px solid #bbc2b1; }
+.project-offer h3 { margin:0 0 8px; font-size:16px; }
+.project-offer p,.project-request,.project-receipt { font-size:13px; line-height:1.7; }
+.project-offer button { width:100%; min-height:40px; margin-top:8px; }
