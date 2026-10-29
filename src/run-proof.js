@@ -1,5 +1,5 @@
 // Shared, bounded command format. No client-reported balance is accepted by the server.
-export const RULESET = '0.9.0';
+export const RULESET = '0.10.0';
 export const MAX_COMMANDS = 1200;
 const fields = {
   'ignore-event': [], model: ['id'], choose: ['index', 'stance'], buy: ['id', 'qty'],

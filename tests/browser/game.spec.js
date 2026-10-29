@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { newGame, getEvent, SAVE_KEY } from '../../src/engine.js';
-const snapshot = page => page.evaluate(key => JSON.parse(localStorage.getItem(key)), SAVE_KEY);
+const snapshot = page => page.evaluate(key => { const library = JSON.parse(localStorage.getItem('ai-fushengji-slots-v1')); return library ? library.slots.find(s => s.id === library.active)?.state : JSON.parse(localStorage.getItem(key)); }, SAVE_KEY);
 const start = async (page, s = newGame('coder', 42)) => {
   await page.goto('/'); await page.locator('[data-ui="start"]').waitFor(); await page.evaluate(({ key, s }) => localStorage.setItem(key, JSON.stringify(s)), { key: SAVE_KEY, s });
   await page.reload();
@@ -123,7 +123,8 @@ test('offline resume, valid save import, support and follow images', async ({ pa
   await context.setOffline(false);
   await page.locator('[data-ui="save"]').click();
   await page.locator('#import-file').setInputFiles({ name: 'valid.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(before)) });
-  await page.locator('#confirm-import').click(); expect(await snapshot(page)).toEqual(before);
+  await expect(page.locator('#modal')).not.toBeVisible(); expect(await snapshot(page)).toEqual(before);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ai-fushengji-slots-v1')).slots.length)).toBe(2);
   for (const id of ['support','follow']) {
     await page.locator(`[data-ui="${id}"]`).click(); await expect(page.locator('.community-qr')).toBeVisible();
     await expect.poll(() => page.locator('.community-qr').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);

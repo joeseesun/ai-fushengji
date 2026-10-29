@@ -6,7 +6,7 @@ import { EXTRA_GOODS, EXTRA_MARKET_FACTORS } from './goods-extra.js';
 import { careerOffer, careerDemand, careerAction } from './careers.js';
 import { RULESET, MAX_COMMANDS, cleanCommand, validProof } from './run-proof.js';
 
-export const VERSION = 9;
+export const VERSION = 10;
 export const DAYS = 40;
 export const INTEREST = .018;
 export const SAVE_KEY = 'ai-fushengji-save-v1';
@@ -185,16 +185,19 @@ function market(s) {
   }
 }
 
-// One VIP is announced for tomorrow each day and stays two days; the same person never overlaps themself.
+// A seeded itinerary creates real quiet days: 5–7 days between one-day visits.
+// Only tomorrow's opportunity is revealed. Inspecting/reloading cannot reroll it.
 function scheduleVips(s) {
   s.vips = (s.vips ?? []).filter(v => v.until >= s.day);
-  const add = from => {
-    const busy = s.vips.map(v => v.id), pool = VIPS.filter(v => !busy.includes(v.id));
-    const vip = pool[Math.floor(random(s) * pool.length)];
-    s.vips.push({ id: vip.id, station: vip.station, from, until: from + 1, claimed: false });
-  };
-  if (s.day === 1 && !s.vips.length) add(1);
-  if (s.day < DAYS && !s.vips.some(v => v.from === s.day + 1)) add(s.day + 1);
+  let from = 4 + (s.seed % 3), index = 0;
+  while (from <= DAYS) {
+    if (from >= s.day && from <= s.day + 1 && !s.vips.length) {
+      const vip = VIPS[((s.seed >>> 8) + index) % VIPS.length];
+      s.vips.push({ id: vip.id, station: vip.station, from, until: from, claimed: false });
+    }
+    index++;
+    from += 5 + (((s.seed ^ Math.imul(index, 1597334677)) >>> 0) % 3);
+  }
 }
 
 export function newGame(roleId = 'coder', seed = Date.now() >>> 0) {
@@ -254,13 +257,14 @@ export function actionInfo(s, action) {
   const bonus = modelBonus(s), role = s.role;
   const offer = careerOffer(s), demand = careerDemand(s);
   const wage = Math.round((offer.base + s.skill * offer.skill + s.reputation * offer.rep + (s.location === 'jobs' ? 160 : 0)) * offer.mult * offer.rate * (demand?.active ? demand.rate : 1));
+  const craft = s.skill >= 60 ? 4 : s.skill >= 40 ? 2 : 0;
   const job = Math.round(wage * (hasPerk(s, 'keyboard') ? 1.15 : 1) * aura(s, 'work', 1)) + (bonus?.work ?? 0);
   const infos = {
     work: { name: '认真接一单', desc: '不卖奇迹，按约交付。', icon: 'BriefcaseBusiness', effects: { cash: job, health: -4, stress: 8, reputation: 2 }, after: '交付完成。客户说“收到”，这两个字比一百颗星值钱。' },
-    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65 * aura(s, 'rush', 1)), health: -9, stress: 15, techDebt: role === 'coder' ? 5 : 10, reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
+    rush: { name: '熬夜赶急单', desc: '现金来得快，技术债也是。', icon: 'Zap', effects: { cash: Math.floor(job * 1.65 * aura(s, 'rush', 1)), health: -9, stress: 15, techDebt: Math.max(0, (role === 'coder' ? 5 : 10) - craft), reputation: -1 }, after: '钱到了。你把明天的自己设成了负责人。' },
     learn: { name: '弄懂一点原理', desc: '多一块不会被版本更新删掉的能力。', icon: 'BookOpen', effects: { cash: -80, skill: 7 + (s.location === 'opensource' ? 3 : s.location === 'hackathon' ? 2 : 0) + (role === 'grad' ? 4 : 0) + (hasPerk(s, 'monitor') ? 3 : 0) + aura(s, 'learn', 0) + (bonus?.learn ?? 0), stress: 3 }, after: '学会了一点。不是看过，不是收藏，是会了。' },
     rest: { name: '关机休息', desc: '让活人退出后台，回到前台。', icon: 'Coffee', effects: { health: 16 + (s.location === 'home' ? 6 : 0) + (role === 'worker' ? 6 : 0) + (hasPerk(s, 'pillow') ? 4 : 0), stress: -22 - (hasPerk(s, 'pillow') ? 8 : 0) - aura(s, 'rest', 0) }, after: '没有产出的一格行动，也算在认真生活。' },
-    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0) - (hasPerk(s, 'cofounder') ? 3 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
+    build: { name: '做自己的产品', desc: `进度 ${s.progress}/3 · 做满 3 次上线一个`, icon: 'PackagePlus', effects: { cash: -Math.round((260 + s.products * 90) * (role === 'opc' ? .7 : 1)), health: -2, stress: 6, techDebt: Math.max(0, 3 - craft + (bonus?.build ?? 0) - (role === 'coder' ? 2 : 0) - (hasPerk(s, 'cofounder') ? 3 : 0)), reputation: 1 }, after: '又完成了一小块。不是“平台”，是一个具体的问题。', reason: s.skill < 20 ? '技能达到 20 后可研发' : s.products >= 6 ? '最多维护 6 个产品' : '' },
     write: { name: '写稿发帖', desc: '抽卡式创作：可能 10 万+，也可能住院。', icon: 'PenLine', effects: { health: -3, stress: 5 }, outcomes: writeOutcomes(s), after: '' },
     maintain: { name: '还一点技术债', desc: '修旧坑，也保护每天的产品收入。', icon: 'Wrench', effects: { cash: -90, techDebt: -18, stress: -5, skill: 2 }, after: '删掉一层包装。你终于又能看懂自己的系统了。' },
     social: { name: '去饭局社交', desc: '扫码加了 200 个好友，真朋友 0.5 个。', icon: 'Users', effects: { cash: -120, health: -2, stress: -3, reputation: 4 }, after: '' },
@@ -272,7 +276,7 @@ export function actionInfo(s, action) {
   info.process = activity.process;
   info.flavors = ACTION_FLAVOR[action].map(line => `「${activity.name}」：${line}`);
   if (action === 'work') {
-    info.desc = `${offer.label}专属委托 · ${demand?.active ? '新闻加价 30% · ' : ''}${bonus ? `搭子另加 ¥${bonus.work}` : '今日报价已含职业与地点加成'}`;
+    info.desc = `${offer.label}专属委托 · ${offer.grade ? `手艺加价 ${offer.grade * 20}% · ` : ''}${offer.client ? `熟客加价 ${offer.client * 10}% · ` : ''} ${demand?.active ? '新闻加价 30% · ' : ''}${bonus ? `搭子另加 ¥${bonus.work}` : '今日报价已含职业与地点加成'}`;
     info.flavors[0] = activity.story;
     info.flavors[1] = `${activity.story} 甲方终于把“收到”变成了转账。`;
   }
@@ -295,6 +299,8 @@ export function actionInfo(s, action) {
     const rolls = ACTION_ROLLS[action].map(({ bonus: { cashRate, ...rest }, ...r }) => ({ ...r, effects: { ...(cashRate ? { cash: Math.round((info.effects.cash ?? 0) * cashRate) } : {}), ...rest } }));
     // Launch parties and hackathons are where the angels drink.
     if (action === 'social' && ['launch', 'hackathon'].includes(s.location)) rolls[0].weight = 14;
+    if (action === 'work') rolls.find(r => r.id === 'stiffed').weight = s.reputation >= 60 ? 0 : s.reputation >= 30 ? 5 : 10;
+    if (action === 'rush') rolls.find(r => r.id === 'spaghetti').weight += s.stress >= 70 ? 20 : s.stress >= 50 ? 10 : 0;
     if (hasPerk(s, 'koi')) for (const r of rolls) if (GOOD_OUTCOMES.includes(r.id)) r.weight += 6;
     info.outcomes = [{ id: 'normal', rank: '', weight: 100 - rolls.reduce((n, r) => n + r.weight, 0), effects: {}, text: '' }, ...rolls];
     if (action === 'work') for (const outcome of info.outcomes) {
@@ -631,7 +637,7 @@ export function isValidSave(s) {
   if (!Array.isArray(s.perks) || s.perks.length > DRAFT_DAYS.length || new Set(s.perks).size !== s.perks.length || !s.perks.every(id => PERKS.some(p => p.id === id))) return false;
   if (s.draft !== null && !(Array.isArray(s.draft) && s.draft.length >= 1 && s.draft.length <= 3 && new Set(s.draft).size === s.draft.length && s.draft.every(id => PERKS.some(p => p.id === id) && !s.perks.includes(id)))) return false;
   if (s.rent !== null && !(s.rent && integer(s.rent.due, 1, 1e6) && typeof s.rent.paid === 'boolean')) return false;
-  if (!Array.isArray(s.vips) || s.vips.length > 3 || !s.vips.every(v => v && VIPS.some(x => x.id === v.id && x.station === v.station) && integer(v.from, 1, DAYS) && v.until === v.from + 1 && typeof v.claimed === 'boolean')) return false;
+  if (!Array.isArray(s.vips) || s.vips.length > 3 || !s.vips.every(v => v && VIPS.some(x => x.id === v.id && x.station === v.station) && integer(v.from, 1, DAYS) && (v.until === v.from || v.until === v.from + 1) && typeof v.claimed === 'boolean')) return false;
   if (!s.items || typeof s.items !== 'object' || Array.isArray(s.items) || !Object.entries(s.items).every(([id, n]) => ITEMS[id] && integer(n, 1, 20))) return false;
   if (!s.flow || typeof s.flow !== 'object' || Array.isArray(s.flow) || !Object.entries(s.flow).every(([id, f]) => GOODS.some(g => g.id === id) && f && integer(f.b, 0, 1000) && integer(f.s, 0, 1000))) return false;
   const st = s.stats, trade = t => t === null || (t && GOODS.some(g => g.id === t.id) && integer(t.profit, -1e9));
@@ -715,7 +721,12 @@ export function parseSave(text) {
     }
     if (s?.version === 8) {
       // v9 adds VIP visits, items and market depth. Today's quotes stay; the first VIP is announced tomorrow.
-      s.vips = []; s.items = {}; s.flow = {}; s.proof = null; s.version = VERSION;
+      s.vips = []; s.items = {}; s.flow = {}; s.proof = null; s.version = 9;
+    }
+    if (s?.version === 9) {
+      // Preserve balances, RNG, today's prices and already announced visits.
+      // Old command histories must never be replayed under the new economy.
+      s.proof = null; s.version = VERSION;
     }
     if (s?.version === VERSION && Array.isArray(s.eventDeck)) {
       // Saves from before new events were added keep their order; new events join the end of the deck.

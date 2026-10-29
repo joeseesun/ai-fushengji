@@ -298,17 +298,19 @@ test('no perk combination lets a same-day buy-then-sell make money', async () =>
     for (const g of GOODS) assert.ok(salePrice(s, g.id) < buyPrice(s, g.id), `${seed} ${g.id}`);
   }
 });
-test('VIPs are announced a day ahead, stay two days, move prices and hand out items at their station', async () => {
+test('rare VIPs are announced a day ahead, leave after one day and hand out items at their station', async () => {
   const { VIPS, ITEMS } = await import('../src/content.js');
   const { activeVips, upcomingVips, nextStop } = await import('../src/engine.js');
   let s = ready(61); s.event = null;
-  assert.equal(activeVips(s).length, 1); assert.equal(upcomingVips(s).length, 1);
+  assert.equal(activeVips(s).length, 0); assert.equal(upcomingVips(s).length, 0);
+  while (!upcomingVips(s).length) s = act(s, { type: 'travel', location: 'home' });
   const tomorrow = upcomingVips(s)[0];
   const there = act(s, { type: 'travel', location: tomorrow.station });
   const vip = VIPS.find(v => v.id === tomorrow.id), item = ITEMS[vip.item];
   assert.ok(activeVips(there).some(v => v.id === vip.id));
   assert.equal(there.items[vip.item], item.charges); assert.ok(there.journal.some(j => j.kind === 'vip'));
-  assert.ok(upcomingVips(there).length === 1 && upcomingVips(there)[0].from === there.day + 1);
+  assert.equal(upcomingVips(there).length, 0);
+  assert.equal(activeVips(act(there, { type: 'travel', location: 'home' })).length, 0);
   assert.deepEqual(parseSave(JSON.stringify(there)).vips, there.vips);
   // Same seed, a different station: same VIP, no item.
   const elsewhere = act(s, { type: 'travel', location: LOCATIONS_OTHER(tomorrow.station) });

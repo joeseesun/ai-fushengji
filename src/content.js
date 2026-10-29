@@ -411,7 +411,7 @@ export const RENT_LATE_RATE = 1.5;
 export const GOOD_OUTCOMES = ['jackpot', 'eureka', 'deep', 'spark', 'clean', 'investor', 'lead', 'viral', 'hit'];
 export const BAD_OUTCOMES = ['stiffed', 'spaghetti', 'rabbit', 'pinged', 'scope', 'trap', 'gacha', 'limited', 'hospital'];
 
-// VIPs replace answer-picking: each visits one station for two days, announced a day ahead on the map.
+// VIPs replace answer-picking: rare one-day visits, announced a day ahead on the map.
 // local = price factors at their station; global = price factors everywhere; aura = rule changes while present.
 export const VIPS = [
   { id: 'jensen', name: '黄仁勋', title: '皮衣巡演', station: 'market', quote: '“买得越多，省得越多。”今天是真的省了。', local: { compute: .55, b300: .55, rtx: .6, minecard: .7 }, global: {}, aura: {}, item: 'leather', hint: '算力黑市的显卡类 −40%' },

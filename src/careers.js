@@ -118,7 +118,9 @@ export function careerOffer(s) {
   const c = CAREERS[s.role];
   const index = ((s.seed ^ Math.imul(s.day, 1597334677)) >>> 0) % c.jobs.length;
   const [name, rate, story] = c.jobs[index];
-  return { ...c, name, rate, story, index };
+  const grade = s.skill >= 60 ? 2 : s.skill >= 40 ? 1 : 0;
+  const client = s.reputation >= 60 ? 2 : s.reputation >= 30 ? 1 : 0;
+  return { ...c, name: `${grade === 2 ? '专家单' : grade === 1 ? '专业单' : '基础单'} · ${name}`, rate: rate * (1 + grade * .2) * (1 + client * .1), story, index, grade, client };
 }
 export function careerDemand(s) {
   const d = DEMAND[s.news];
@@ -128,4 +130,13 @@ export function careerAction(s, action) {
   const c = careerOffer(s);
   const names = c.activities[action];
   return { name: action === 'work' ? c.name : names[(c.index + s.day) % names.length], story: c.story, process: c.process };
+}
+
+// These labels explain actual rules; viewing them never consumes randomness.
+export function attributeGuide(s) {
+  return [
+    { label: `技能 ${s.skill} · ${s.skill >= 60 ? '专家' : s.skill >= 40 ? '熟练' : '入门'}`, text: s.skill < 20 ? `再学 ${20 - s.skill} 点可研发产品；40 点解锁专业单（报价 +20%）。` : s.skill < 40 ? `已能研发产品；再学 ${40 - s.skill} 点解锁专业单，赶工和研发少积累 2 点技术债。` : s.skill < 60 ? `专业单报价 +20%，赶工和研发少 2 技术债；再学 ${60 - s.skill} 点解锁专家单（报价 +40%）。` : '专家单报价 +40%，赶工和研发少积累 4 点技术债。' },
+    { label: `口碑 ${s.reputation} · ${s.reputation >= 60 ? '口口相传' : s.reputation >= 30 ? '熟客认可' : '积累信任'}`, text: s.reputation < 30 ? `再积累 ${30 - s.reputation} 点解锁熟客单（报价 +10%、压价概率 10% → 5%）。` : s.reputation < 60 ? `熟客单报价 +10%，压价概率 5%；再积累 ${60 - s.reputation} 点解锁转介绍（报价 +20%、不再随机压价）。` : '转介绍报价 +20%，不再随机压价。口碑还会提高每个产品的日收入。' },
+    { label: `压力 ${s.stress} · ${s.stress >= 70 ? '濒临透支' : s.stress >= 50 ? '过劳' : '尚有余力'}`, text: s.stress < 50 ? `距过劳还有 ${50 - s.stress} 点。50 起夜间额外掉 2 健康，赶工翻车多 10 个百分点；70 起分别变为 5 点和 20 个百分点。100 出局。` : `今夜额外掉 ${s.stress >= 70 ? 5 : 2} 健康，赶工翻车多 ${s.stress >= 70 ? 20 : 10} 个百分点。休息可降压；100 出局。` },
+  ];
 }

@@ -47,3 +47,8 @@ location ^~ /api/ {
 - SQLite 使用 WAL。维护前可停本项目容器后备份整个 data 目录，恢复原容器，再继续部署；运行中不可只复制主库遗漏 WAL。现有记录不随容器重建消失。不要执行删除 volume 或数据库的清理命令。
 
 实现依据：[Node SQLite 文档](https://nodejs.org/api/sqlite.html)、[Docker 回环端口绑定](https://docs.docker.com/engine/network/port-publishing/)。实际本地运行与生产容器结果单独记录。
+
+
+## v0.10.0 存档与规则边界
+
+多存档以 `ai-fushengji-slots-v1` 单键原子保存，最多六局，旧 `ai-fushengji-save-v1` 不删除。迁移保留当天报价、资源、RNG 和已公告行程，后续应用新版成长规则；旧局证明失效，仅可继续离线/本机记录，不补造历史上新版榜单。新局核算版本为 0.10.0，前后端必须一起发布。旧榜单行保留，旧版本验证器未保留。回滚旧前端不能读取新多存档键，只会读取迁移前的旧单局副本；新局须先导出，不能将回滚描述为完整恢复新进度。

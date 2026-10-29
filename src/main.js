@@ -1,3 +1,4 @@
+import { SLOTS_KEY, MAX_SLOTS, readSlots, writeSlots } from './saves.js';
 import { createElement, Monitor, Terminal, PenTool, Coffee, Cpu, Presentation, BriefcaseBusiness, GraduationCap, GitFork, House, ScrollText, Workflow, Database, Box, Contact, BookOpen, PackagePlus, Wrench, Zap, HardDrive, ArrowRight, ArrowUpRight, ArrowDownRight, Wallet, Heart, Brain, ReceiptText, CircleHelp, RotateCcw, Download, Upload, X, ChevronRight, NotebookPen, Info, Copy, Check, ShieldCheck, ChartNoAxesCombined, Save, CircleDollarSign, Video, PenLine, Trophy, Building2, Sparkles, Volume2, VolumeX, Users, Map as MapIcon, Award, MapPin } from 'lucide';
 import { GOODS, LOCATIONS, ROLES, EVENTS, MILESTONES, WRITE_OUTCOMES, PERKS, VIPS, ITEMS } from './content.js';
 import { sfx, sfxEnabled, setSfx } from './sfx.js';
@@ -5,7 +6,7 @@ import { CAST, SOURCES, MEME_CATALOG, rheostat } from './memes.js';
 import { MODELS, PROFILES, MODEL_DATE, getModel, featuredModel, modelTier, modelBlurb } from './models.js';
 import { NEWS_SOURCES } from './news.js';
 import { readerReactions } from './news-extra.js';
-import { careerDemand, CAREERS } from './careers.js';
+import { careerDemand, CAREERS, attributeGuide } from './careers.js';
 import { ACHIEVEMENTS, checkAchievements, unlocked, runs, recordRun } from './achievements.js';
 import { buyPrice, buyCost, sellIncome, depth, activeVips, upcomingVips, itemFor, rentDue, personaFor, newGame, transition, commandRisk, failureReason, parseSave, SAVE_KEY, nextStop, travelFare, gameResult, getEvent, getLocation, getNews, getRumor, getArrival, modelFee, combinedEffects, expandCost, sells, questProgress, priceHeat, referencePrice, usedSpace, salePrice, inventoryValue, netWorth, productIncome, dailyCost, dailyInterest, actionInfo, effectText, shareText } from './engine.js';
 import { openLeaderboard, submitScore } from './leaderboard.js';
@@ -26,17 +27,41 @@ const app = document.querySelector('#app'), modal = document.querySelector('#mod
 let activePane = 'actions', nextStation = null, mapStation = 'jobs', pickedRole = 'coder';
 let pendingAnim = null, lastRank = null;
 let state = null, saved = null, toastTimer, restoreFocus = null, saveError = '', startupNotice = '', tradeContext = null;
-try { const raw = localStorage.getItem(SAVE_KEY); saved = raw ? parseSave(raw) : null; if (raw && !saved) startupNotice = '旧存档无法读取，尚未覆盖。你可以导出原始存档备份，或开始新一局。'; } catch { startupNotice = '浏览器限制了本地存储。仍可游玩，请手动导出存档。'; }
+let library = { version: 1, active: null, slots: [] }, libraryLocked = false;
+try { library = readSlots(localStorage); saved = library.slots.find(s => s.id === library.active)?.state ?? null; if (saved && !saved.proof) startupNotice = '旧局可按新版规则继续，余额、行情与随机进度保留；旧局不能提交新版全服榜。'; }
+catch (error) { libraryLocked = true; startupNotice = `${error.message} 可继续临时游玩，请导出备份。`; }
+
 
 function notify(text, error = false) {
   const el = document.querySelector('#toast'); el.textContent = text; el.className = `show${error ? ' error' : ''}`;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => el.className = '', error ? 6500 : 4500);
 }
-function persist() {
-  if (!state) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); saved = state; saveError = ''; }
-  catch { saveError = '自动存档失败。请用“存档”导出，关闭网页会丢失本次进度。'; }
+function storeLibrary(candidate) {
+  try {
+    if (libraryLocked) throw new Error('原存档未能读取');
+    writeSlots(localStorage, candidate); library = candidate; saveError = ''; return true;
+  } catch { saveError = '自动存档失败。请导出当前进度备份；保存成功后才能切换对局。'; return false; }
 }
+function persist() {
+  if (!state) return true;
+  const id = library.active ?? crypto.randomUUID();
+  const slots = library.slots.some(s => s.id === id) ? library.slots.map(s => s.id === id ? { id, state } : s) : [...library.slots, { id, state }];
+  const ok = storeLibrary({ version: 1, active: id, slots });
+  if (ok) saved = state;
+  return ok;
+}
+function addRun(run) {
+  if (!persist()) { render(); notify(saveError, true); return; }
+  if (library.slots.length >= MAX_SLOTS) { saveDialog(); notify('六个存档已满。请先导出并删除一局，再开新局。', true); return; }
+  const id = crypto.randomUUID();
+  if (!storeLibrary({ version: 1, active: id, slots: [...library.slots, { id, state: run }] })) {
+    if (!library.slots.length) { state = run; closeModal(); render(); }
+    else { render(); notify(saveError, true); }
+    return;
+  }
+  state = run; saved = run; lastRank = null; activePane = 'actions'; nextStation = null; startupNotice = ''; closeModal(); render();
+}
+
 function dispatch(command, confirmed = false) {
   if (!state) return false;
   const risk = !confirmed && commandRisk(state, command);
@@ -203,18 +228,19 @@ function draftPanel() {
 }
 const vipCard = (v, when) => {
   const item = ITEMS[v.item], here = v.station === state.location && when === 'today', place = LOCATIONS.find(l => l.id === v.station).name;
-  return `<article class="vip-card ${when}">${portrait(v.id)}<div><span class="vip-when">${when === 'today' ? `今天 · 到第 ${v.until} 天` : '明天到场 · 预告'}</span><b>${esc(v.name)}「${esc(v.title)}」@ ${esc(place)}</b><em>${esc(v.hint)}</em><small>${esc(v.quote)}</small><span class="vip-item"><img src="/art/items/${v.item}.webp" alt="" width="20" height="20">${here ? (v.claimed ? `你在现场，已领到「${esc(item.name)}」` : `到场可领「${esc(item.name)}」`) : `去${esc(place)}可领「${esc(item.name)}」：${esc(item.desc)}`}</span></div></article>`;
+  return `<article class="vip-card ${when}">${portrait(v.id)}<div><span class="vip-when">${when === 'today' ? (v.until === v.from ? '仅限今天 · 收工离场' : `今天 · 到第 ${v.until} 天`) : '明天到场 · 预告'}</span><b>${esc(v.name)}「${esc(v.title)}」@ ${esc(place)}</b><em>${esc(v.hint)}</em><small>${esc(v.quote)}</small><span class="vip-item"><img src="/art/items/${v.item}.webp" alt="" width="20" height="20">${here ? (v.claimed ? `你在现场，已领到「${esc(item.name)}」` : `到场可领「${esc(item.name)}」`) : `去${esc(place)}可领「${esc(item.name)}」：${esc(item.desc)}`}</span></div></article>`;
 };
 function todayPanel() {
   const e = getEvent(state), now = activeVips(state), soon = upcomingVips(state), bag = Object.entries(state.items ?? {});
   const blocks = [
     ...now.map(v => vipCard(v, 'today')),
+    !now.length && !soon.length ? '<p class="item-hint">今天没有大佬到访，也没有明日行程。看看行情，经营自己的生意。</p>' : '',
     ...soon.map(v => vipCard(v, 'soon')),
-    bag.length ? `<div class="item-bag"><b>我的道具</b>${bag.map(([id, n]) => `<span title="${esc(ITEMS[id].desc)}"><img src="/art/items/${id}.webp" alt="" width="24" height="24">${esc(ITEMS[id].name)} ×${n}</span>`).join('')}<small>做对应的事时自动使用，按钮上会标出来。</small></div>` : '<p class="item-hint">大佬在哪，就去哪：到场能领道具，道具让下一次接单、学习、做产品等更赚。</p>',
+    bag.length ? `<div class="item-bag"><b>我的道具</b>${bag.map(([id, n]) => `<span title="${esc(ITEMS[id].desc)}"><img src="/art/items/${id}.webp" alt="" width="24" height="24">${esc(ITEMS[id].name)} ×${n}</span>`).join('')}<small>做对应的事时自动使用，按钮上会标出来。</small></div>` : '',
     // Split the day's meme into page-sized pieces so small screens page through it instead of clipping.
     ...(e ? [...(e.meme ? [memeArt(e)] : []), `<div class="today-meme"><span class="event-tag">今日梗 · ${esc(e.tag)}</span><h3>${esc(e.title)}</h3></div>`, ...(e.text.match(/[^。！？]+[。！？]?/g) ?? [e.text]).map(t => `<p class="event-story">${esc(t)}</p>`)] : []),
   ];
-  return `<section class="panel event-panel screen-pane today-panel" data-pane="event" aria-labelledby="event-heading"><div class="panel-heading"><h2 id="event-heading" tabindex="-1">${icon('Sparkles')} 今日风向</h2><span>大佬在哪，钱就在哪</span></div>${pageFrame(blocks.join(''), '风向', 'event-pages')}<div class="event-footer">人物情节为虚构恶搞${e?.meme ? `<button class="inline-link" data-ui="meme-detail" data-id="${e.id}">梗的出处 ↗</button>` : ''}</div></section>`;
+  return `<section class="panel event-panel screen-pane today-panel" data-pane="event" aria-labelledby="event-heading"><div class="panel-heading"><h2 id="event-heading" tabindex="-1">${icon('Sparkles')} 今日风向</h2><span>机会短暂，日子照常</span></div>${pageFrame(blocks.join(''), '风向', 'event-pages')}<div class="event-footer">人物情节为虚构恶搞${e?.meme ? `<button class="inline-link" data-ui="meme-detail" data-id="${e.id}">梗的出处 ↗</button>` : ''}</div></section>`;
 }
 function eventPanel() {
   if (state.draft) return draftPanel();
@@ -321,7 +347,7 @@ function actionPanel() {
     return `<button class="action-tile ${id === suggested && state.ap ? `suggested ${tired ? 'warn' : ''}` : ''}" data-ui="action" data-id="${id}" data-focus="action-${id}" ${a.reason ? 'disabled' : ''} title="${esc(a.desc)}"><span class="action-kind">${categories[id]}${id === 'work' && demand?.active ? ' · 热点加价 30%' : ''}</span>${held ? `<span class="item-chip"><img src="/art/items/${held}.webp" alt="" width="16" height="16">${esc(ITEMS[held].name)} ×${state.items[held]}</span>` : ''}<span class="action-name">${icon(a.icon)}<strong>${a.name}</strong></span><small class="action-effects">${a.reason || (id === 'write' ? `<span>抽卡¥0–${Math.max(...a.outcomes.map(o => o.effects.cash ?? 0))}</span><span>爆款${a.outcomes[0].weight}%</span><span>住院${a.outcomes.at(-1).weight}%</span>` : compactEffects(a.effects))}</small>${a.assist ? `<small class="assist-note">${esc(a.assist)}</small>` : ''}${a.outcomes && id !== 'write' ? `<small class="odds">${a.outcomes.slice(1).map(r => `${r.rank}${r.weight}%`).join(' · ')}</small>` : ''}</button>`;
   }).join('')}</div>`).join('');
   const current = getModel(state);
-  return `<section class="panel actions-panel screen-pane" data-pane="actions"><div class="panel-heading"><h2>${icon('Coffee')} 安排今天</h2><span class="action-pips">剩余 ${state.ap} / 2 次</span></div>${pageFrame(`${rows}<button class="compact-model" data-ui="models">${icon('Cpu')}<span>${current ? `<b>${esc(current.name)} · 至第 ${state.modelUntil} 天</b><small>工作 +¥${current.work} / 学习 +${current.learn} / 研发债 ${current.build}</small>` : '找 AI 搭子 · 加成会写在行动里'}</span>${icon('ChevronRight')}</button><button class="compact-company" data-ui="company">档案 · 技能 ${state.skill} · 产品 ${state.products} · 研发 ${state.progress}/3</button>`, '行动', 'action-pages')}</section>`;
+  return `<section class="panel actions-panel screen-pane" data-pane="actions"><div class="panel-heading"><h2>${icon('Coffee')} 安排今天</h2><span class="action-pips">剩余 ${state.ap} / 2 次</span></div>${pageFrame(`${rows}<button class="compact-model" data-ui="models">${icon('Cpu')}<span>${current ? `<b>${esc(current.name)} · 至第 ${state.modelUntil} 天</b><small>工作 +¥${current.work} / 学习 +${current.learn} / 研发债 ${current.build}</small>` : '找 AI 搭子 · 加成会写在行动里'}</span>${icon('ChevronRight')}</button><button class="compact-company" data-ui="company">属性与成长 · 技能 ${state.skill} · 口碑 ${state.reputation} · 压力 ${state.stress}</button>`, '行动', 'action-pages')}</section>`;
 }
 
 function companyPanel() {
@@ -357,14 +383,7 @@ function ending() {
 
 function render() { app.innerHTML = chrome(!state ? welcome() : state.status === 'ended' ? ending() : game()); layoutPages(app); }
 
-function startGame() {
-  const role = pickedRole;
-  const start = () => { state = newGame(role); activePane = 'actions'; nextStation = null; startupNotice = ''; persist(); closeModal(); render(); window.scrollTo(0, 0); };
-  if (saved || startupNotice) {
-    openModal('开始新的人生', '<p>新开局会替换本机存档。旧的一局可以先导出保存。</p><div class="modal-actions"><button data-ui="export">导出旧存档</button><button class="primary" id="confirm-start">替换存档，开始</button></div>');
-    document.querySelector('#confirm-start').onclick = start;
-  } else start();
-}
+function startGame() { addRun(newGame(pickedRole)); }
 
 function trade(id, type) {
   const g = GOODS.find(g => g.id === id); if (!g || !state) return;
@@ -418,7 +437,7 @@ function journal() {
 }
 
 function help() {
-  openModal('生存指南 · 边玩边学', pageFrame(`<div class="help-step"><b>先看顶部目标，再挑今天的安排。</b><p>重点操作会标出来：开局、建议的行动、收工、早报里的“开始今天”。不想照做也可以，别的按钮都能点。</p></div><div class="help-step"><b>40 天内还清欠款，活着收工。</b><p>健康归零、压力到 100，或债务超过 ¥50,000 会提前结束。所有行动都是游戏数值。</p></div><div class="help-step"><b>五种身份，五种活法</b><p>程序员接单多、熬夜少欠技术债；AI 自媒体写稿 +50%、爆款率高；一人公司产品赚得多、研发便宜，但欠得也多；打工人抗压；应届生学得快、签模型半价，但最穷。</p></div><div class="help-step"><b>遭遇是可选支线</b><p>可以先工作、交易，也可回应或略过；回应不花行动，但改变标明的数值。未处理遭遇收工时略过。长事件点“继续阅读”翻页，每个选项都写明代价；有概率的选项也标明结果。</p></div><div class="help-step"><b>② 两次行动</b><p>接单赚现金，休息恢复健康、降低压力。写稿发帖是抽卡：可能 10 万+，也可能被限流、抽出六指图，甚至熬夜住院，概率都写在格子上。学习涨技能；研发 3 次上线 1 个产品，每天自动收收入，技术债会降低收益。</p></div><div class="help-step"><b>交易和还款都不耗行动</b><p>随时可低买高卖、还债、租模型，不必先处理遭遇。回收价低于买价 10%，同日倒手会亏钱。别把生活费全压进库存。</p></div><div class="help-step"><b>③ 结束今天</b><p>收工默认免费去下一站；地图可选留在原地，或花 ¥120 打车跳站。每站每天从 20 种货里轮换 8 种，至少两种受当天新闻影响（首日固定货架、平静新闻除外），价格也不同；去过的地方会在地图上记下当时哪些便宜、哪些贵。生活费约 ¥110–150，加产品维护；债务日息 1.8%。到站后有一份早报：可能领到发布会车马费、黑客松奖金，也可能被房东涨租；还有当天头条和“本站突发”暴涨暴跌。</p></div><div class="help-step"><b>今日风向 · 追着大佬跑</b><p>每天都有 AI 圈大佬在某个地方出现两天，并且提前一天在地图上预告（头像带“明”字）。大佬会改变当地甚至全城的价格：黄仁勋到算力黑市，显卡便宜；梁文峰凌晨发模型，全城显卡涨价、接单多赚。你在大佬在场时到达那一站，就能领到道具，比如“白饭钢盆”让下 2 次接单各多赚 ¥300。</p></div><div class="help-step"><b>市场深度</b><p>同一天在同一站卖得越多，卖价越低（每件 −2.5%，最多 −40%）；买得越多，买价越高。囤了一仓货，最好分几站卖。第二天会恢复。</p></div><div class="help-step"><b>外挂三选一</b><p>第 5、12、19、26、33 天会给你三张外挂卡，挑一张，整局生效：青轴键盘让接单多赚，降噪耳机少涨压力，黄牛名片买得更便宜……五张凑一起，就是你这局的流派。收工前不选就作废。</p></div><div class="help-step"><b>房租日 · BOSS 战</b><p>第 10、20、30 天房东上门，分别收 ¥1,200 / ¥2,000 / ¥3,000。点顶部红色“房租日”按钮交租；收工前没交，1.5 倍记进欠款，压力和口碑也会掉。</p></div><div class="help-step"><b>每日委托、成就和排行</b><p>从第 2 天起，顶部会给一个当天小目标，比如“今天倒货赚 ¥500”，收工时达成就发奖励。成就和本机排行榜在菜单“成就”里，只存在这台设备上。仓库满了可以在交易所点“扩仓”，花钱不占行动。</p></div><div class="help-step"><b>第 40 天手动结算</b><p>最后一天仍可行动和交易。确认后按回收价清仓，扣当天费用，再自动还债。</p></div><div class="help-step"><b>看不下的内容，点按钮翻页。</b><p>小屏幕用“事件 / 交易所 / 行动”切换，当前目标和结束今天按钮始终可见；不用上下左右滑动。进度保存在本机，“存档”可以导出或导入。</p></div><div class="help-step"><b>关于本作</b><p>原创 ${EVENTS.length} 个日常事件、${Object.keys(MILESTONES).length} 个阶段剧情。人物情节为虚构恶搞，无需 API key，不调用付费模型。</p><p>灵感来自 <a href="https://github.com/chrisguo/beijing_fushengji" target="_blank" rel="noopener">郭祥昊《北京浮生记》</a>，未使用原版代码或素材。</p></div><div class="modal-actions"><button data-ui="support">打赏支持</button><button data-ui="follow">关注作者</button><button data-ui="news" ${!state ? 'disabled' : ''}>今日快讯</button></div>`, '玩法'), true);
+  openModal('生存指南 · 边玩边学', pageFrame(`<div class="help-step"><b>先看顶部目标，再挑今天的安排。</b><p>重点操作会标出来：开局、建议的行动、收工、早报里的“开始今天”。不想照做也可以，别的按钮都能点。</p></div><div class="help-step"><b>40 天内还清欠款，活着收工。</b><p>健康归零、压力到 100，或债务超过 ¥50,000 会提前结束。所有行动都是游戏数值。</p></div><div class="help-step"><b>五种身份，五种活法</b><p>程序员接单多、熬夜少欠技术债；AI 自媒体写稿 +50%、爆款率高；一人公司产品赚得多、研发便宜，但欠得也多；打工人抗压；应届生学得快、签模型半价，但最穷。</p></div><div class="help-step"><b>遭遇是可选支线</b><p>可以先工作、交易，也可回应或略过；回应不花行动，但改变标明的数值。未处理遭遇收工时略过。长事件点“继续阅读”翻页，每个选项都写明代价；有概率的选项也标明结果。</p></div><div class="help-step"><b>② 两次行动</b><p>接单赚现金，休息恢复健康、降低压力。写稿发帖是抽卡：可能 10 万+，也可能被限流、抽出六指图，甚至熬夜住院，概率都写在格子上。学习涨技能；研发 3 次上线 1 个产品，每天自动收收入，技术债会降低收益。</p></div><div class="help-step"><b>交易和还款都不耗行动</b><p>随时可低买高卖、还债、租模型，不必先处理遭遇。回收价低于买价 10%，同日倒手会亏钱。别把生活费全压进库存。</p></div><div class="help-step"><b>③ 结束今天</b><p>收工默认免费去下一站；地图可选留在原地，或花 ¥120 打车跳站。每站每天从 20 种货里轮换 8 种，至少两种受当天新闻影响（首日固定货架、平静新闻除外），价格也不同；去过的地方会在地图上记下当时哪些便宜、哪些贵。生活费约 ¥110–150，加产品维护；债务日息 1.8%。到站后有一份早报：可能领到发布会车马费、黑客松奖金，也可能被房东涨租；还有当天头条和“本站突发”暴涨暴跌。</p></div><div class="help-step"><b>今日风向 · 追着大佬跑</b><p>大佬每隔 5–7 天才到访一次，仅停留一天；提前一天在地图上预告（头像带“明”字）。普通日子没有大佬，收工后现场加成结束，已领道具保留。大佬会改变当地甚至全城的价格：黄仁勋到算力黑市，显卡便宜；梁文峰凌晨发模型，全城显卡涨价、接单多赚。你在大佬在场时到达那一站，就能领到道具，比如“白饭钢盆”让下 2 次接单各多赚 ¥300。</p></div><div class="help-step"><b>市场深度</b><p>同一天在同一站卖得越多，卖价越低（每件 −2.5%，最多 −40%）；买得越多，买价越高。囤了一仓货，最好分几站卖。第二天会恢复。</p></div><div class="help-step"><b>外挂三选一</b><p>第 5、12、19、26、33 天会给你三张外挂卡，挑一张，整局生效：青轴键盘让接单多赚，降噪耳机少涨压力，黄牛名片买得更便宜……五张凑一起，就是你这局的流派。收工前不选就作废。</p></div><div class="help-step"><b>房租日 · BOSS 战</b><p>第 10、20、30 天房东上门，分别收 ¥1,200 / ¥2,000 / ¥3,000。点顶部红色“房租日”按钮交租；收工前没交，1.5 倍记进欠款，压力和口碑也会掉。</p></div><div class="help-step"><b>每日委托、成就和排行</b><p>从第 2 天起，顶部会给一个当天小目标，比如“今天倒货赚 ¥500”，收工时达成就发奖励。成就和本机排行榜在菜单“成就”里，只存在这台设备上。仓库满了可以在交易所点“扩仓”，花钱不占行动。</p></div><div class="help-step"><b>第 40 天手动结算</b><p>最后一天仍可行动和交易。确认后按回收价清仓，扣当天费用，再自动还债。</p></div><div class="help-step"><b>看不下的内容，点按钮翻页。</b><p>小屏幕用“事件 / 交易所 / 行动”切换，当前目标和结束今天按钮始终可见；不用上下左右滑动。进度保存在本机，“存档”可切换最多六个独立对局，也能导出或导入。</p></div><div class="help-step"><b>关于本作</b><p>原创 ${EVENTS.length} 个日常事件、${Object.keys(MILESTONES).length} 个阶段剧情。人物情节为虚构恶搞，无需 API key，不调用付费模型。</p><p>灵感来自 <a href="https://github.com/chrisguo/beijing_fushengji" target="_blank" rel="noopener">郭祥昊《北京浮生记》</a>，未使用原版代码或素材。</p></div><div class="modal-actions"><button data-ui="support">打赏支持</button><button data-ui="follow">关注作者</button><button data-ui="news" ${!state ? 'disabled' : ''}>今日快讯</button></div>`, '玩法'), true);
 }
 
 function download(content, name, mime = 'application/json') {
@@ -432,15 +451,41 @@ function exportSave() {
   download(raw, `AI浮生记-第${(state ?? saved)?.day ?? '未知'}天.json`);
 }
 function saveDialog() {
-  openModal('存档 · 允许人生暂停', `<p>进度自动保存在当前浏览器。换设备之前，导出一份存档。</p><div class="modal-actions"><button data-ui="export">${icon('Download')} 导出存档</button><label class="file-button">${icon('Upload')} 导入存档<input id="import-file" type="file" accept=".json,application/json"></label></div><p class="muted">导入前会确认替换，不会上传到服务器。</p>`);
+  if (!persist()) { render(); notify(saveError, true); }
+  const rows = library.slots.map(slot => {
+    const run = slot.state, role = ROLES.find(r => r.id === run.role);
+    return `<article class="save-slot"><b>${esc(role.name)} · 第 ${run.day} 天${slot.id === library.active ? ' · 当前' : ''}</b><small>${esc(getLocation(run).name)} · 现金 ${money(run.cash)} · ${gameResult(run)}</small><div class="modal-actions"><button data-slot-load="${esc(slot.id)}" ${slot.id === library.active && state ? 'disabled' : ''}>继续这局</button><button data-slot-delete="${esc(slot.id)}">删除这局</button></div></article>`;
+  });
+  openModal('存档 · 多种人生', pageFrame(`<p>最多保留 ${MAX_SLOTS} 个独立对局（${library.slots.length}/${MAX_SLOTS}）。新开局和导入另存一局；切换前自动保存。</p>${rows.join('')}<div class="modal-actions"><button data-ui="export">${icon('Download')} 导出当前局</button><label class="file-button">${icon('Upload')} 导入为新存档<input id="import-file" type="file" accept=".json,application/json"></label>${libraryLocked ? '<button id="export-raw">导出原始数据备份</button>' : ''}</div><p class="muted">只保存在当前浏览器，不会自动上传。</p>`, '存档'));
+  if (libraryLocked) document.querySelector('#export-raw').onclick = () => {
+    try { download(localStorage.getItem(SLOTS_KEY) || localStorage.getItem(SAVE_KEY) || '', 'AI浮生记-原始存档备份.json'); } catch { notify('浏览器不允许读取原始存档。', true); }
+  };
+  for (const button of modal.querySelectorAll('[data-slot-load]')) button.onclick = () => {
+    if (!persist()) { render(); notify(saveError, true); return; }
+    const slot = library.slots.find(s => s.id === button.dataset.slotLoad);
+    if (!slot || !storeLibrary({ ...library, active: slot.id })) { notify(saveError, true); return; }
+    state = slot.state; saved = state; activePane = 'actions'; nextStation = null; lastRank = null; closeModal(); render();
+  };
+  for (const button of modal.querySelectorAll('[data-slot-delete]')) button.onclick = () => {
+    const id = button.dataset.slotDelete;
+    openModal('删除这局？', '<p>这局的本机进度将被删除。需要保留时，请先切换到这局并导出。</p><div class="modal-actions"><button data-ui="close-modal">取消</button><button id="confirm-delete">确认删除</button></div>');
+    document.querySelector('#confirm-delete').onclick = () => {
+      const wasActive = library.active === id;
+      const slots = library.slots.filter(s => s.id !== id), active = library.active === id ? slots[0]?.id ?? null : library.active;
+      if (!storeLibrary({ version: 1, active, slots })) { notify(saveError, true); return; }
+      saved = slots.find(s => s.id === active)?.state ?? null;
+      if (wasActive) state = null;
+      closeModal(); render(); saveDialog();
+    };
+  };
   document.querySelector('#import-file').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
     if (file.size > 250000) { notify('存档过大，请选择游戏导出的 JSON 文件。', true); return; }
     try {
       const imported = parseSave(await file.text());
       if (!imported) { notify('存档格式不正确或版本不兼容，当前进度未改变。', true); return; }
-      openModal('替换当前存档？', `<p>将载入第 ${imported.day} 天，现金 ${money(imported.cash)} 的存档。当前进度会被替换。</p><div class="modal-actions"><button data-ui="close-modal">取消</button><button class="primary" id="confirm-import">确认导入</button></div>`);
-      document.querySelector('#confirm-import').onclick = () => { state = imported; activePane = 'actions'; nextStation = null; persist(); closeModal(); render(); notify('存档已载入，接着过日子。'); };
+      addRun(imported);
+
     } catch { notify('文件读取失败，请重新选择存档。', true); }
   };
 }
@@ -468,14 +513,14 @@ document.addEventListener('click', e => {
   const action = b.dataset.ui;
   const map = {
     start: startGame, resume: () => { state = saved; activePane = 'actions'; nextStation = null; render(); },
-    new: () => { if (state?.status === 'playing') { openModal('暂时放下这一局', '<p>返回开局页后，当前进度仍会保存。选好新角色并确认，才会替换。</p><div class="modal-actions"><button data-ui="close-modal">继续这一局</button><button id="back-to-welcome">返回角色选择</button></div>'); document.querySelector('#back-to-welcome').onclick = () => { closeModal(); state = null; render(); }; } else { state = null; render(); } },
+    new: () => { if (state?.status === 'playing') { openModal('暂时放下这一局', '<p>当前局会保留，新开局将另存一局。可在“存档”里随时切回来。</p><div class="modal-actions"><button data-ui="close-modal">继续这一局</button><button id="back-to-welcome">返回角色选择</button></div>'); document.querySelector('#back-to-welcome').onclick = () => { if (!persist()) { render(); notify(saveError, true); return; } closeModal(); state = null; render(); }; } else { state = null; render(); } },
     'home-screen': () => { if (modal.open) closeModal(); window.scrollTo({ top: 0, behavior: 'auto' }); },
     choose: () => dispatch({ type: 'choose', index: Number(b.dataset.index), stance: Number(document.querySelector('#stance')?.value ?? state.stance) }),
     'show-pane': () => { activePane = b.dataset.pane; document.querySelector('.game-content').dataset.activePane = activePane; document.querySelectorAll('.pane-tabs button').forEach(t => t.setAttribute('aria-pressed', String(t.dataset.pane === activePane))); layoutPages(app); },
     'end-day': () => travel(nextStation ?? nextStop(state)),
     'ignore-event': () => dispatch({ type: 'ignore-event' }),
     goals: () => goals(),
-    company: () => openModal('产品与个人档案', companyPanel()),
+    company: () => openModal('属性与成长', pageFrame(attributeGuide(state).map(a => `<article class="help-step"><b>${esc(a.label)}</b><p>${esc(a.text)}</p></article>`).join('') + companyPanel(), '档案')),
     sfx: () => { setSfx(!sfxEnabled()); b.setAttribute('aria-pressed', String(sfxEnabled())); b.innerHTML = `${icon(sfxEnabled() ? 'Volume2' : 'VolumeX')}<span>${sfxEnabled() ? '音效开' : '静音'}</span>`; if (sfxEnabled()) sfx.coins(300); },
     'pick-role': () => { pickedRole = b.dataset.id; sfx.pop(); render(); document.querySelector(`.role-tab[data-id="${pickedRole}"]`)?.focus({ preventScroll: true }); },
     news: () => openNews(),
