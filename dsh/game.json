@@ -1,0 +1,34 @@
+{
+  "spec": 1,
+  "id": "ai-fushengji",
+  "name": { "en": "AI Life Simulator", "zh": "AI 浮生记" },
+  "summary": {
+    "en": "Trade GPU time, take odd jobs and repay your debt in 40 days.",
+    "zh": "倒腾算力、做零工、交房租，40 天还清培训贷。"
+  },
+  "author": { "name": "向阳乔木", "url": "https://qiaomu.ai/" },
+  "entry": "game/index.html",
+  "icon": "store/icon.png",
+  "cover": "store/cover.jpg",
+  "screenshots": [
+    {
+      "src": "store/shot-1.jpg",
+      "caption": { "en": "Plan your workday and compare buy and sell prices", "zh": "安排今天的零工和休息，查看交易所买卖价" }
+    },
+    {
+      "src": "store/shot-2.jpg",
+      "caption": { "en": "Choose where to go before ending the day", "zh": "收工前在地图上选明天的去处" }
+    }
+  ],
+  "about": { "en": "store/about.en.md", "zh": "store/about.zh.md" },
+  "languages": ["zh-CN"],
+  "controls": ["keyboard", "mouse", "touch"],
+  "players": { "min": 1, "max": 1 },
+  "content": {
+    "rating": "teen",
+    "notes": {
+      "en": "Workplace satire, mild language, debt and simulated trading with fictional money.",
+      "zh": "职场讽刺、轻度粗口，以及虚构债务和游戏币交易。"
+    }
+  }
+}

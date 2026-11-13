@@ -1,0 +1,16 @@
+{
+  "name": "dsh-game-ai-fushengji",
+  "version": "0.11.1",
+  "description": "AI 浮生记 — a 40-day survival and trading game for DSH Game Store",
+  "license": "MIT",
+  "author": "向阳乔木",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joeseesun/dsh-game-ai-fushengji.git"
+  },
+  "keywords": ["dsh", "dsh-game", "deepseek-harness", "game"],
+  "icon": "./store/icon.png",
+  "files": ["game", "store", "game.json", "cordis.patch.yml", "README.md", "LICENSE"],
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "dshGame": "./game.json"
+}
