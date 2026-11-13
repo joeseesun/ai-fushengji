@@ -39,6 +39,7 @@ npm run server
 npm test             # 按需手动运行引擎检查，默认不跑整局模拟
 npm run test:e2e     # 按需手动运行完整浏览器检查
 npm run build       # dist/，含按内容哈希版本化的离线缓存
+npm run build:dsh   # release/dsh-game-ai-fushengji-<版本>.tgz
 npm run package     # release/ai-fushengji-0.7.0-web.zip
 ```
 
@@ -53,6 +54,10 @@ npm run package     # release/ai-fushengji-0.7.0-web.zip
 v0.7.0 完成本地构建、失败与榜单接口抽查，以及 1365px 桌面 / 390px 和 320px 小屏结算与提交操作检查。按用户要求未重跑整局、全套用例或多种子平衡模拟。CI 默认只构建，完整检查需手动选择。实际难度与乐趣仍需玩家反馈。
 
 游戏可独立静态部署；全服榜另有 Node.js + SQLite 服务，见 [部署说明](docs/DEPLOYMENT.md)。保留 [设计记录](DESIGN.md) 和 [规则](docs/GAME-DESIGN.md)。
+
+## DeepSeek Harness 游戏商店版
+
+`npm run build:dsh` 从同一份游戏源码构建 [DSH 游戏包](dsh/README.md)。安装后从 `dsh-game-store` 的「我的游戏」打开。商店版全程离线，排行与六个自动存档留在当前游戏环境。可在「存档」里复制或粘贴单局 JSON，手动转移网页版存档。
 
 ## 来源与许可
 

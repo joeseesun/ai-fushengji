@@ -22,6 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm run build:dsh
       - run: npm test
         if: github.event_name == 'workflow_dispatch' && inputs.full_checks
       - run: npx playwright install --with-deps chromium
